@@ -11,7 +11,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   input: {
+    fontFamily: Fonts.sans,
     flex: 1,
     minHeight: 54,
     fontSize: 19 / 1.2,
@@ -121,4 +122,3 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
 });
-

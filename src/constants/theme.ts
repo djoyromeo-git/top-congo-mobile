@@ -93,20 +93,16 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+    sans: 'Google Sans',
+    serif: 'Google Sans',
+    rounded: 'Google Sans',
+    mono: 'Google Sans',
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
+    sans: 'Google Sans',
+    serif: 'Google Sans',
+    rounded: 'Google Sans',
+    mono: 'Google Sans',
   },
   web: {
     sans: 'var(--font-display)',
