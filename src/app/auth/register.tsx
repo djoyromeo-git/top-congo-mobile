@@ -1,15 +1,12 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/app-button';
-import { AuthHeader } from '@/components/ui/auth-header';
 import { AuthLegal } from '@/components/ui/auth-legal';
-import { BackCircleButton } from '@/components/ui/back-circle-button';
+import { AuthScreenLayout } from '@/components/ui/auth-screen-layout';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
@@ -17,7 +14,6 @@ import { Palette, Spacing } from '@/constants/theme';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
@@ -25,99 +21,66 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   return (
-    <View style={styles.screen}>
-      <StatusBar style="dark" />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: insets.top + Spacing.two,
-            paddingBottom: insets.bottom + Spacing.three,
-          },
-        ]}
-        showsVerticalScrollIndicator={false}>
-        <BackCircleButton onPress={() => router.back()} style={styles.backButton} />
-
-        <AuthHeader
-          title={t('auth.createAccount')}
-          subtitle={t('auth.alreadyHaveAccount')}
-          actionLabel={t('auth.signIn')}
-          onPressAction={() => {}}
+    <AuthScreenLayout
+      title={t('auth.createAccount')}
+      subtitle={t('auth.alreadyHaveAccount')}
+      actionLabel={t('auth.signIn')}
+      onPressAction={() => {}}
+      onPressBack={() => router.back()}>
+      <View style={styles.formSection}>
+        <FormInput
+          label={t('auth.emailAddress')}
+          placeholder={t('auth.emailPlaceholder')}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['700']} />}
         />
 
-        <View style={styles.formSection}>
-          <FormInput
-            label={t('auth.emailAddress')}
-            placeholder={t('auth.emailPlaceholder')}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['700']} />}
-          />
+        <FormInput
+          label={t('auth.password')}
+          placeholder={t('auth.passwordPlaceholder')}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          showPasswordToggle
+          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
+        />
 
-          <FormInput
-            label={t('auth.password')}
-            placeholder={t('auth.passwordPlaceholder')}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            showPasswordToggle
-            leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
-          />
+        <FormInput
+          label={t('auth.confirmPassword')}
+          placeholder={t('auth.confirmPasswordPlaceholder')}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          showPasswordToggle
+          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
+        />
+      </View>
 
-          <FormInput
-            label={t('auth.confirmPassword')}
-            placeholder={t('auth.confirmPasswordPlaceholder')}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            showPasswordToggle
-            leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
-          />
+      <View style={styles.actionsSection}>
+        <AppButton label={t('auth.createAccountCta')} onPress={() => router.push('/auth/otp')} />
+
+        <View style={styles.dividerWrap}>
+          <OrDivider />
         </View>
 
-        <View style={styles.actionsSection}>
-          <AppButton
-            label={t('auth.createAccountCta')}
-            onPress={() => {}}
-          />
-
-          <View style={styles.dividerWrap}>
-            <OrDivider />
-          </View>
-
-          <View style={styles.socialButtons}>
-            <SocialAuthButton provider="apple" />
-            <SocialAuthButton provider="google" />
-          </View>
-
-          <View style={styles.legalWrap}>
-            <AuthLegal />
-          </View>
+        <View style={styles.socialButtons}>
+          <SocialAuthButton provider="apple" />
+          <SocialAuthButton provider="google" />
         </View>
-      </ScrollView>
-    </View>
+
+        <View style={styles.legalWrap}>
+          <AuthLegal />
+        </View>
+      </View>
+    </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Palette.neutral['100'],
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: Spacing.four,
-  },
-  backButton: {
-    marginBottom: 30,
-  },
   formSection: {
-    marginTop: 24,
     gap: 16,
   },
   actionsSection: {

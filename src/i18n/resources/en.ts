@@ -36,6 +36,13 @@ const en = {
     privacy: 'Privacy policy',
     continueWithApple: 'Continue with Apple',
     continueWithGoogle: 'Continue with Google',
+    otpTitle: 'OTP Verification',
+    otpSubtitle: 'Enter the series of digits you just received to continue',
+    otpPromptPrefix: 'Enter the code sent to',
+    otpMaskedEmail: 'user******@gmail.com',
+    otpTimer: 'Time remaining 1 min |',
+    otpResend: 'Resend code',
+    verifyCode: 'Verify code',
   },
   onboarding: {
     firstTitle: 'Follow national and international news in real time.',

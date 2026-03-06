@@ -36,6 +36,13 @@
     privacy: 'Politique de confidentialité',
     continueWithApple: 'Continuer avec Apple',
     continueWithGoogle: 'Continuer avec Google',
+    otpTitle: 'Vérification OTP',
+    otpSubtitle: 'Saisissez la série de chiffres que vous venez de recevoir pour continuer',
+    otpPromptPrefix: 'Entrez le code reçu à',
+    otpMaskedEmail: 'user******@gmail.com',
+    otpTimer: 'Temps restant 1 min |',
+    otpResend: 'Renvoyer le code',
+    verifyCode: 'Vérifier le code',
   },
   onboarding: {
     firstTitle: "Suivez l'actualité nationale et internationale en temps réel.",
