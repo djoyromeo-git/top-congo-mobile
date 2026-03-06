@@ -72,6 +72,7 @@ export const Colors = {
     danger: Palette.red['800'],
     dangerMuted: Palette.red['600'],
     border: Palette.neutral['300'],
+    inputBorder: '#CFCFCF',
   },
   dark: {
     text: Palette.neutral['100'],
@@ -84,6 +85,7 @@ export const Colors = {
     danger: Palette.redShade['100'],
     dangerMuted: Palette.redShade['300'],
     border: Palette.neutral['600'],
+    inputBorder: Palette.neutral['600'],
   },
 } as const;
 

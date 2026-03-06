@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,7 @@ export default function OnboardingScreen({
 
   return (
     <View style={styles.screen}>
+      <StatusBar style="light" backgroundColor={Palette.blueShade['700']} />
       <View style={styles.topRing} />
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>

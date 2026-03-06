@@ -1,4 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
@@ -31,7 +32,11 @@ export function SocialAuthButton({ provider, label, ...props }: SocialAuthButton
       ]}
       {...props}>
       <View style={styles.content}>
-        <FontAwesome name={provider} size={34 / 1.4} color={isApple ? theme.text : '#4285F4'} />
+        {isApple ? (
+          <FontAwesome name="apple" size={34 / 1.4} color={theme.text} />
+        ) : (
+          <Image source={require('@/assets/images/google-logo.png')} style={styles.googleLogo} contentFit="contain" />
+        )}
         <ThemedText style={styles.label}>{label ?? defaultLabel}</ThemedText>
       </View>
     </Pressable>
@@ -57,6 +62,10 @@ const styles = StyleSheet.create({
     fontSize: 18 / 1.2,
     lineHeight: 25 / 1.2,
     fontWeight: 600,
+  },
+  googleLogo: {
+    width: 20,
+    height: 20,
   },
   pressed: {
     opacity: 0.85,

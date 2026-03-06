@@ -20,6 +20,10 @@
       "predictiveBackGestureEnabled": false,
       "package": "app.topcongo.live"
     },
+    "androidStatusBar": {
+      "backgroundColor": "#FFFFFF",
+      "barStyle": "dark-content"
+    },
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"

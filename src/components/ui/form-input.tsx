@@ -50,11 +50,11 @@ export function FormInput({
     <View style={styles.wrapper}>
       {!!label && <ThemedText style={styles.label}>{label}</ThemedText>}
 
-      <View style={[styles.inputRow, { borderColor: theme.border }, containerStyle]}>
+      <View style={[styles.inputRow, { borderColor: theme.inputBorder }, containerStyle]}>
         {!!leftAccessory && <View style={styles.leftAccessory}>{leftAccessory}</View>}
 
         <TextInput
-          placeholderTextColor={theme.textSecondary}
+          placeholderTextColor="#CFCFCF"
           style={[styles.input, { color: theme.text }, inputStyle]}
           secureTextEntry={hidesText}
           {...inputProps}
@@ -109,9 +109,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.sans,
     flex: 1,
     minHeight: 46,
-    fontSize: 19 / 1.2,
-    lineHeight: 25 / 1.2,
-    fontWeight: 500,
+    fontSize: 14,
+    lineHeight: 24,
+    fontWeight: 400,
   },
   errorText: {
     fontSize: 13,
