@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "top-congo-mobile",
+    "name": "Top Congo",
     "slug": "top-congo-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -30,9 +30,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#174197",
+          "image": "./assets/expo.icon/Assets/logo-all-white.png",
+          "imageWidth": 220,
           "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+            "image": "./assets/expo.icon/Assets/logo-all-white.png",
+            "imageWidth": 220
           }
         }
       ],

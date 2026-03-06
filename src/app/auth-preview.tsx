@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -15,7 +16,7 @@ import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
 import { TopicChip } from '@/components/ui/topic-chip';
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 const TOPIC_DATA = [
@@ -125,9 +126,7 @@ export default function AuthPreviewScreen() {
           <AppTopBar
             leftAction={{ icon: 'menu', onPress: () => {} }}
             rightAction={{ icon: 'bell', onPress: () => {} }}
-            logo={
-              <ThemedText style={[styles.logoText, { color: Palette.neutral['100'] }]}>Top Congo FM</ThemedText>
-            }
+            logo={<Image source={require('@/assets/expo.icon/Assets/logo-all-white.png')} style={styles.logoImage} contentFit="contain" />}
           />
 
           <View style={styles.homeContent}>
@@ -177,10 +176,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E6E6E8',
   },
-  logoText: {
-    fontSize: 18 / 1.3,
-    lineHeight: 20 / 1.3,
-    fontWeight: 700,
+  logoImage: {
+    width: 122,
+    height: 60,
   },
   homeContent: {
     paddingHorizontal: Spacing.three,

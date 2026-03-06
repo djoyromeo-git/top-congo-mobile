@@ -1,48 +1,53 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 
 import { Palette } from '@/constants/theme';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
+const SPLASH_HIDE_DELAY_AFTER_LOGO_MS = 500;
+const SPLASH_FALLBACK_HIDE_MS = 4000;
+const SPLASH_LOGO_SOURCE = require('../../assets/expo.icon/Assets/logo-all-white.png');
 
 export function AnimatedSplashOverlay() {
   const [visible, setVisible] = useState(true);
+  const [logoLoaded, setLogoLoaded] = useState(false);
+
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      setVisible(false);
+    }, SPLASH_FALLBACK_HIDE_MS);
+
+    return () => clearTimeout(fallbackTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!logoLoaded) return;
+
+    const timer = setTimeout(() => {
+      setVisible(false);
+    }, SPLASH_HIDE_DELAY_AFTER_LOGO_MS);
+
+    return () => clearTimeout(timer);
+  }, [logoLoaded]);
 
   if (!visible) return null;
 
-  const splashKeyframe = new Keyframe({
-    0: {
-      transform: [{ scale: INITIAL_SCALE_FACTOR }],
-      opacity: 1,
-    },
-    20: {
-      opacity: 1,
-    },
-    70: {
-      opacity: 0,
-      easing: Easing.elastic(0.7),
-    },
-    100: {
-      opacity: 0,
-      transform: [{ scale: 1 }],
-      easing: Easing.elastic(0.7),
-    },
-  });
-
   return (
-    <Animated.View
-      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
-        'worklet';
-        if (finished) {
-          scheduleOnRN(setVisible, false);
-        }
-      })}
-      style={styles.backgroundSolidColor}
-    />
+    <View style={styles.splashOverlay}>
+      <Image
+        source={SPLASH_LOGO_SOURCE}
+        style={styles.splashLogo}
+        contentFit="contain"
+        onLoad={() => setLogoLoaded(true)}
+        onError={() => setLogoLoaded(true)}
+      />
+      <View style={styles.loaderSlot}>
+        {logoLoaded ? <ActivityIndicator size="large" color="#FFFFFF" style={styles.splashLoader} /> : null}
+      </View>
+    </View>
   );
 }
 
@@ -91,7 +96,7 @@ export function AnimatedIcon() {
 
       <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
+        <Image style={styles.image} source={SPLASH_LOGO_SOURCE} />
       </Animated.View>
     </View>
   );
@@ -116,8 +121,8 @@ const styles = StyleSheet.create({
   },
   image: {
     position: 'absolute',
-    width: 76,
-    height: 71,
+    width: 102,
+    height: 50,
   },
   background: {
     borderRadius: 40,
@@ -126,9 +131,24 @@ const styles = StyleSheet.create({
     height: 128,
     position: 'absolute',
   },
-  backgroundSolidColor: {
+  splashOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: Palette.blue['800'],
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 1000,
+  },
+  splashLogo: {
+    width: 220,
+    height: 108,
+  },
+  loaderSlot: {
+    marginTop: 46,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  splashLoader: {
+    transform: [{ scale: 1.6 }],
+    opacity: 0.9,
   },
 });
