@@ -16,11 +16,12 @@ type OnboardingScreenProps = {
 
 export default function OnboardingScreen({
   onPressCreateAccount,
-  onPressTryPremium = () => {},
+  onPressTryPremium,
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const handleCreateAccount = onPressCreateAccount ?? (() => router.replace('/auth/register'));
+  const handleTryPremium = onPressTryPremium ?? (() => router.replace('/(tabs)/index'));
 
   return (
     <View style={styles.screen}>
@@ -56,7 +57,7 @@ export default function OnboardingScreen({
               style={styles.primaryButton}
               labelStyle={styles.primaryButtonLabel}
             />
-            <Pressable onPress={onPressTryPremium} style={({ pressed }) => pressed && styles.pressed}>
+            <Pressable onPress={handleTryPremium} style={({ pressed }) => pressed && styles.pressed}>
               <ThemedText
                 style={styles.secondaryAction}
                 numberOfLines={1}
