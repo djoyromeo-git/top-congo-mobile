@@ -43,6 +43,9 @@
     otpTimer: 'Temps restant 1 min |',
     otpResend: 'Renvoyer le code',
     verifyCode: 'Vérifier le code',
+    usernameTitle: 'Bienvenue sur la fréquence utile !',
+    usernameSubtitle: "Avant de continuer, vous devez définir un nom d’utilisateur",
+    usernamePlaceholder: 'Entrez un nom d’utilisateur',
   },
   onboarding: {
     firstTitle: "Suivez l'actualité nationale et internationale en temps réel.",

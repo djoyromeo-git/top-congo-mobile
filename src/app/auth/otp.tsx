@@ -128,7 +128,7 @@ export default function OtpVerificationScreen() {
       <AppButton
         label={t('auth.verifyCode')}
         disabled={!isVerifyEnabled}
-        onPress={() => {}}
+        onPress={() => router.push('/auth/username')}
         style={[
           styles.verifyButton,
           !isVerifyEnabled && styles.verifyButtonDisabled,

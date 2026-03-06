@@ -43,6 +43,9 @@ const en = {
     otpTimer: 'Time remaining 1 min |',
     otpResend: 'Resend code',
     verifyCode: 'Verify code',
+    usernameTitle: 'Welcome to the useful frequency!',
+    usernameSubtitle: 'Before continuing, you need to set a username',
+    usernamePlaceholder: 'Enter a username',
   },
   onboarding: {
     firstTitle: 'Follow national and international news in real time.',
