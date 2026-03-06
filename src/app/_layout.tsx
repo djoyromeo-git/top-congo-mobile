@@ -7,8 +7,8 @@ import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
-import { OnboardingFirstScreen } from '@/components/ui/onboarding-first-screen';
 import '@/i18n';
+import OnboardingScreen from '@/app/onboarding/index';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +36,7 @@ export default function TabLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AnimatedSplashOverlay />
       {showFirstScreen ? (
-        <OnboardingFirstScreen
+        <OnboardingScreen
           onPressCreateAccount={() => {
             setShowFirstScreen(false);
             setTimeout(() => {
