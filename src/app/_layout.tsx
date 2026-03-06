@@ -1,14 +1,14 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
+import { useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
 import { useColorScheme } from 'react-native';
 
+import OnboardingScreen from '@/app/onboarding/index';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
 import '@/i18n';
-import OnboardingScreen from '@/app/onboarding/index';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -38,10 +38,8 @@ export default function TabLayout() {
       {showFirstScreen ? (
         <OnboardingScreen
           onPressCreateAccount={() => {
+            router.replace('/auth/register');
             setShowFirstScreen(false);
-            setTimeout(() => {
-              router.push('/auth-preview');
-            }, 0);
           }}
           onPressTryPremium={() => {
             setShowFirstScreen(false);

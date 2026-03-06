@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -14,10 +15,12 @@ type OnboardingScreenProps = {
 };
 
 export default function OnboardingScreen({
-  onPressCreateAccount = () => {},
+  onPressCreateAccount,
   onPressTryPremium = () => {},
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
+  const router = useRouter();
+  const handleCreateAccount = onPressCreateAccount ?? (() => router.replace('/auth/register'));
 
   return (
     <View style={styles.screen}>
@@ -49,7 +52,7 @@ export default function OnboardingScreen({
 
             <AppButton
               label={t('onboarding.createAccount')}
-              onPress={onPressCreateAccount}
+              onPress={handleCreateAccount}
               style={styles.primaryButton}
               labelStyle={styles.primaryButtonLabel}
             />
