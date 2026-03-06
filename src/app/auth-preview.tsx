@@ -1,8 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { AuthHeader } from '@/components/ui/auth-header';
@@ -16,27 +18,26 @@ import { TopicChip } from '@/components/ui/topic-chip';
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { ThemedText } from '@/components/themed-text';
-
 const TOPIC_DATA = [
-  { label: 'Economie', emoji: '🌍' },
-  { label: 'Technologies', emoji: '💻' },
-  { label: 'Securite', emoji: '🪖' },
-  { label: 'Politique', emoji: '🎤' },
-  { label: 'Societe', emoji: '🧑‍🤝‍🧑' },
-  { label: 'Environnement', emoji: '🌱' },
-  { label: 'Transport', emoji: '🛫' },
-  { label: 'Sante', emoji: '🩺' },
-  { label: 'Sport', emoji: '⚽' },
+  { key: 'economy', emoji: '\uD83C\uDF0D' },
+  { key: 'technology', emoji: '\uD83D\uDCBB' },
+  { key: 'security', emoji: '\uD83E\uDE96' },
+  { key: 'politics', emoji: '\uD83C\uDFA4' },
+  { key: 'society', emoji: '\uD83E\uDDD1\u200D\uD83E\uDD1D\u200D\uD83E\uDDD1' },
+  { key: 'environment', emoji: '\uD83C\uDF31' },
+  { key: 'transport', emoji: '\uD83D\uDEEB' },
+  { key: 'health', emoji: '\uD83E\uDE7A' },
+  { key: 'sport', emoji: '\u26BD' },
 ] as const;
 
 export default function AuthPreviewScreen() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [selectedTopics, setSelectedTopics] = useState<string[]>(['Economie']);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>(['economy']);
 
   const topics = useMemo(() => TOPIC_DATA, []);
 
@@ -60,15 +61,15 @@ export default function AuthPreviewScreen() {
         <View style={styles.block}>
           <BackCircleButton onPress={() => {}} />
           <AuthHeader
-            title="Creer un compte"
-            subtitle="Vous avez deja un compte?"
-            actionLabel="Connectez-vous"
+            title={t('auth.createAccount')}
+            subtitle={t('auth.alreadyHaveAccount')}
+            actionLabel={t('auth.signIn')}
             onPressAction={() => {}}
           />
 
           <FormInput
-            label="Adresse email"
-            placeholder="Votre@email.com"
+            label={t('auth.emailAddress')}
+            placeholder={t('auth.emailPlaceholder')}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -77,8 +78,8 @@ export default function AuthPreviewScreen() {
           />
 
           <FormInput
-            label="Mot de passe"
-            placeholder="Entrez votre mot de passe"
+            label={t('auth.password')}
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -87,8 +88,8 @@ export default function AuthPreviewScreen() {
           />
 
           <FormInput
-            label="Confirmer le mot de passe"
-            placeholder="Repetez votre mot de passe"
+            label={t('auth.confirmPassword')}
+            placeholder={t('auth.confirmPasswordPlaceholder')}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
@@ -96,7 +97,7 @@ export default function AuthPreviewScreen() {
             leftAccessory={<Feather name="lock" size={27} color={theme.text} />}
           />
 
-          <AppButton label="Creer mon compte" onPress={() => {}} />
+          <AppButton label={t('auth.createAccountCta')} onPress={() => {}} />
           <OrDivider />
           <SocialAuthButton provider="apple" />
           <SocialAuthButton provider="google" />
@@ -104,23 +105,20 @@ export default function AuthPreviewScreen() {
         </View>
 
         <View style={styles.block}>
-          <AuthHeader
-            title="Selectionnez les sujets qui vous interessent"
-            subtitle="Selectionnez un ou plusieurs sujets pour personnaliser votre fil."
-          />
+          <AuthHeader title={t('auth.selectTopicsTitle')} subtitle={t('auth.selectTopicsSubtitle')} />
           <View style={styles.chipWrap}>
             {topics.map((topic) => (
               <TopicChip
-                key={topic.label}
-                label={topic.label}
+                key={topic.key}
+                label={t(`topics.${topic.key}`)}
                 emoji={topic.emoji}
-                selected={selectedTopics.includes(topic.label)}
-                onPress={() => toggleTopic(topic.label)}
+                selected={selectedTopics.includes(topic.key)}
+                onPress={() => toggleTopic(topic.key)}
               />
             ))}
           </View>
-          <AppButton label="Continuer" onPress={() => {}} />
-          <AppButton variant="ghost" label="Ignorer cette etape" onPress={() => {}} />
+          <AppButton label={t('common.continue')} onPress={() => {}} />
+          <AppButton variant="ghost" label={t('common.skipStep')} onPress={() => {}} />
         </View>
 
         <View style={[styles.block, styles.homeBlock]}>
@@ -128,22 +126,20 @@ export default function AuthPreviewScreen() {
             leftAction={{ icon: 'menu', onPress: () => {} }}
             rightAction={{ icon: 'bell', onPress: () => {} }}
             logo={
-              <ThemedText style={[styles.logoText, { color: Palette.neutral['100'] }]}>
-                Top Congo FM
-              </ThemedText>
+              <ThemedText style={[styles.logoText, { color: Palette.neutral['100'] }]}>Top Congo FM</ThemedText>
             }
           />
 
           <View style={styles.homeContent}>
-            <ThemedText style={styles.welcomeTitle}>Welcome back, Tyler!</ThemedText>
+            <ThemedText style={styles.welcomeTitle}>{t('auth.welcomeBack', { name: 'Tyler' })}</ThemedText>
             <ThemedText style={[styles.welcomeSubtitle, { color: theme.textSecondary }]}>
-              Discover a world of news that matters to you
+              {t('auth.discoverNews')}
             </ThemedText>
 
             <View style={styles.liveCardWrap}>
               <LiveAudioCard
-                title="Suivez l'actualite en continue"
-                subtitle="avec Top Congo"
+                title={t('auth.liveHeadline')}
+                subtitle={t('auth.liveSubtitle')}
                 onPress={() => {}}
                 onPressPlay={() => {}}
               />

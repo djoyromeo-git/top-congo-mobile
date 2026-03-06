@@ -1,5 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
@@ -14,6 +15,7 @@ type LiveAudioCardProps = {
 };
 
 export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAudioCardProps) {
+  const { t } = useTranslation();
   const bars = useMemo(() => [8, 16, 24, 14, 20, 10, 18, 12, 22, 14, 8, 18, 24, 16, 12, 20], []);
 
   return (
@@ -27,10 +29,10 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
       <View style={styles.content}>
         <View>
           <View style={styles.liveBadge}>
-            <ThemedText style={styles.liveText}>Live</ThemedText>
+            <ThemedText style={styles.liveText}>{t('auth.liveBadge')}</ThemedText>
           </View>
           <ThemedText style={styles.title}>{title}</ThemedText>
-          {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>}
+          {/* {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>} */}
         </View>
 
         <Pressable onPress={onPressPlay} style={({ pressed }) => [styles.playButton, pressed && styles.pressed]}>
@@ -43,11 +45,12 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 116,
+    minHeight: 92,
     backgroundColor: Palette.red['800'],
     borderRadius: 10,
     overflow: 'hidden',
     justifyContent: 'center',
+    paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
   },
   waveWrap: {
@@ -67,7 +70,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: Spacing.three,
+    gap: Spacing.two,
   },
   liveBadge: {
     alignSelf: 'flex-start',
@@ -75,7 +78,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1D4E89',
     paddingHorizontal: Spacing.one,
     paddingVertical: 2,
-    marginBottom: Spacing.one,
+    marginBottom: Spacing.half,
   },
   liveText: {
     color: Palette.neutral['100'],
@@ -85,8 +88,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Palette.neutral['100'],
-    fontSize: 32 / 1.6,
-    lineHeight: 39 / 1.6,
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: 600,
   },
   subtitle: {
@@ -96,9 +99,9 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   playButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: 'rgba(255,255,255,0.24)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -107,4 +110,3 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
 });
-

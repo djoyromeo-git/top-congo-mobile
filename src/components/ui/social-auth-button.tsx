@@ -1,5 +1,6 @@
 import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
@@ -16,9 +17,10 @@ type SocialAuthButtonProps = Omit<PressableProps, 'style'> & {
 
 export function SocialAuthButton({ provider, label, ...props }: SocialAuthButtonProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const isApple = provider === 'apple';
 
-  const defaultLabel = isApple ? 'Continuer avec Apple' : 'Continuer avec Google';
+  const defaultLabel = isApple ? t('auth.continueWithApple') : t('auth.continueWithGoogle');
 
   return (
     <Pressable
@@ -60,4 +62,3 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
 });
-

@@ -1,0 +1,85 @@
+const fr = {
+  common: {
+    or: 'ou',
+    continue: 'Continuer',
+    skipStep: 'Ignorer cette étape',
+    learnMore: 'Voir plus',
+    docs: 'Documentation',
+  },
+  tabs: {
+    home: 'Accueil',
+    explore: 'Explorer',
+    ui: 'UI',
+    brand: 'Top Congo',
+  },
+  auth: {
+    createAccount: 'Créer un compte',
+    alreadyHaveAccount: 'Vous avez déjà un compte ?',
+    signIn: 'Connectez-vous',
+    emailAddress: 'Adresse e-mail',
+    emailPlaceholder: 'Votre@email.com',
+    password: 'Mot de passe',
+    passwordPlaceholder: 'Entrez votre mot de passe',
+    confirmPassword: 'Confirmer le mot de passe',
+    confirmPasswordPlaceholder: 'Répétez votre mot de passe',
+    createAccountCta: 'Créer mon compte',
+    selectTopicsTitle: 'Sélectionnez les sujets qui vous intéressent',
+    selectTopicsSubtitle: "Sélectionnez un ou plusieurs sujets pour personnaliser votre fil.",
+    welcomeBack: 'Bon retour, {{name}}!',
+    discoverNews: 'Découvrez les actualités qui vous intéressent',
+    liveHeadline: "Suivez l'actualité en continu",
+    liveSubtitle: 'avec Top Congo',
+    liveBadge: 'Direct',
+    legalPrefix: 'En créant votre compte, vous acceptez les ',
+    terms: "Conditions d'utilisation",
+    legalMiddle: ' et la ',
+    privacy: 'Politique de confidentialité',
+    continueWithApple: 'Continuer avec Apple',
+    continueWithGoogle: 'Continuer avec Google',
+  },
+  topics: {
+    economy: 'Économie',
+    technology: 'Technologies',
+    security: 'Sécurité',
+    politics: 'Politique',
+    society: 'Société',
+    environment: 'Environnement',
+    transport: 'Transport',
+    health: 'Santé',
+    sport: 'Sport',
+  },
+  starterHome: {
+    title: 'Bienvenue sur Expo',
+    getStarted: 'Démarrer',
+    tryEditing: 'Essayez de modifier',
+    devTools: 'Outils de développement',
+    freshStart: 'Nouveau départ',
+    hintBrowser: 'utilisez les outils de développement du navigateur',
+    hintShake: "secouez l'appareil ou appuyez sur m dans le terminal",
+    hintPress: 'appuyez sur {{shortcut}}',
+  },
+  explore: {
+    title: 'Explorer',
+    subtitle: 'Cette application de démarrage contient du code exemple pour vous aider à commencer.',
+    expoDocumentation: 'Documentation Expo',
+    fileRoutingTitle: 'Routage basé sur les fichiers',
+    fileRoutingBodyA:
+      "Cette application comporte deux écrans : src/app/index.tsx et src/app/explore.tsx.",
+    fileRoutingBodyB:
+      'Le fichier src/app/_layout.tsx configure la navigation par onglets.',
+    platformSupportTitle: 'Support Android, iOS et web',
+    platformSupportBody:
+      "Vous pouvez ouvrir ce projet sur Android, iOS et le web. Pour ouvrir la version web, appuyez sur w dans le terminal qui exécute ce projet.",
+    imagesTitle: 'Images',
+    imagesBody:
+      "Pour les images statiques, utilisez les suffixes @2x et @3x pour fournir des fichiers adaptés aux différentes densités d'écran.",
+    themeTitle: 'Composants en mode clair et sombre',
+    themeBody:
+      "Ce template prend en charge le mode clair et sombre. Le hook useColorScheme() permet d'inspecter le thème actuel de l'utilisateur afin d'adapter les couleurs de l'interface.",
+    animationsTitle: 'Animations',
+    animationsBody:
+      "Ce template inclut un exemple de composant animé. Le composant src/components/ui/collapsible.tsx utilise react-native-reanimated pour animer l'ouverture de cet encart.",
+  },
+} as const;
+
+export default fr;

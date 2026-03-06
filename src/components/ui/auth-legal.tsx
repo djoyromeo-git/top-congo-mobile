@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
@@ -13,16 +14,17 @@ type AuthLegalProps = {
 
 export function AuthLegal({ onPressTerms, onPressPrivacy }: AuthLegalProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
-      <ThemedText style={styles.text}>En creant votre compte, vous acceptez les </ThemedText>
+      <ThemedText style={styles.text}>{t('auth.legalPrefix')}</ThemedText>
       <Pressable onPress={onPressTerms} style={({ pressed }) => pressed && styles.pressed}>
-        <ThemedText style={[styles.link, { color: theme.primary }]}>Conditions d'utilisation</ThemedText>
+        <ThemedText style={[styles.link, { color: theme.primary }]}>{t('auth.terms')}</ThemedText>
       </Pressable>
-      <ThemedText style={styles.text}> et la </ThemedText>
+      <ThemedText style={styles.text}>{t('auth.legalMiddle')}</ThemedText>
       <Pressable onPress={onPressPrivacy} style={({ pressed }) => pressed && styles.pressed}>
-        <ThemedText style={[styles.link, { color: theme.primary }]}>Politique de confidentialite</ThemedText>
+        <ThemedText style={[styles.link, { color: theme.primary }]}>{t('auth.privacy')}</ThemedText>
       </Pressable>
     </View>
   );
