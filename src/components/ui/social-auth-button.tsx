@@ -33,7 +33,7 @@ export function SocialAuthButton({ provider, label, ...props }: SocialAuthButton
       {...props}>
       <View style={styles.content}>
         {isApple ? (
-          <FontAwesome name="apple" size={34 / 1.4} color={theme.text} />
+          <FontAwesome name="apple" size={20} color={theme.text} />
         ) : (
           <Image source={require('@/assets/images/google-logo.png')} style={styles.googleLogo} contentFit="contain" />
         )}
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   label: {
-    fontSize: 18 / 1.2,
-    lineHeight: 25 / 1.2,
-    fontWeight: 600,
+    fontSize: 14,
+    lineHeight: 24,
+    fontWeight: 500,
   },
   googleLogo: {
     width: 20,

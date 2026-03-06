@@ -4,18 +4,17 @@
     "slug": "top-congo-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-red-white.png",
     "scheme": "topcongomobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/icon-red-white.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#B10018",
+        "foregroundImage": "./assets/images/android-icon-foreground-white.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome-white.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "app.topcongo.live"
