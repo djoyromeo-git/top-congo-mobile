@@ -1,56 +1,51 @@
-# Welcome to your Expo app 👋
+# Top Congo Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Application mobile React Native basee sur Expo.
+Version Expo du projet : `~55.0.5` (SDK 55).
 
-## Get started
+## Prerequis
 
-1. Install dependencies
+- Node.js 20+ et npm
+- Android Studio (SDK Android installe)
+- JDK (Android Studio inclut `jbr`)
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Installation
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Scripts utiles
 
-### Other setup steps
+- `npm run start` : lance le serveur Expo
+- `npm run android` : build + lance l'app Android (`expo run:android`)
+- `npm run ios` : build + lance l'app iOS (`expo run:ios`)
+- `npm run web` : lance la version web
+- `npm run lint` : lance ESLint via Expo
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Configuration Android (Windows)
 
-## Learn more
+Si vous voyez l'erreur `JAVA_HOME is not set`, configurez les variables suivantes dans un terminal PowerShell :
 
-To learn more about developing your project with Expo, look at the following resources:
+```powershell
+$env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
+$env:ANDROID_HOME="$env:LOCALAPPDATA\Android\Sdk"
+$env:Path="$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:ANDROID_HOME\emulator;$env:Path"
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Puis lancez :
 
-## Join the community
+```bash
+npm run android
+```
 
-Join our community of developers creating universal apps.
+Le projet peut aussi utiliser `android/local.properties` avec :
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```properties
+sdk.dir=C:/Users/<your-user>/AppData/Local/Android/Sdk
+```
+
+## Notes
+
+- iOS necessite macOS + Xcode.
+- Le dossier `android/` est genere localement et ignore par git dans ce projet.
