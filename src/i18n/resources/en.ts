@@ -37,6 +37,13 @@ const en = {
     continueWithApple: 'Continue with Apple',
     continueWithGoogle: 'Continue with Google',
   },
+  onboarding: {
+    firstTitle: 'Follow national and international news in real time.',
+    firstSubtitle:
+      'Reliable and verified information, streamed continuously to connect you with events shaping Congo and the world.',
+    createAccount: 'Create an account',
+    tryPremium: 'Try Top Congo premium ($3.99/month)',
+  },
   topics: {
     economy: 'Economy',
     technology: 'Technology',

@@ -79,7 +79,7 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 58,
+    minHeight: 49,
     borderRadius: 11,
     borderWidth: 1,
     justifyContent: 'center',
@@ -102,9 +102,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontSize: 18,
+    fontSize: 14,
     lineHeight: 24,
-    fontWeight: 600,
+    fontWeight: 500,
   },
   primaryShadow: {
     shadowColor: Palette.blue['800'],

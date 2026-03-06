@@ -1,4 +1,4 @@
-const fr = {
+﻿const fr = {
   common: {
     or: 'ou',
     continue: 'Continuer',
@@ -24,7 +24,7 @@ const fr = {
     confirmPasswordPlaceholder: 'Répétez votre mot de passe',
     createAccountCta: 'Créer mon compte',
     selectTopicsTitle: 'Sélectionnez les sujets qui vous intéressent',
-    selectTopicsSubtitle: "Sélectionnez un ou plusieurs sujets pour personnaliser votre fil.",
+    selectTopicsSubtitle: 'Sélectionnez un ou plusieurs sujets pour personnaliser votre fil.',
     welcomeBack: 'Bon retour, {{name}}!',
     discoverNews: 'Découvrez les actualités qui vous intéressent',
     liveHeadline: "Suivez l'actualité en continu",
@@ -36,6 +36,13 @@ const fr = {
     privacy: 'Politique de confidentialité',
     continueWithApple: 'Continuer avec Apple',
     continueWithGoogle: 'Continuer avec Google',
+  },
+  onboarding: {
+    firstTitle: "Suivez l'actualité nationale et internationale en temps réel.",
+    firstSubtitle:
+      'Une information fiable et vérifiée, diffusée en continu pour vous connecter aux événements qui façonnent le Congo et le monde.',
+    createAccount: 'Créer un compte',
+    tryPremium: 'Essayer Top Congo premium (3.99$/Mois)',
   },
   topics: {
     economy: 'Économie',
@@ -64,12 +71,12 @@ const fr = {
     expoDocumentation: 'Documentation Expo',
     fileRoutingTitle: 'Routage basé sur les fichiers',
     fileRoutingBodyA:
-      "Cette application comporte deux écrans : src/app/index.tsx et src/app/explore.tsx.",
+      'Cette application comporte deux écrans : src/app/index.tsx et src/app/explore.tsx.',
     fileRoutingBodyB:
       'Le fichier src/app/_layout.tsx configure la navigation par onglets.',
     platformSupportTitle: 'Support Android, iOS et web',
     platformSupportBody:
-      "Vous pouvez ouvrir ce projet sur Android, iOS et le web. Pour ouvrir la version web, appuyez sur w dans le terminal qui exécute ce projet.",
+      'Vous pouvez ouvrir ce projet sur Android, iOS et le web. Pour ouvrir la version web, appuyez sur w dans le terminal qui exécute ce projet.',
     imagesTitle: 'Images',
     imagesBody:
       "Pour les images statiques, utilisez les suffixes @2x et @3x pour fournir des fichiers adaptés aux différentes densités d'écran.",
