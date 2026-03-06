@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   title: {
-    fontSize: 52 / 1.6,
-    lineHeight: 42,
+    fontSize: 24,
+    lineHeight: 27,
     fontWeight: 700,
   },
   inlineRow: {
@@ -50,13 +50,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subtitle: {
-    fontSize: 20 / 1.2,
-    lineHeight: 34 / 1.2,
-    fontWeight: 500,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: 400,
   },
   actionText: {
-    fontSize: 20 / 1.2,
-    lineHeight: 34 / 1.2,
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: 700,
   },
   pressed: {

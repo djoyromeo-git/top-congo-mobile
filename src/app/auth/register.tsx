@@ -52,7 +52,7 @@ export default function RegisterScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            leftAccessory={<Feather name="mail" size={22} color={Palette.neutral['700']} />}
+            leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['700']} />}
           />
 
           <FormInput
@@ -62,7 +62,7 @@ export default function RegisterScreen() {
             onChangeText={setPassword}
             secureTextEntry
             showPasswordToggle
-            leftAccessory={<Feather name="lock" size={22} color={Palette.neutral['700']} />}
+            leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
           />
 
           <FormInput
@@ -72,7 +72,7 @@ export default function RegisterScreen() {
             onChangeText={setConfirmPassword}
             secureTextEntry
             showPasswordToggle
-            leftAccessory={<Feather name="lock" size={22} color={Palette.neutral['700']} />}
+            leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
           />
         </View>
 
@@ -80,8 +80,6 @@ export default function RegisterScreen() {
           <AppButton
             label={t('auth.createAccountCta')}
             onPress={() => {}}
-            style={styles.primaryButton}
-            labelStyle={styles.primaryButtonLabel}
           />
 
           <View style={styles.dividerWrap}>
@@ -124,23 +122,15 @@ const styles = StyleSheet.create({
     marginTop: 30,
     gap: 18,
   },
-  primaryButton: {
-    minHeight: 58,
-    borderRadius: 11,
-  },
-  primaryButtonLabel: {
-    fontSize: 20 / 1.2,
-    lineHeight: 28 / 1.2,
-    fontWeight: 500,
-  },
+  
   dividerWrap: {
     marginTop: 8,
     marginBottom: 4,
   },
   socialButtons: {
-    gap: 14,
+    gap: 8,
   },
   legalWrap: {
-    marginTop: 16,
+    marginTop: 8,
   },
 });

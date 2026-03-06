@@ -38,14 +38,14 @@ const styles = StyleSheet.create({
     rowGap: Spacing.half,
   },
   text: {
-    fontSize: 17 / 1.2,
-    lineHeight: 25 / 1.2,
+    fontSize: 12,
+    lineHeight: 18,
     fontWeight: 500,
     textAlign: 'center',
   },
   link: {
-    fontSize: 17 / 1.2,
-    lineHeight: 25 / 1.2,
+    fontSize: 12,
+    lineHeight: 18,
     fontWeight: 700,
     textDecorationLine: 'underline',
   },

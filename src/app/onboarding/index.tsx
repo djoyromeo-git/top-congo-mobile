@@ -54,8 +54,6 @@ export default function OnboardingScreen({
             <AppButton
               label={t('onboarding.createAccount')}
               onPress={handleCreateAccount}
-              style={styles.primaryButton}
-              labelStyle={styles.primaryButtonLabel}
             />
             <Pressable onPress={handleTryPremium} style={({ pressed }) => pressed && styles.pressed}>
               <ThemedText

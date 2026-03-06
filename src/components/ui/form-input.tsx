@@ -64,7 +64,7 @@ export function FormInput({
           <Pressable
             onPress={() => setPasswordVisible((value) => !value)}
             style={({ pressed }) => [styles.rightAccessory, pressed && styles.pressed]}>
-            <Feather name={hidesText ? 'eye-off' : 'eye'} size={26} color={theme.text} />
+            <Feather name={hidesText ? 'eye-off' : 'eye'} size={21} color={theme.text} />
           </Pressable>
         ) : (
           !!rightAccessory && <View style={styles.rightAccessory}>{rightAccessory}</View>
@@ -83,14 +83,14 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   label: {
-    fontSize: 40 / 2,
-    lineHeight: 48 / 2,
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: 700,
   },
   inputRow: {
-    minHeight: 58,
+    minHeight: 46,
     borderWidth: 1,
-    borderRadius: 11,
+    borderRadius: 5,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.three,
@@ -101,14 +101,14 @@ const styles = StyleSheet.create({
   },
   rightAccessory: {
     marginLeft: Spacing.two,
-    minWidth: 26,
+    minWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   input: {
     fontFamily: Fonts.sans,
     flex: 1,
-    minHeight: 54,
+    minHeight: 46,
     fontSize: 19 / 1.2,
     lineHeight: 25 / 1.2,
     fontWeight: 500,

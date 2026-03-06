@@ -37,9 +37,9 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   label: {
-    fontSize: 22 / 1.2,
-    lineHeight: 28 / 1.2,
-    fontWeight: 700,
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: 500,
     textTransform: 'lowercase',
   },
 });

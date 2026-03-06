@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
   button: {
     alignSelf: 'stretch',
     borderWidth: 1,
-    borderRadius: 13,
-    minHeight: 58,
+    borderRadius: 5,
+    minHeight: 46,
     justifyContent: 'center',
     paddingHorizontal: Spacing.four,
   },
