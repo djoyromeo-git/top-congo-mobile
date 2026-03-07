@@ -33,12 +33,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFFFF",
-          "image": "./assets/expo.icon/Assets/logo.png",
-          "imageWidth": 220,
+          "backgroundColor": "#174197",
+          "image": "./assets/expo.icon/Assets/logo-all-white.png",
           "android": {
-            "image": "./assets/expo.icon/Assets/logo.png",
-            "imageWidth": 220
+            "image": "./assets/expo.icon/Assets/logo-all-white.png"
           }
         }
       ],
