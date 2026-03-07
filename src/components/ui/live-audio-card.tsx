@@ -26,9 +26,10 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
         ))}
       </View>
 
-      <View style={styles.content}>
+        <View style={styles.content}>
         <View>
           <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
             <ThemedText style={styles.liveText}>{t('auth.liveBadge')}</ThemedText>
           </View>
           <ThemedText style={styles.title}>{title}</ThemedText>
@@ -74,11 +75,20 @@ const styles = StyleSheet.create({
   },
   liveBadge: {
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 6,
     backgroundColor: '#1D4E89',
     paddingHorizontal: Spacing.one,
     paddingVertical: 2,
+    gap: 3,
     marginBottom: Spacing.half,
+  },
+  liveDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Palette.neutral['100'],
   },
   liveText: {
     color: Palette.neutral['100'],
