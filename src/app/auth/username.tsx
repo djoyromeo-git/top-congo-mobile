@@ -3,13 +3,14 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View, useColorScheme } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
 import { Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function UsernameSetupScreen() {

@@ -4,7 +4,6 @@ import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
 import {
   StyleSheet,
   View,
-  useColorScheme,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -14,6 +13,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AuthHeader } from '@/components/ui/auth-header';
 import { BackCircleButton } from '@/components/ui/back-circle-button';
 import { Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function AuthLayout() {

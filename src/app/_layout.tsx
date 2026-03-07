@@ -3,10 +3,10 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
-import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import '@/i18n';
 
 void SplashScreen.preventAutoHideAsync();
