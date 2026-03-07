@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
@@ -18,6 +19,8 @@ const QUICK_TOPICS = [
 
 export default function HomeFeedScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const liveCardBottom = insets.bottom + 76;
 
   return (
     <View style={styles.screen}>
@@ -37,7 +40,7 @@ export default function HomeFeedScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: liveCardBottom + 90 }]}
         showsVerticalScrollIndicator={false}>
         <View>
           <ThemedText style={styles.title}>{t('homeFeed.welcome', { name: 'Trésor' })}</ThemedText>
@@ -82,10 +85,11 @@ export default function HomeFeedScreen() {
           />
         </ScrollView>
 
-        <View style={styles.liveCardWrap}>
-          <LiveAudioCard title={t('homeFeed.liveCardTitle')} onPress={() => {}} onPressPlay={() => {}} />
-        </View>
       </ScrollView>
+
+      <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
+        <LiveAudioCard title={t('homeFeed.liveCardTitle')} onPress={() => {}} onPressPlay={() => {}} />
+      </View>
     </View>
   );
 }
@@ -165,9 +169,12 @@ const styles = StyleSheet.create({
   headlinesScroll: {
     marginHorizontal: -16,
   },
-  liveCardWrap: {
-    marginTop: 66,
+  liveCardFixed: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
   },
+ 
   pressed: {
     opacity: 0.8,
   },

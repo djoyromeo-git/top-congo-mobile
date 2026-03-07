@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -36,7 +36,7 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
         </View>
 
         <Pressable onPress={onPressPlay} style={({ pressed }) => [styles.playButton, pressed && styles.pressed]}>
-          <Feather name="play" size={20} color={Palette.neutral['100']} />
+          <Entypo name="controller-play" size={22} color={Palette.red['800']} style={styles.playIcon} />
         </Pressable>
       </View>
     </Pressable>
@@ -45,9 +45,9 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 92,
+    minHeight: 80,
     backgroundColor: Palette.red['800'],
-    borderRadius: 10,
+    borderRadius: 7,
     overflow: 'hidden',
     justifyContent: 'center',
     paddingVertical: Spacing.two,
@@ -82,15 +82,15 @@ const styles = StyleSheet.create({
   },
   liveText: {
     color: Palette.neutral['100'],
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 7,
+    lineHeight: 12,
     fontWeight: 700,
   },
   title: {
     color: Palette.neutral['100'],
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: 600,
+    fontSize: 15,
+    lineHeight: 17,
+    fontWeight: 500,
   },
   subtitle: {
     color: Palette.neutral['100'],
@@ -99,12 +99,15 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   playButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: 'rgba(255,255,255,0.24)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: Palette.neutral['100'],
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  playIcon: {
+    marginLeft: 2,
   },
   pressed: {
     opacity: 0.85,
