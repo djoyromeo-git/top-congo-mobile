@@ -6,9 +6,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { AuthScreenLayout } from './_layout';
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { AuthScreenLayout } from './_layout';
 
 const TOPIC_ITEMS = [
   { key: 'economy', emoji: '\u{1F30D}' },
@@ -65,16 +65,16 @@ export default function TopicsScreen() {
               style={({ pressed }) => [
                 styles.chip,
                 {
-                  borderColor: isSelected ? '#8EA7D9' : '#DADADF',
-                  backgroundColor: isSelected ? '#EFF4FF' : 'transparent',
+                  borderColor: isSelected ? theme.authTopicSelectedBorder : theme.authTopicBorder,
+                  backgroundColor: isSelected ? theme.authTopicSelectedBackground : 'transparent',
                 },
                 pressed && styles.pressed,
               ]}>
               <ThemedText style={styles.chipEmoji}>{topic.emoji}</ThemedText>
               <ThemedText style={styles.chipLabel}>{t(`topics.${topic.key}`)}</ThemedText>
               {isSelected && (
-                <View style={[styles.selectedDot, { backgroundColor: theme.primary }]}>
-                  <Feather name="check" size={16} color="#FFFFFF" />
+                <View style={[styles.selectedDot, { backgroundColor: theme.secondary }]}>
+                  <Feather name="check" size={16} color={theme.onPrimary} />
                 </View>
               )}
             </Pressable>
@@ -90,12 +90,16 @@ export default function TopicsScreen() {
           style={[
             hasSelection ? styles.continueEnabled : styles.continueDisabled,
             styles.continueButton,
+            { shadowColor: theme.shadow },
+            hasSelection
+              ? { backgroundColor: theme.secondary, borderColor: theme.secondary }
+              : { backgroundColor: theme.disabledBackground, borderColor: theme.disabledBackground },
           ]}
-          labelStyle={!hasSelection ? styles.continueLabelDisabled : undefined}
+          labelStyle={!hasSelection ? [styles.continueLabelDisabled, { color: theme.disabledText }] : undefined}
         />
 
         <Pressable onPress={() => router.replace('/(tabs)')} style={({ pressed }) => pressed && styles.pressed}>
-          <ThemedText style={styles.skipText}>{t('common.skipStep')}</ThemedText>
+          <ThemedText style={[styles.skipText, { color: theme.subtleText }]}>{t('common.skipStep')}</ThemedText>
         </Pressable>
       </View>
     </AuthScreenLayout>
@@ -148,31 +152,22 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   continueButton: {
-    shadowColor: Palette.blue['800'],
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 6,
   },
-  continueEnabled: {
-    backgroundColor: Palette.blue['800'],
-    borderColor: Palette.blue['800'],
-  },
+  continueEnabled: {},
   continueDisabled: {
-    backgroundColor: '#E6E6E6',
-    borderColor: '#E6E6E6',
     shadowOpacity: 0,
     elevation: 0,
   },
-  continueLabelDisabled: {
-    color: '#A2A2A2',
-  },
+  continueLabelDisabled: {},
   skipText: {
     textAlign: 'center',
     fontSize: 14,
     lineHeight: 20,
     fontWeight: 500,
-    color: '#555555',
   },
   pressed: {
     opacity: 0.8,

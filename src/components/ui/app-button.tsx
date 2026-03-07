@@ -44,7 +44,7 @@ export function AppButton({
 
   const backgroundColor =
     variant === 'primary'
-      ? theme.primary
+      ? theme.secondary
       : variant === 'neutral'
         ? theme.backgroundElement
         : 'transparent';

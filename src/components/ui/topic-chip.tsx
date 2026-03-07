@@ -31,8 +31,8 @@ export function TopicChip({ label, emoji, selected = false, ...props }: TopicChi
       {!!emoji && <ThemedText style={styles.emoji}>{emoji}</ThemedText>}
       <ThemedText style={styles.label}>{label}</ThemedText>
       {selected && (
-        <View style={[styles.checkBadge, { backgroundColor: theme.primary }]}>
-          <Feather name="check" size={14} color="#FFFFFF" />
+        <View style={[styles.checkBadge, { backgroundColor: theme.secondary }]}>
+          <Feather name="check" size={14} color={theme.onPrimary} />
         </View>
       )}
     </Pressable>

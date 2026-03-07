@@ -12,7 +12,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AuthHeader } from '@/components/ui/auth-header';
 import { BackCircleButton } from '@/components/ui/back-circle-button';
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function AuthLayout() {
   return <Stack screenOptions={{ headerShown: false, animation: 'none' }} />;
@@ -43,10 +44,11 @@ export function AuthScreenLayout({
   contentContainerStyle,
   bodyStyle,
 }: AuthScreenLayoutProps) {
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <StatusBar style={statusBarStyle} />
 
       <KeyboardAwareScrollView
@@ -80,7 +82,6 @@ export function AuthScreenLayout({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Palette.neutral['100'],
   },
   scroll: {
     flex: 1,

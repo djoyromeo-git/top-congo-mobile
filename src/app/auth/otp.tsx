@@ -5,9 +5,8 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { AuthScreenLayout } from './_layout';
-import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { AuthScreenLayout } from './_layout';
 
 const OTP_LENGTH = 5;
 
@@ -108,7 +107,7 @@ export default function OtpVerificationScreen() {
                 style={[
                   styles.otpInput,
                   {
-                    borderColor: isFocused ? theme.primary : theme.inputBorder,
+                    borderColor: isFocused ? theme.secondary : theme.inputBorder,
                     color: theme.text,
                   },
                 ]}
@@ -120,7 +119,7 @@ export default function OtpVerificationScreen() {
         <View style={styles.timerRow}>
           <ThemedText style={styles.timerText}>{t('auth.otpTimer')}</ThemedText>
           <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
-            <ThemedText style={[styles.resendText, { color: theme.primary }]}> {t('auth.otpResend')}</ThemedText>
+            <ThemedText style={[styles.resendText, { color: theme.secondary }]}> {t('auth.otpResend')}</ThemedText>
           </Pressable>
         </View>
       </View>
@@ -133,8 +132,11 @@ export default function OtpVerificationScreen() {
           styles.verifyButton,
           !isVerifyEnabled && styles.verifyButtonDisabled,
           isVerifyEnabled && styles.verifyButtonEnabled,
+          isVerifyEnabled
+            ? { backgroundColor: theme.secondary, borderColor: theme.secondary }
+            : { backgroundColor: theme.disabledBackground, borderColor: theme.disabledBackground },
         ]}
-        labelStyle={!isVerifyEnabled ? styles.verifyLabelDisabled : undefined}
+        labelStyle={!isVerifyEnabled ? [styles.verifyLabelDisabled, { color: theme.disabledText }] : undefined}
       />
     </AuthScreenLayout>
   );
@@ -190,19 +192,12 @@ const styles = StyleSheet.create({
   verifyButton: {
     marginTop: 32,
   },
-  verifyButtonEnabled: {
-    backgroundColor: Palette.blue['800'],
-    borderColor: Palette.blue['800'],
-  },
+  verifyButtonEnabled: {},
   verifyButtonDisabled: {
-    backgroundColor: '#E6E6E6',
-    borderColor: '#E6E6E6',
     elevation: 0,
     shadowOpacity: 0,
   },
-  verifyLabelDisabled: {
-    color: '#A2A2A2',
-  },
+  verifyLabelDisabled: {},
   pressed: {
     opacity: 0.75,
   },

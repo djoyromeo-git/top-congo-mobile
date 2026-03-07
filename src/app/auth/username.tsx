@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function UsernameSetupScreen() {
@@ -21,7 +21,7 @@ export default function UsernameSetupScreen() {
   const isContinueEnabled = username.trim().length > 0;
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
 
       <KeyboardAwareScrollView
@@ -53,7 +53,7 @@ export default function UsernameSetupScreen() {
             value={username}
             onChangeText={setUsername}
             placeholder={t('auth.usernamePlaceholder')}
-            placeholderTextColor="#CFCFCF"
+            placeholderTextColor={theme.inputPlaceholder}
             autoCapitalize="none"
             autoCorrect={false}
             style={[
@@ -72,8 +72,15 @@ export default function UsernameSetupScreen() {
             style={[
               styles.continueButton,
               isContinueEnabled ? styles.continueButtonEnabled : styles.continueButtonDisabled,
+              isContinueEnabled
+                ? { backgroundColor: theme.secondary, borderColor: theme.secondary }
+                : { backgroundColor: theme.disabledBackground, borderColor: theme.disabledBackground },
             ]}
-            labelStyle={!isContinueEnabled ? styles.continueButtonLabelDisabled : undefined}
+            labelStyle={
+              !isContinueEnabled
+                ? [styles.continueButtonLabelDisabled, { color: theme.disabledText }]
+                : undefined
+            }
           />
         </View>
       </KeyboardAwareScrollView>
@@ -84,7 +91,6 @@ export default function UsernameSetupScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Palette.neutral['100'],
   },
   content: {
     flexGrow: 1,
@@ -137,17 +143,10 @@ const styles = StyleSheet.create({
   continueButton: {
     marginTop: 2,
   },
-  continueButtonEnabled: {
-    backgroundColor: Palette.blue['800'],
-    borderColor: Palette.blue['800'],
-  },
+  continueButtonEnabled: {},
   continueButtonDisabled: {
-    backgroundColor: '#E6E6E6',
-    borderColor: '#E6E6E6',
     shadowOpacity: 0,
     elevation: 0,
   },
-  continueButtonLabelDisabled: {
-    color: '#A2A2A2',
-  },
+  continueButtonLabelDisabled: {},
 });

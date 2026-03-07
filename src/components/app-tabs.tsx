@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from './themed-text';
 
-import { Palette } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 type IconRenderer = (color: string) => React.ReactNode;
 
@@ -15,10 +15,15 @@ function TabButton({
   isFocused,
   icon,
   activeLabel,
+  activeColor,
+  inactiveColor,
   ...props
-}: TabTriggerSlotProps & { icon: IconRenderer; activeLabel?: string }) {
-  const activeColor = Palette.blue['800'];
-  const inactiveColor = '#CDD3E2';
+}: TabTriggerSlotProps & {
+  icon: IconRenderer;
+  activeLabel?: string;
+  activeColor: string;
+  inactiveColor: string;
+}) {
   const iconColor = isFocused ? activeColor : inactiveColor;
 
   return (
@@ -35,6 +40,7 @@ function TabButton({
 
 function CustomTabList(props: TabListProps & { bottomInset: number }) {
   const { bottomInset, ...rest } = props;
+  const theme = useTheme();
 
   return (
     <View
@@ -42,6 +48,7 @@ function CustomTabList(props: TabListProps & { bottomInset: number }) {
       style={[
         styles.list,
         {
+          backgroundColor: theme.background,
           paddingBottom: 12 + Math.max(bottomInset, 0),
         },
       ]}>
@@ -53,6 +60,7 @@ function CustomTabList(props: TabListProps & { bottomInset: number }) {
 export default function AppTabs() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
   return (
     <Tabs>
@@ -63,6 +71,8 @@ export default function AppTabs() {
           <TabTrigger name="index" href="/(tabs)" asChild>
             <TabButton
               activeLabel={t('tabs.headline')}
+              activeColor={theme.primary}
+              inactiveColor={theme.tabInactive}
               icon={(color) => <Ionicons name="home" size={22} color={color} />}
             />
           </TabTrigger>
@@ -70,6 +80,8 @@ export default function AppTabs() {
           <TabTrigger name="explore" href="/explore" asChild>
             <TabButton
               activeLabel={t('tabs.podcast')}
+              activeColor={theme.primary}
+              inactiveColor={theme.tabInactive}
               icon={(color) => <MaterialIcons name="podcasts" size={22} color={color} />}
             />
           </TabTrigger>
@@ -77,6 +89,8 @@ export default function AppTabs() {
           <TabTrigger name="auth-preview" href="/auth-preview" asChild>
             <TabButton
               activeLabel={t('tabs.emissions')}
+              activeColor={theme.primary}
+              inactiveColor={theme.tabInactive}
               icon={(color) => <MaterialIcons name="ondemand-video" size={22} color={color} />}
             />
           </TabTrigger>
@@ -84,6 +98,8 @@ export default function AppTabs() {
           <TabTrigger name="verified" href="/verified" asChild>
             <TabButton
               activeLabel={t('tabs.premium')}
+              activeColor={theme.primary}
+              inactiveColor={theme.tabInactive}
               icon={(color) => <MaterialIcons name="verified" size={22} color={color} />}
             />
           </TabTrigger>
@@ -91,6 +107,8 @@ export default function AppTabs() {
           <TabTrigger name="video" href="/video" asChild>
             <TabButton
               activeLabel={t('tabs.direct')}
+              activeColor={theme.primary}
+              inactiveColor={theme.tabInactive}
               icon={(color) => <MaterialIcons name="videocam" size={22} color={color} />}
             />
           </TabTrigger>
@@ -109,7 +127,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -136,3 +153,4 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
 });
+

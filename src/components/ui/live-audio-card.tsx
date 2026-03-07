@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
 
@@ -16,6 +17,7 @@ type LiveAudioCardProps = {
 
 export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAudioCardProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const bars = useMemo(() => [8, 16, 24, 14, 20, 10, 18, 12, 22, 14, 8, 18, 24, 16, 12, 20], []);
 
   return (
@@ -28,9 +30,9 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
 
         <View style={styles.content}>
         <View>
-          <View style={styles.liveBadge}>
-            <View style={styles.liveDot} />
-            <ThemedText style={styles.liveText}>{t('auth.liveBadge')}</ThemedText>
+          <View style={[styles.liveBadge, { backgroundColor: theme.liveBadgeBackground }]}>
+            <View style={[styles.liveDot, { backgroundColor: theme.onPrimary }]} />
+            <ThemedText style={[styles.liveText, { color: theme.onPrimary }]}>{t('auth.liveBadge')}</ThemedText>
           </View>
           <ThemedText style={styles.title}>{title}</ThemedText>
           {/* {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>} */}
@@ -78,7 +80,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 6,
-    backgroundColor: '#1D4E89',
     paddingHorizontal: Spacing.one,
     paddingVertical: 2,
     gap: 3,
@@ -88,7 +89,6 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Palette.neutral['100'],
   },
   liveText: {
     color: Palette.neutral['100'],

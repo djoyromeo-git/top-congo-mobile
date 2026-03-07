@@ -5,9 +5,8 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { AuthScreenLayout } from './_layout';
-import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { AuthScreenLayout } from './_layout';
 
 export default function ForgotPasswordScreen() {
   const { t } = useTranslation();
@@ -32,7 +31,7 @@ export default function ForgotPasswordScreen() {
           value={code}
           onChangeText={setCode}
           placeholder={t('auth.forgotPasswordCodePlaceholder')}
-          placeholderTextColor="#CFCFCF"
+          placeholderTextColor={theme.inputPlaceholder}
           autoCapitalize="none"
           autoCorrect={false}
           style={[
@@ -51,14 +50,17 @@ export default function ForgotPasswordScreen() {
           style={[
             styles.verifyButton,
             canVerify ? styles.verifyButtonEnabled : styles.verifyButtonDisabled,
+            canVerify
+              ? { backgroundColor: theme.secondary, borderColor: theme.secondary }
+              : { backgroundColor: theme.disabledBackground, borderColor: theme.disabledBackground },
           ]}
-          labelStyle={!canVerify ? styles.verifyLabelDisabled : undefined}
+          labelStyle={!canVerify ? [styles.verifyLabelDisabled, { color: theme.disabledText }] : undefined}
         />
 
         <View style={styles.resendRow}>
           <ThemedText style={styles.resendText}>{t('auth.forgotPasswordNoCode')}</ThemedText>
           <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
-            <ThemedText style={[styles.resendLink, { color: theme.primary }]}>
+            <ThemedText style={[styles.resendLink, { color: theme.secondary }]}>
               {t('auth.otpResend')}
             </ThemedText>
           </Pressable>
@@ -95,19 +97,12 @@ const styles = StyleSheet.create({
   verifyButton: {
     marginTop: 8,
   },
-  verifyButtonEnabled: {
-    backgroundColor: Palette.blue['800'],
-    borderColor: Palette.blue['800'],
-  },
+  verifyButtonEnabled: {},
   verifyButtonDisabled: {
-    backgroundColor: '#E6E6E6',
-    borderColor: '#E6E6E6',
     shadowOpacity: 0,
     elevation: 0,
   },
-  verifyLabelDisabled: {
-    color: '#A2A2A2',
-  },
+  verifyLabelDisabled: {},
   resendRow: {
     flexDirection: 'row',
     alignItems: 'center',

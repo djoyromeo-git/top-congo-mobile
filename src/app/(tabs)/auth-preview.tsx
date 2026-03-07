@@ -11,17 +11,19 @@ import { BackCircleButton } from '@/components/ui/back-circle-button';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function AuthPreviewScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: theme.surfaceSubtle }]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -49,7 +51,7 @@ export default function AuthPreviewScreen() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            leftAccessory={<Feather name="mail" size={29 / 1.3} color="#131722" />}
+            leftAccessory={<Feather name="mail" size={29 / 1.3} color={theme.text} />}
           />
 
           <FormInput
@@ -59,7 +61,7 @@ export default function AuthPreviewScreen() {
             onChangeText={setPassword}
             secureTextEntry
             showPasswordToggle
-            leftAccessory={<Feather name="lock" size={29 / 1.3} color="#131722" />}
+            leftAccessory={<Feather name="lock" size={29 / 1.3} color={theme.text} />}
           />
 
           <FormInput
@@ -69,7 +71,7 @@ export default function AuthPreviewScreen() {
             onChangeText={setConfirmPassword}
             secureTextEntry
             showPasswordToggle
-            leftAccessory={<Feather name="lock" size={29 / 1.3} color="#131722" />}
+            leftAccessory={<Feather name="lock" size={29 / 1.3} color={theme.text} />}
           />
         </View>
 
@@ -102,7 +104,6 @@ export default function AuthPreviewScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F6F6F8',
   },
   scroll: {
     flex: 1,
