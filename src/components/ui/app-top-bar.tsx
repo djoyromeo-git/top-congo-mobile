@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React from 'react';
-import { Pressable, StyleSheet, View, type ViewStyle, type StyleProp } from 'react-native';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Palette, Spacing } from '@/constants/theme';
@@ -26,7 +27,15 @@ export function AppTopBar({ leftAction, rightAction, logo, style }: AppTopBarPro
   return (
     <View style={[styles.container, { backgroundColor: theme.primary, paddingTop: insets.top + Spacing.two }, style]}>
       <ActionButton action={leftAction} />
-      <View style={styles.logoContainer}>{logo}</View>
+      <View style={styles.logoContainer}>
+        {logo ?? (
+          <Image
+            source={require('@/assets/expo.icon/Assets/logo-all-white.png')}
+            style={styles.defaultLogo}
+            contentFit="contain"
+          />
+        )}
+      </View>
       <ActionButton action={rightAction} />
     </View>
   );
@@ -49,7 +58,7 @@ function ActionButton({ action }: { action?: TopBarAction }) {
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 98,
+    minHeight: 74,
     paddingBottom: Spacing.two,
     paddingHorizontal: Spacing.three,
     flexDirection: 'row',
@@ -57,9 +66,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
+    width: 42,
+    height: 42,
+    borderRadius: 7,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
     alignItems: 'center',
@@ -71,6 +80,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.two,
   },
+  defaultLogo: {
+    width: 128,
+    height: 30,
+  },
   placeholder: {
     width: 48,
     height: 48,
@@ -79,4 +92,3 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
-

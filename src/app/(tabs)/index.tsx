@@ -1,93 +1,174 @@
-import * as Device from 'expo-device';
+import { Image } from 'expo-image';
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { AppTopBar } from '@/components/ui/app-top-bar';
+import { HeadlineCard } from '@/components/ui/headline-card';
+import { LiveAudioCard } from '@/components/ui/live-audio-card';
+import { Palette } from '@/constants/theme';
 
-export default function HomeScreen() {
+const QUICK_TOPICS = [
+  { key: 'economy', emoji: '\u{1F30D}' },
+  { key: 'technology', emoji: '\u{1F4BB}' },
+  { key: 'security', emoji: '\u{1FA96}' },
+] as const;
+
+export default function HomeFeedScreen() {
   const { t } = useTranslation();
 
-  const getDevMenuHint = () => {
-    if (Platform.OS === 'web') {
-      return <ThemedText type="small">{t('starterHome.hintBrowser')}</ThemedText>;
-    }
-    if (Device.isDevice) {
-      return <ThemedText type="small">{t('starterHome.hintShake')}</ThemedText>;
-    }
-    const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-    return <ThemedText type="small">{t('starterHome.hintPress', { shortcut })}</ThemedText>;
-  };
-
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            {t('starterHome.title')}
-          </ThemedText>
-        </ThemedView>
+    <View style={styles.screen}>
+      <StatusBar style="light" backgroundColor={Palette.blue['800']} />
 
-        <ThemedText type="code" style={styles.code}>
-          {t('starterHome.getStarted')}
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title={t('starterHome.tryEditing')}
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+      <AppTopBar
+        leftAction={{ icon: 'menu', onPress: () => {} }}
+        rightAction={{ icon: 'search', onPress: () => {} }}
+        logo={
+          <Image
+            source={require('@/assets/images/logos/app-bar-logo.svg')}
+            style={styles.headerLogo}
+            contentFit="contain"
           />
-          <HintRow title={t('starterHome.devTools')} hint={getDevMenuHint()} />
-          <HintRow
-            title={t('starterHome.freshStart')}
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        }
+      />
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
+        <View>
+          <ThemedText style={styles.title}>{t('homeFeed.welcome', { name: 'Trésor' })}</ThemedText>
+          <ThemedText style={styles.subtitle}>{t('homeFeed.subtitle')}</ThemedText>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicsRow}>
+          {QUICK_TOPICS.map((topic) => (
+            <Pressable key={topic.key} style={({ pressed }) => [styles.topicChip, pressed && styles.pressed]}>
+              <ThemedText style={styles.topicText}>
+                {topic.emoji} {t(`topics.${topic.key}`)}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <ThemedText style={styles.sectionTitle}>{t('homeFeed.headlineSection')}</ThemedText>
+          <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
+            <ThemedText style={styles.seeMore}>{t('common.learnMore')}</ThemedText>
+          </Pressable>
+        </View>
+
+        <ScrollView
+          horizontal
+          style={styles.headlinesScroll}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.cardsRow}>
+          <HeadlineCard
+            badge={t('homeFeed.cardOneBadge')}
+            date={t('homeFeed.cardOneDate')}
+            title={t('homeFeed.cardOneTitle')}
+            imageSource={require('@/assets/images/home/concert.png')}
+            fallbackColor="#333842"
+          />
+          <HeadlineCard
+            badge={t('homeFeed.cardTwoBadge')}
+            date={t('homeFeed.cardTwoDate')}
+            title={t('homeFeed.cardTwoTitle')}
+            imageSource={require('@/assets/images/home/emission.png')}
+            fallbackColor="#2B4A8D"
+          />
+        </ScrollView>
+
+        <View style={styles.liveCardWrap}>
+          <LiveAudioCard title={t('homeFeed.liveCardTitle')} onPress={() => {}} onPressPlay={() => {}} />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: '#F3F3F5',
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+  headerLogo: {
+    width: 119,
+    height: 35,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  scroll: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 22,
+    gap: 14,
   },
   title: {
-    textAlign: 'center',
+    color: '#1A1A1A',
+    fontSize: 20,
+    fontWeight: 700,
   },
-  code: {
-    textTransform: 'uppercase',
+  subtitle: {
+    marginTop: 4,
+    color: '#9C9C9C',
+    fontSize: 13.2,
+    lineHeight: 20,
+    fontWeight: 500,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  topicsRow: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  topicChip: {
+    minHeight: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E3E3E3',
+    backgroundColor: '#F7F7F7',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  topicText: {
+    color: '#202020',
+    fontSize: 17 / 1.2,
+    lineHeight: 22 / 1.2,
+    fontWeight: 500,
+  },
+  sectionHeader: {
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionTitle: {
+    color: '#1A1A1A',
+    fontSize: 16,
+    lineHeight: 38 / 1.2,
+    fontWeight: 700,
+  },
+  seeMore: {
+    color: '#A2A2A2',
+    fontSize: 12.7,
+    lineHeight: 20,
+    fontWeight: 500,
+  },
+  cardsRow: {
+    gap: 12,
+    paddingLeft: 16,
+    paddingBottom: 2,
+  },
+  headlinesScroll: {
+    marginHorizontal: -16,
+  },
+  liveCardWrap: {
+    marginTop: 66,
+  },
+  pressed: {
+    opacity: 0.8,
   },
 });

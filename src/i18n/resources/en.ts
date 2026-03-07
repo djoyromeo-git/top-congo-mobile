@@ -12,6 +12,18 @@ const en = {
     ui: 'UI',
     brand: 'Top Congo',
   },
+  homeFeed: {
+    welcome: 'Welcome {{name}}!',
+    subtitle: 'Your news starts here',
+    headlineSection: 'Top stories',
+    cardOneBadge: 'Live Concert',
+    cardOneDate: '02 May 2026',
+    cardOneTitle: 'Culture: Congolese artist Fally Ipupa concert at Stade de France',
+    cardTwoBadge: 'Show',
+    cardTwoDate: '09 June 2023',
+    cardTwoTitle: 'Show with Ndungu Mbandama Debrindet',
+    liveCardTitle: 'Follow the news\nlive with Top Congo',
+  },
   auth: {
     createAccount: 'Create an account',
     alreadyHaveAccount: 'Already have an account?',

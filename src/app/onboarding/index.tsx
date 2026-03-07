@@ -22,7 +22,7 @@ export default function OnboardingScreen({
   const { t } = useTranslation();
   const router = useRouter();
   const handleCreateAccount = onPressCreateAccount ?? (() => router.replace('/auth/register'));
-  const handleTryPremium = onPressTryPremium ?? (() => router.replace('/(tabs)/index'));
+  const handleTryPremium = onPressTryPremium ?? (() => router.replace('/(tabs)'));
 
   return (
     <View style={styles.screen}>

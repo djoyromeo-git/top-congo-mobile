@@ -86,7 +86,7 @@ export default function TopicsScreen() {
         <AppButton
           label={t('common.continue')}
           disabled={!hasSelection}
-          onPress={() => router.replace('/(tabs)/index')}
+          onPress={() => router.replace('/(tabs)')}
           style={[
             hasSelection ? styles.continueEnabled : styles.continueDisabled,
             styles.continueButton,
@@ -94,7 +94,7 @@ export default function TopicsScreen() {
           labelStyle={!hasSelection ? styles.continueLabelDisabled : undefined}
         />
 
-        <Pressable onPress={() => router.replace('/(tabs)/index')} style={({ pressed }) => pressed && styles.pressed}>
+        <Pressable onPress={() => router.replace('/(tabs)')} style={({ pressed }) => pressed && styles.pressed}>
           <ThemedText style={styles.skipText}>{t('common.skipStep')}</ThemedText>
         </Pressable>
       </View>
@@ -178,4 +178,3 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
-

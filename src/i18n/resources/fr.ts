@@ -12,6 +12,18 @@
     ui: 'UI',
     brand: 'Top Congo',
   },
+  homeFeed: {
+    welcome: 'Bienvenue {{name}} !',
+    subtitle: 'Votre actualité commence ici',
+    headlineSection: 'À la une',
+    cardOneBadge: 'Concert Live',
+    cardOneDate: '02 Mai 2026',
+    cardOneTitle: 'Culture: Concert de l’artiste congolais Fally Ipupa au Stade de France',
+    cardTwoBadge: 'Émission',
+    cardTwoDate: '09 Juin 2023',
+    cardTwoTitle: 'Émission parondie avec Ndungu Mbandama Debrindet',
+    liveCardTitle: 'Suivez l’actualité en\ncontinue avec Top Congo',
+  },
   auth: {
     createAccount: 'Créer un compte',
     alreadyHaveAccount: 'Vous avez déjà un compte ?',

@@ -59,7 +59,7 @@ export default function LoginScreen() {
           </ThemedText>
         </Pressable>
 
-        <AppButton label={t('auth.signInCta')} onPress={() => router.replace('/(tabs)/index')} />
+        <AppButton label={t('auth.signInCta')} onPress={() => router.replace('/(tabs)')} />
 
         <View style={styles.dividerWrap}>
           <OrDivider />
