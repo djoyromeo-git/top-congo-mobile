@@ -13,8 +13,8 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#B10018",
-        "foregroundImage": "./assets/images/android-icon-foreground-white.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome-white.png"
+        "foregroundImage": "./assets/images/android-icon-foreground-white-padded.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome-white-padded.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "app.topcongo.live",
