@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { AuthScreenLayout } from '@/components/ui/auth-screen-layout';
+import { AuthScreenLayout } from './_layout';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';

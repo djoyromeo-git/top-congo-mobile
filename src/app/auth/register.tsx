@@ -6,7 +6,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/app-button';
 import { AuthLegal } from '@/components/ui/auth-legal';
-import { AuthScreenLayout } from '@/components/ui/auth-screen-layout';
+import { AuthScreenLayout } from './_layout';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';

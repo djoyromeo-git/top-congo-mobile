@@ -1,5 +1,6 @@
-import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
+import { Stack } from 'expo-router';
 import React from 'react';
+import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
 import {
   StyleSheet,
   View,
@@ -9,10 +10,13 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AuthHeader } from '@/components/ui/auth-header';
+import { BackCircleButton } from '@/components/ui/back-circle-button';
 import { Palette, Spacing } from '@/constants/theme';
 
-import { AuthHeader } from './auth-header';
-import { BackCircleButton } from './back-circle-button';
+export default function AuthLayout() {
+  return <Stack screenOptions={{ headerShown: false, animation: 'none' }} />;
+}
 
 type AuthScreenLayoutProps = {
   title: string;

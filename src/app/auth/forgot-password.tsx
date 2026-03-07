@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { AuthScreenLayout } from '@/components/ui/auth-screen-layout';
+import { AuthScreenLayout } from './_layout';
 import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
