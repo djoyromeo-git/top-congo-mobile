@@ -10,6 +10,13 @@
     home: 'Accueil',
     explore: 'Explorer',
     ui: 'UI',
+    headline: 'À la une',
+    podcast: 'Podcast',
+    emissions: 'Émissions',
+    premium: 'Premium',
+    direct: 'Direct',
+    verified: 'Vérifié',
+    video: 'Vidéo',
     brand: 'Top Congo',
   },
   homeFeed: {

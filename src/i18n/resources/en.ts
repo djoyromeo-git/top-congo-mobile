@@ -10,6 +10,13 @@ const en = {
     home: 'Home',
     explore: 'Explore',
     ui: 'UI',
+    headline: 'Top stories',
+    podcast: 'Podcast',
+    emissions: 'Shows',
+    premium: 'Premium',
+    direct: 'Live',
+    verified: 'Verified',
+    video: 'Video',
     brand: 'Top Congo',
   },
   homeFeed: {
