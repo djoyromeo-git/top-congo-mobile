@@ -15,7 +15,9 @@ const en = {
   auth: {
     createAccount: 'Create an account',
     alreadyHaveAccount: 'Already have an account?',
+    noAccount: "Don't have an account?",
     signIn: 'Sign in',
+    signInCta: 'Sign in',
     emailAddress: 'Email address',
     emailPlaceholder: 'you@email.com',
     password: 'Password',
@@ -43,6 +45,7 @@ const en = {
     otpTimer: 'Time remaining 1 min |',
     otpResend: 'Resend code',
     verifyCode: 'Verify code',
+    forgotPassword: 'Forgot password?',
     usernameTitle: 'Welcome to the useful frequency!',
     usernameSubtitle: 'Before continuing, you need to set a username',
     usernamePlaceholder: 'Enter a username',

@@ -15,7 +15,9 @@
   auth: {
     createAccount: 'Créer un compte',
     alreadyHaveAccount: 'Vous avez déjà un compte ?',
+    noAccount: 'Vous n’avez pas de compte ?',
     signIn: 'Connectez-vous',
+    signInCta: 'Se connecter',
     emailAddress: 'Adresse e-mail',
     emailPlaceholder: 'Votre@email.com',
     password: 'Mot de passe',
@@ -43,6 +45,7 @@
     otpTimer: 'Temps restant 1 min |',
     otpResend: 'Renvoyer le code',
     verifyCode: 'Vérifier le code',
+    forgotPassword: 'Mot de passe oublié ?',
     usernameTitle: 'Bienvenue sur la fréquence utile !',
     usernameSubtitle: "Avant de continuer, vous devez définir un nom d’utilisateur",
     usernamePlaceholder: 'Entrez un nom d’utilisateur',

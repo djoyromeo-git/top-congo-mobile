@@ -2,30 +2,31 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { AuthLegal } from '@/components/ui/auth-legal';
 import { AuthScreenLayout } from '@/components/ui/auth-screen-layout';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
-import { Palette, Spacing } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
-export default function RegisterScreen() {
+export default function LoginScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
   return (
     <AuthScreenLayout
-      title={t('auth.createAccount')}
-      subtitle={t('auth.alreadyHaveAccount')}
-      actionLabel={t('auth.signIn')}
-      onPressAction={() => router.push('/auth/login')}
+      title={t('auth.signInCta')}
+      subtitle={t('auth.noAccount')}
+      actionLabel={t('auth.createAccount')}
+      onPressAction={() => router.push('/auth/register')}
       onPressBack={() => router.back()}>
       <View style={styles.formSection}>
         <FormInput
@@ -47,20 +48,16 @@ export default function RegisterScreen() {
           showPasswordToggle
           leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
         />
-
-        <FormInput
-          label={t('auth.confirmPassword')}
-          placeholder={t('auth.confirmPasswordPlaceholder')}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-          showPasswordToggle
-          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
-        />
       </View>
 
       <View style={styles.actionsSection}>
-        <AppButton label={t('auth.createAccountCta')} onPress={() => router.push('/auth/otp')} />
+        <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
+          <ThemedText style={[styles.forgotText, { color: theme.primary }]}>
+            {t('auth.forgotPassword')}
+          </ThemedText>
+        </Pressable>
+
+        <AppButton label={t('auth.signInCta')} onPress={() => router.replace('/(tabs)/index')} />
 
         <View style={styles.dividerWrap}>
           <OrDivider />
@@ -69,10 +66,6 @@ export default function RegisterScreen() {
         <View style={styles.socialButtons}>
           <SocialAuthButton provider="apple" />
           <SocialAuthButton provider="google" />
-        </View>
-
-        <View style={styles.legalWrap}>
-          <AuthLegal />
         </View>
       </View>
     </AuthScreenLayout>
@@ -84,10 +77,15 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   actionsSection: {
-    marginTop: 30,
+    marginTop: 16,
     gap: 18,
   },
-  
+  forgotText: {
+    textAlign: 'right',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: 700,
+  },
   dividerWrap: {
     marginTop: 8,
     marginBottom: 4,
@@ -95,7 +93,7 @@ const styles = StyleSheet.create({
   socialButtons: {
     gap: 8,
   },
-  legalWrap: {
-    marginTop: 8,
+  pressed: {
+    opacity: 0.8,
   },
 });
