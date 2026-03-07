@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
 import { useColorScheme } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import '@/i18n';
@@ -29,9 +30,11 @@ export default function TabLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />
-    </ThemeProvider>
+    <KeyboardProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AnimatedSplashOverlay />
+        <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />
+      </ThemeProvider>
+    </KeyboardProvider>
   );
 }

@@ -1,6 +1,12 @@
 import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
 import React from 'react';
-import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Palette, Spacing } from '@/constants/theme';
@@ -39,7 +45,7 @@ export function AuthScreenLayout({
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <StatusBar style={statusBarStyle} />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
@@ -48,6 +54,8 @@ export function AuthScreenLayout({
           },
           contentContainerStyle,
         ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         showsVerticalScrollIndicator={false}>
         <BackCircleButton onPress={onPressBack} style={styles.backButton} />
 
@@ -60,7 +68,7 @@ export function AuthScreenLayout({
         />
 
         <View style={[styles.body, bodyStyle]}>{children}</View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -74,6 +82,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: Spacing.four,
   },
   backButton: {

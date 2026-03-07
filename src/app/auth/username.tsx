@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -23,7 +24,11 @@ export default function UsernameSetupScreen() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        showsVerticalScrollIndicator={false}>
         <Image
           source={require('@/assets/expo.icon/Assets/logo.png')}
           style={styles.logo}
@@ -71,7 +76,7 @@ export default function UsernameSetupScreen() {
             labelStyle={!isContinueEnabled ? styles.continueButtonLabelDisabled : undefined}
           />
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -82,6 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.neutral['100'],
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.four,
   },
@@ -118,7 +124,7 @@ const styles = StyleSheet.create({
   },
   formBlock: {
     marginTop: 52,
-    gap: 22,
+    gap: 8,
   },
   input: {
     borderWidth: 1,

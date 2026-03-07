@@ -17,7 +17,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome-white.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "app.topcongo.live"
+      "package": "app.topcongo.live",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "androidStatusBar": {
       "backgroundColor": "#FFFFFF",

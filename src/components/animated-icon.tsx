@@ -139,8 +139,8 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   splashLogo: {
-    width: 220,
-    height: 108,
+    width: 180,
+    height: 88,
   },
   loaderSlot: {
     marginTop: 46,
