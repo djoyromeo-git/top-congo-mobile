@@ -4,7 +4,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 type TopBarAction = {
@@ -25,7 +25,7 @@ export function AppTopBar({ leftAction, rightAction, logo, style }: AppTopBarPro
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.primary, paddingTop: insets.top + Spacing.two }, style]}>
+    <View style={[styles.container, { backgroundColor: theme.secondary, paddingTop: insets.top + Spacing.two }, style]}>
       <ActionButton action={leftAction} />
       <View style={styles.logoContainer}>
         {logo ?? (
@@ -42,6 +42,8 @@ export function AppTopBar({ leftAction, rightAction, logo, style }: AppTopBarPro
 }
 
 function ActionButton({ action }: { action?: TopBarAction }) {
+  const theme = useTheme();
+
   if (!action) {
     return <View style={styles.placeholder} />;
   }
@@ -50,8 +52,12 @@ function ActionButton({ action }: { action?: TopBarAction }) {
     <Pressable
       onPress={action.onPress}
       accessibilityLabel={action.accessibilityLabel}
-      style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}>
-      <Feather name={action.icon} size={21} color={Palette.neutral['100']} />
+      style={({ pressed }) => [
+        styles.actionButton,
+        { borderColor: theme.topBarActionBorder },
+        pressed && styles.pressed,
+      ]}>
+      <Feather name={action.icon} size={21} color={theme.onPrimary} />
     </Pressable>
   );
 }
@@ -70,7 +76,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 7,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },

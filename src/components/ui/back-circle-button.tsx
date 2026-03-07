@@ -21,7 +21,7 @@ export function BackCircleButton({ size = 42, style, ...props }: BackCircleButto
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: '#F5F5F7',
+          backgroundColor: theme.backButtonBackground,
         },
         pressed && styles.pressed,
         style,
@@ -41,4 +41,3 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
 });
-

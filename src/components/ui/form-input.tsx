@@ -54,7 +54,7 @@ export function FormInput({
         {!!leftAccessory && <View style={styles.leftAccessory}>{leftAccessory}</View>}
 
         <TextInput
-          placeholderTextColor="#CFCFCF"
+          placeholderTextColor={theme.inputPlaceholder}
           style={[styles.input, { color: theme.text }, inputStyle]}
           secureTextEntry={hidesText}
           {...inputProps}

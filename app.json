@@ -33,12 +33,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFFFF",
-          "image": "./assets/expo.icon/Assets/logo.png",
-          "imageWidth": 220,
+          "backgroundColor": "#174197",
+          "image": "./assets/expo.icon/Assets/logo-all-white.png",
           "android": {
-            "image": "./assets/expo.icon/Assets/logo.png",
-            "imageWidth": 220
+            "image": "./assets/expo.icon/Assets/logo-all-white.png"
           }
         }
       ],
@@ -47,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fc8f0f8e-04f6-4bd0-b364-150c88764eba"
+      }
     }
   }
 }

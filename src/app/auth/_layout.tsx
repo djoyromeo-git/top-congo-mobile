@@ -12,7 +12,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AuthHeader } from '@/components/ui/auth-header';
 import { BackCircleButton } from '@/components/ui/back-circle-button';
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function AuthLayout() {
   return <Stack screenOptions={{ headerShown: false, animation: 'none' }} />;
@@ -38,16 +40,20 @@ export function AuthScreenLayout({
   onPressAction,
   onPressBack,
   headerAlign = 'left',
-  statusBarStyle = 'dark',
+  statusBarStyle,
   children,
   contentContainerStyle,
   bodyStyle,
 }: AuthScreenLayoutProps) {
+  const theme = useTheme();
+  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const resolvedStatusBarStyle: StatusBarStyle =
+    statusBarStyle ?? (colorScheme === 'dark' ? 'light' : 'dark');
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      <StatusBar style={statusBarStyle} />
+    <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+      <StatusBar style={resolvedStatusBarStyle} backgroundColor={theme.background} translucent={false} />
 
       <KeyboardAwareScrollView
         style={styles.scroll}
@@ -80,7 +86,6 @@ export function AuthScreenLayout({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Palette.neutral['100'],
   },
   scroll: {
     flex: 1,

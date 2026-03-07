@@ -1,9 +1,10 @@
-import { Feather } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
 
@@ -16,6 +17,7 @@ type LiveAudioCardProps = {
 
 export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAudioCardProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const bars = useMemo(() => [8, 16, 24, 14, 20, 10, 18, 12, 22, 14, 8, 18, 24, 16, 12, 20], []);
 
   return (
@@ -26,17 +28,18 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
         ))}
       </View>
 
-      <View style={styles.content}>
+        <View style={styles.content}>
         <View>
-          <View style={styles.liveBadge}>
-            <ThemedText style={styles.liveText}>{t('auth.liveBadge')}</ThemedText>
+          <View style={[styles.liveBadge, { backgroundColor: theme.liveBadgeBackground }]}>
+            <View style={[styles.liveDot, { backgroundColor: theme.onPrimary }]} />
+            <ThemedText style={[styles.liveText, { color: theme.onPrimary }]}>{t('auth.liveBadge')}</ThemedText>
           </View>
           <ThemedText style={styles.title}>{title}</ThemedText>
           {/* {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>} */}
         </View>
 
         <Pressable onPress={onPressPlay} style={({ pressed }) => [styles.playButton, pressed && styles.pressed]}>
-          <Feather name="play" size={20} color={Palette.neutral['100']} />
+          <Entypo name="controller-play" size={22} color={Palette.red['800']} style={styles.playIcon} />
         </Pressable>
       </View>
     </Pressable>
@@ -45,9 +48,9 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 92,
+    minHeight: 80,
     backgroundColor: Palette.red['800'],
-    borderRadius: 10,
+    borderRadius: 7,
     overflow: 'hidden',
     justifyContent: 'center',
     paddingVertical: Spacing.two,
@@ -74,23 +77,30 @@ const styles = StyleSheet.create({
   },
   liveBadge: {
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 6,
-    backgroundColor: '#1D4E89',
     paddingHorizontal: Spacing.one,
     paddingVertical: 2,
+    gap: 3,
     marginBottom: Spacing.half,
+  },
+  liveDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
   liveText: {
     color: Palette.neutral['100'],
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 7,
+    lineHeight: 12,
     fontWeight: 700,
   },
   title: {
     color: Palette.neutral['100'],
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: 600,
+    fontSize: 15,
+    lineHeight: 17,
+    fontWeight: 500,
   },
   subtitle: {
     color: Palette.neutral['100'],
@@ -99,12 +109,15 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   playButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: 'rgba(255,255,255,0.24)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: Palette.neutral['100'],
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  playIcon: {
+    marginLeft: 2,
   },
   pressed: {
     opacity: 0.85,

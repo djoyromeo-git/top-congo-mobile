@@ -6,12 +6,12 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { AuthScreenLayout } from './_layout';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
 import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { AuthScreenLayout } from './_layout';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -36,7 +36,7 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
-          leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['700']} />}
+          leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['500']} />}
         />
 
         <FormInput
@@ -46,7 +46,7 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           secureTextEntry
           showPasswordToggle
-          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
+          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['500']} />}
         />
       </View>
 
@@ -54,7 +54,7 @@ export default function LoginScreen() {
         <Pressable
           onPress={() => router.push('/auth/forgot-password')}
           style={({ pressed }) => pressed && styles.pressed}>
-          <ThemedText style={[styles.forgotText, { color: theme.primary }]}>
+          <ThemedText style={[styles.forgotText, { color: theme.secondary }]}>
             {t('auth.forgotPassword')}
           </ThemedText>
         </Pressable>

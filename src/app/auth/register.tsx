@@ -6,11 +6,11 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/app-button';
 import { AuthLegal } from '@/components/ui/auth-legal';
-import { AuthScreenLayout } from './_layout';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
-import { Palette, Spacing } from '@/constants/theme';
+import { Palette } from '@/constants/theme';
+import { AuthScreenLayout } from './_layout';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -35,7 +35,7 @@ export default function RegisterScreen() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
-          leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['700']} />}
+          leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['500']} />}
         />
 
         <FormInput
@@ -45,7 +45,7 @@ export default function RegisterScreen() {
           onChangeText={setPassword}
           secureTextEntry
           showPasswordToggle
-          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
+          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['500']} />}
         />
 
         <FormInput
@@ -55,7 +55,7 @@ export default function RegisterScreen() {
           onChangeText={setConfirmPassword}
           secureTextEntry
           showPasswordToggle
-          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['700']} />}
+          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['500']} />}
         />
       </View>
 
