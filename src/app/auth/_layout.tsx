@@ -4,6 +4,7 @@ import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
 import {
   StyleSheet,
   View,
+  useColorScheme,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -39,17 +40,20 @@ export function AuthScreenLayout({
   onPressAction,
   onPressBack,
   headerAlign = 'left',
-  statusBarStyle = 'dark',
+  statusBarStyle,
   children,
   contentContainerStyle,
   bodyStyle,
 }: AuthScreenLayoutProps) {
   const theme = useTheme();
+  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const resolvedStatusBarStyle: StatusBarStyle =
+    statusBarStyle ?? (colorScheme === 'dark' ? 'light' : 'dark');
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      <StatusBar style={statusBarStyle} />
+      <StatusBar style={resolvedStatusBarStyle} backgroundColor={theme.background} translucent={false} />
 
       <KeyboardAwareScrollView
         style={styles.scroll}

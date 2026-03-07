@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View, useColorScheme } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,6 +15,7 @@ import { useTheme } from '@/hooks/use-theme';
 export default function UsernameSetupScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const colorScheme = useColorScheme();
   const router = useRouter();
   const [username, setUsername] = React.useState('');
 
@@ -22,7 +23,11 @@ export default function UsernameSetupScreen() {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      <StatusBar style="dark" />
+      <StatusBar
+        style={colorScheme === 'dark' ? 'light' : 'dark'}
+        backgroundColor={theme.background}
+        translucent={false}
+      />
 
       <KeyboardAwareScrollView
         contentContainerStyle={styles.content}
