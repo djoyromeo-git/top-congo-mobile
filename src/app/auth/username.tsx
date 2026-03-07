@@ -63,7 +63,7 @@ export default function UsernameSetupScreen() {
           <AppButton
             label={t('common.continue')}
             disabled={!isContinueEnabled}
-            onPress={() => router.replace('/(tabs)/index')}
+            onPress={() => router.push('/auth/topics')}
             style={[
               styles.continueButton,
               isContinueEnabled ? styles.continueButtonEnabled : styles.continueButtonDisabled,

@@ -14,6 +14,7 @@ type AuthScreenLayoutProps = {
   actionLabel?: string;
   onPressAction?: () => void;
   onPressBack?: () => void;
+  headerAlign?: 'left' | 'center';
   statusBarStyle?: StatusBarStyle;
   children: React.ReactNode;
   contentContainerStyle?: StyleProp<ViewStyle>;
@@ -26,6 +27,7 @@ export function AuthScreenLayout({
   actionLabel,
   onPressAction,
   onPressBack,
+  headerAlign = 'left',
   statusBarStyle = 'dark',
   children,
   contentContainerStyle,
@@ -54,6 +56,7 @@ export function AuthScreenLayout({
           subtitle={subtitle}
           actionLabel={actionLabel}
           onPressAction={onPressAction}
+          align={headerAlign}
         />
 
         <View style={[styles.body, bodyStyle]}>{children}</View>

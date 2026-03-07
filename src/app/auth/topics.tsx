@@ -1,0 +1,181 @@
+﻿import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, View } from 'react-native';
+
+import { ThemedText } from '@/components/themed-text';
+import { AppButton } from '@/components/ui/app-button';
+import { AuthScreenLayout } from '@/components/ui/auth-screen-layout';
+import { Palette, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+
+const TOPIC_ITEMS = [
+  { key: 'economy', emoji: '\u{1F30D}' },
+  { key: 'technology', emoji: '\u{1F4BB}' },
+  { key: 'security', emoji: '\u{1FA96}' },
+  { key: 'politics', emoji: '\u{1F3A4}' },
+  { key: 'society', emoji: '\u{1F9D1}\u200D\u{1F91D}\u200D\u{1F9D1}' },
+  { key: 'environment', emoji: '\u{1F331}' },
+  { key: 'transport', emoji: '\u{1F6EB}' },
+  { key: 'health', emoji: '\u{1FA7A}' },
+  { key: 'industries', emoji: '\u{1F6E0}\uFE0F' },
+  { key: 'culture', emoji: '\u{1F3AD}' },
+  { key: 'media', emoji: '\u{1F3A5}' },
+  { key: 'sport', emoji: '\u{26BD}' },
+  { key: 'education', emoji: '\u{1F4DA}' },
+  { key: 'business', emoji: '\u{1F4BC}' },
+  { key: 'justice', emoji: '\u{2696}\uFE0F' },
+  { key: 'climate', emoji: '\u{1F327}\uFE0F' },
+  { key: 'international', emoji: '\u{1F310}' },
+  { key: 'science', emoji: '\u{1F52C}' },
+  { key: 'entertainment', emoji: '\u{1F3AC}' },
+  { key: 'opinion', emoji: '\u{1F4AC}' },
+] as const;
+
+export default function TopicsScreen() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const theme = useTheme();
+  const [selected, setSelected] = React.useState<string[]>([]);
+
+  const hasSelection = selected.length > 0;
+
+  const toggleTopic = (key: string) => {
+    setSelected((current) =>
+      current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
+    );
+  };
+
+  return (
+    <AuthScreenLayout
+      title={t('auth.selectTopicsTitle')}
+      subtitle={t('auth.selectTopicsSubtitle')}
+      onPressBack={() => router.back()}
+      headerAlign="center"
+      bodyStyle={styles.body}
+      contentContainerStyle={styles.content}>
+      <View style={styles.chipsGrid}>
+        {TOPIC_ITEMS.map((topic) => {
+          const isSelected = selected.includes(topic.key);
+          return (
+            <Pressable
+              key={topic.key}
+              onPress={() => toggleTopic(topic.key)}
+              style={({ pressed }) => [
+                styles.chip,
+                {
+                  borderColor: isSelected ? '#8EA7D9' : '#DADADF',
+                  backgroundColor: isSelected ? '#EFF4FF' : 'transparent',
+                },
+                pressed && styles.pressed,
+              ]}>
+              <ThemedText style={styles.chipEmoji}>{topic.emoji}</ThemedText>
+              <ThemedText style={styles.chipLabel}>{t(`topics.${topic.key}`)}</ThemedText>
+              {isSelected && (
+                <View style={[styles.selectedDot, { backgroundColor: theme.primary }]}>
+                  <Feather name="check" size={16} color="#FFFFFF" />
+                </View>
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={styles.bottomActions}>
+        <AppButton
+          label={t('common.continue')}
+          disabled={!hasSelection}
+          onPress={() => router.replace('/(tabs)/index')}
+          style={[
+            hasSelection ? styles.continueEnabled : styles.continueDisabled,
+            styles.continueButton,
+          ]}
+          labelStyle={!hasSelection ? styles.continueLabelDisabled : undefined}
+        />
+
+        <Pressable onPress={() => router.replace('/(tabs)/index')} style={({ pressed }) => pressed && styles.pressed}>
+          <ThemedText style={styles.skipText}>{t('common.skipStep')}</ThemedText>
+        </Pressable>
+      </View>
+    </AuthScreenLayout>
+  );
+}
+
+const styles = StyleSheet.create({
+  content: {
+    paddingBottom: Spacing.three + 20,
+  },
+  body: {
+    flex: 1,
+    marginTop: 32,
+  },
+  chipsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  chip: {
+    minHeight: 38,
+    borderRadius: 38,
+    borderWidth: 1.2,
+    paddingHorizontal: Spacing.two,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  chipEmoji: {
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  chipLabel: {
+    fontSize: 15,
+    lineHeight: 24,
+    fontWeight: 500,
+  },
+  selectedDot: {
+    width: 17,
+    height: 17,
+    borderRadius: 14.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2,
+  },
+  bottomActions: {
+    marginTop: 'auto',
+    gap: 22,
+    paddingBottom: 20,
+  },
+  continueButton: {
+    shadowColor: Palette.blue['800'],
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  continueEnabled: {
+    backgroundColor: Palette.blue['800'],
+    borderColor: Palette.blue['800'],
+  },
+  continueDisabled: {
+    backgroundColor: '#E6E6E6',
+    borderColor: '#E6E6E6',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  continueLabelDisabled: {
+    color: '#A2A2A2',
+  },
+  skipText: {
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: 500,
+    color: '#555555',
+  },
+  pressed: {
+    opacity: 0.8,
+  },
+});
+

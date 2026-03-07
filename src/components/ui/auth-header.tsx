@@ -11,20 +11,34 @@ type AuthHeaderProps = {
   subtitle?: string;
   actionLabel?: string;
   onPressAction?: () => void;
+  align?: 'left' | 'center';
 };
 
-export function AuthHeader({ title, subtitle, actionLabel, onPressAction }: AuthHeaderProps) {
+export function AuthHeader({
+  title,
+  subtitle,
+  actionLabel,
+  onPressAction,
+  align = 'left',
+}: AuthHeaderProps) {
   const theme = useTheme();
+  const centered = align === 'center';
 
   return (
-    <View style={styles.container}>
-      <ThemedText style={[styles.title, { color: theme.primary }]}>{title}</ThemedText>
+    <View style={[styles.container, centered && styles.containerCentered]}>
+      <ThemedText style={[styles.title, { color: theme.primary }, centered && styles.textCentered]}>
+        {title}
+      </ThemedText>
       {(subtitle || actionLabel) && (
-        <View style={styles.inlineRow}>
-          {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>}
+        <View style={[styles.inlineRow, centered && styles.inlineRowCentered]}>
+          {!!subtitle && (
+            <ThemedText style={[styles.subtitle, centered && styles.textCentered]}>{subtitle}</ThemedText>
+          )}
           {!!actionLabel && (
             <Pressable onPress={onPressAction} style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedText style={[styles.actionText, { color: theme.primary }]}>{actionLabel}</ThemedText>
+              <ThemedText style={[styles.actionText, { color: theme.primary }, centered && styles.textCentered]}>
+                {actionLabel}
+              </ThemedText>
             </Pressable>
           )}
         </View>
@@ -36,6 +50,9 @@ export function AuthHeader({ title, subtitle, actionLabel, onPressAction }: Auth
 const styles = StyleSheet.create({
   container: {
     gap: Spacing.one,
+  },
+  containerCentered: {
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
@@ -49,6 +66,9 @@ const styles = StyleSheet.create({
     rowGap: Spacing.half,
     alignItems: 'center',
   },
+  inlineRowCentered: {
+    justifyContent: 'center',
+  },
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
@@ -59,8 +79,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: 700,
   },
+  textCentered: {
+    textAlign: 'center',
+  },
   pressed: {
     opacity: 0.75,
   },
 });
-
