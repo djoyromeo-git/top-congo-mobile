@@ -1,0 +1,73 @@
+import { FontAwesome } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
+
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+
+import { ThemedText } from '../themed-text';
+
+type SocialProvider = 'apple' | 'google';
+
+type SocialAuthButtonProps = Omit<PressableProps, 'style'> & {
+  provider: SocialProvider;
+  label?: string;
+};
+
+export function SocialAuthButton({ provider, label, ...props }: SocialAuthButtonProps) {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const isApple = provider === 'apple';
+
+  const defaultLabel = isApple ? t('auth.continueWithApple') : t('auth.continueWithGoogle');
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundElement },
+        pressed && styles.pressed,
+      ]}
+      {...props}>
+      <View style={styles.content}>
+        {isApple ? (
+          <FontAwesome name="apple" size={20} color={theme.text} />
+        ) : (
+          <Image source={require('@/assets/images/google-logo.png')} style={styles.googleLogo} contentFit="contain" />
+        )}
+        <ThemedText style={styles.label}>{label ?? defaultLabel}</ThemedText>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  button: {
+    alignSelf: 'stretch',
+    borderWidth: 1,
+    borderRadius: 5,
+    minHeight: 46,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+  },
+  label: {
+    fontSize: 14,
+    lineHeight: 24,
+    fontWeight: 500,
+  },
+  googleLogo: {
+    width: 20,
+    height: 20,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+});

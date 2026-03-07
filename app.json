@@ -1,24 +1,28 @@
 {
   "expo": {
-    "name": "top-congo-mobile",
+    "name": "Top Congo",
     "slug": "top-congo-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-red-white.png",
     "scheme": "topcongomobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/icon-red-white.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#B10018",
+        "foregroundImage": "./assets/images/android-icon-foreground-white-padded.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome-white-padded.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "app.topcongo.live"
+      "package": "app.topcongo.live",
+      "softwareKeyboardLayoutMode": "pan"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#FFFFFF",
+      "barStyle": "dark-content"
     },
     "web": {
       "output": "static",
@@ -29,13 +33,16 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/expo.icon/Assets/logo.png",
+          "imageWidth": 220,
           "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+            "image": "./assets/expo.icon/Assets/logo.png",
+            "imageWidth": 220
           }
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -23,6 +23,26 @@ npm install
 - `npm run web` : lance la version web
 - `npm run lint` : lance ESLint via Expo
 
+## Environment variables (Expo)
+
+Expo charge automatiquement les fichiers `.env` du projet.
+
+1. Copier l'exemple et creer votre fichier local:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Utiliser uniquement le prefixe `EXPO_PUBLIC_` pour les variables lues dans le code client:
+
+```env
+EXPO_PUBLIC_API_URL=https://api.example.com
+```
+
+3. Redemarrer le serveur Expo apres modification des variables.
+
+
+
 ## Configuration Android (Windows)
 
 Si vous voyez l'erreur `JAVA_HOME is not set`, configurez les variables suivantes dans un terminal PowerShell :
