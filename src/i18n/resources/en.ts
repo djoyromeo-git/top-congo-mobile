@@ -46,6 +46,12 @@ const en = {
     otpResend: 'Resend code',
     verifyCode: 'Verify code',
     forgotPassword: 'Forgot password?',
+    forgotPasswordTitle: 'Forgot password',
+    forgotPasswordSubtitlePrefix:
+      'We have sent a password reset code to',
+    forgotPasswordCodePlaceholder: 'you@email.com',
+    forgotPasswordVerifyCta: 'Verify reset code',
+    forgotPasswordNoCode: "Didn't receive a code?",
     usernameTitle: 'Welcome to the useful frequency!',
     usernameSubtitle: 'Before continuing, you need to set a username',
     usernamePlaceholder: 'Enter a username',

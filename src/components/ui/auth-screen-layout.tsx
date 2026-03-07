@@ -10,7 +10,7 @@ import { BackCircleButton } from './back-circle-button';
 
 type AuthScreenLayoutProps = {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   actionLabel?: string;
   onPressAction?: () => void;
   onPressBack?: () => void;

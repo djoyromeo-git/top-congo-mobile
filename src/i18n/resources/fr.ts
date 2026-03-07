@@ -46,6 +46,12 @@
     otpResend: 'Renvoyer le code',
     verifyCode: 'Vérifier le code',
     forgotPassword: 'Mot de passe oublié ?',
+    forgotPasswordTitle: 'Mot de passe oublié',
+    forgotPasswordSubtitlePrefix:
+      'Nous avons envoyé un code de réinitialisation du mot de passe à',
+    forgotPasswordCodePlaceholder: 'Votre@email.com',
+    forgotPasswordVerifyCta: 'Vérifier le code de réinitialisation',
+    forgotPasswordNoCode: 'Pas de code reçu ?',
     usernameTitle: 'Bienvenue sur la fréquence utile !',
     usernameSubtitle: "Avant de continuer, vous devez définir un nom d’utilisateur",
     usernamePlaceholder: 'Entrez un nom d’utilisateur',

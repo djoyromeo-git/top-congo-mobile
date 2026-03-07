@@ -51,7 +51,9 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.actionsSection}>
-        <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
+        <Pressable
+          onPress={() => router.push('/auth/forgot-password')}
+          style={({ pressed }) => pressed && styles.pressed}>
           <ThemedText style={[styles.forgotText, { color: theme.primary }]}>
             {t('auth.forgotPassword')}
           </ThemedText>

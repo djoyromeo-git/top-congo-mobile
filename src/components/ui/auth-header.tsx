@@ -8,7 +8,7 @@ import { ThemedText } from '../themed-text';
 
 type AuthHeaderProps = {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   actionLabel?: string;
   onPressAction?: () => void;
   align?: 'left' | 'center';
@@ -31,9 +31,12 @@ export function AuthHeader({
       </ThemedText>
       {(subtitle || actionLabel) && (
         <View style={[styles.inlineRow, centered && styles.inlineRowCentered]}>
-          {!!subtitle && (
-            <ThemedText style={[styles.subtitle, centered && styles.textCentered]}>{subtitle}</ThemedText>
-          )}
+          {!!subtitle &&
+            (typeof subtitle === 'string' ? (
+              <ThemedText style={[styles.subtitle, centered && styles.textCentered]}>{subtitle}</ThemedText>
+            ) : (
+              subtitle
+            ))}
           {!!actionLabel && (
             <Pressable onPress={onPressAction} style={({ pressed }) => pressed && styles.pressed}>
               <ThemedText style={[styles.actionText, { color: theme.primary }, centered && styles.textCentered]}>
