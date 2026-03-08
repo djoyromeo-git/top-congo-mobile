@@ -17,7 +17,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function AuthLayout() {
-  return <Stack screenOptions={{ headerShown: false, animation: 'none' }} />;
+  return <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }} />;
 }
 
 type AuthScreenLayoutProps = {
