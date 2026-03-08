@@ -86,7 +86,7 @@ export default function AppTabs() {
             />
           </TabTrigger>
 
-          <TabTrigger name="auth-preview" href="/auth-preview" asChild>
+          <TabTrigger name="emissions" href="/emissions" asChild>
             <TabButton
               activeLabel={t('tabs.emissions')}
               activeColor={theme.primary}
@@ -120,7 +120,7 @@ export default function AppTabs() {
 
 const styles = StyleSheet.create({
   slot: {
-    height: '100%',
+    flex: 1,
   },
   list: {
     position: 'absolute',
@@ -153,4 +153,3 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
 });
-

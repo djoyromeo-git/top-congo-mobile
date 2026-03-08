@@ -1,16 +1,12 @@
-import { Image } from 'expo-image';
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { AppTopBar } from '@/components/ui/app-top-bar';
 import { HeadlineCard } from '@/components/ui/headline-card';
-import { LiveAudioCard } from '@/components/ui/live-audio-card';
+import { TabShell } from '@/components/ui/tab-shell';
 import { useTheme } from '@/hooks/use-theme';
-import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus } from '@/services/live-audio';
 
 const QUICK_TOPICS = [
   { key: 'economy', emoji: '\u{1F30D}' },
@@ -23,36 +19,9 @@ export default function HomeFeedScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const liveCardBottom = insets.bottom + 76;
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
-
-  const handleToggleLive = React.useCallback(() => {
-    if (!isLiveStreamConfigured) {
-      return;
-    }
-
-    void toggleLiveAudio({
-      title: t('homeFeed.liveCardTitle').replace('\n', ' '),
-      artist: t('tabs.brand'),
-      albumTitle: t('auth.liveBadge'),
-    });
-  }, [t]);
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
-      <StatusBar style="light" backgroundColor={theme.secondary} />
-
-      <AppTopBar
-        leftAction={{ icon: 'menu', onPress: () => {} }}
-        rightAction={{ icon: 'search', onPress: () => {} }}
-        logo={
-          <Image
-            source={require('@/assets/images/logos/app-bar-logo.svg')}
-            style={styles.headerLogo}
-            contentFit="contain"
-          />
-        }
-      />
-
+    <TabShell>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: liveCardBottom + 90 }]}
@@ -90,7 +59,7 @@ export default function HomeFeedScreen() {
             {t('homeFeed.headlineSection')}
           </ThemedText>
           <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
-            <ThemedText style={[styles.seeMore, { color: theme.homeSectionLink }]}>
+            <ThemedText style={[styles.seeMore, { color: theme.homeSectionLink }]}> 
               {t('common.learnMore')}
             </ThemedText>
           </Pressable>
@@ -117,28 +86,11 @@ export default function HomeFeedScreen() {
           />
         </ScrollView>
       </ScrollView>
-
-      <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
-        <LiveAudioCard
-          title={t('homeFeed.liveCardTitle')}
-          onPressPlay={handleToggleLive}
-          isPlaying={isPlaying}
-          isBuffering={isBuffering}
-          disabled={!isLiveStreamConfigured}
-        />
-      </View>
-    </View>
+    </TabShell>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  headerLogo: {
-    width: 119,
-    height: 35,
-  },
   scroll: {
     flex: 1,
   },
@@ -197,11 +149,6 @@ const styles = StyleSheet.create({
   },
   headlinesScroll: {
     marginHorizontal: -16,
-  },
-  liveCardFixed: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
   },
   pressed: {
     opacity: 0.8,
