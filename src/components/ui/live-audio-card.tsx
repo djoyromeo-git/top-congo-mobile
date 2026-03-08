@@ -1,7 +1,8 @@
 import { Entypo } from '@expo/vector-icons';
-import React, { useMemo } from 'react';
+import { Image } from 'expo-image';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -27,15 +28,90 @@ export function LiveAudioCard({
 }: LiveAudioCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const bars = useMemo(() => [8, 16, 24, 14, 20, 10, 18, 12, 22, 14, 8, 18, 24, 16, 12, 20], []);
+  const waveShift = React.useRef(new Animated.Value(0)).current;
+  const waveOpacity = React.useRef(new Animated.Value(0.3)).current;
+
+  React.useEffect(() => {
+    let shiftAnimation: Animated.CompositeAnimation | null = null;
+    let opacityAnimation: Animated.CompositeAnimation | null = null;
+
+    const isActive = !disabled && (isPlaying || isBuffering);
+
+    if (isActive) {
+      shiftAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(waveShift, {
+            toValue: -24,
+            duration: 1100,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveShift, {
+            toValue: 0,
+            duration: 1100,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      opacityAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(waveOpacity, {
+            toValue: 0.45,
+            duration: 900,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveOpacity, {
+            toValue: 0.25,
+            duration: 900,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      shiftAnimation.start();
+      opacityAnimation.start();
+    } else {
+      waveShift.stopAnimation();
+      waveOpacity.stopAnimation();
+
+      Animated.timing(waveShift, {
+        toValue: 0,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+
+      Animated.timing(waveOpacity, {
+        toValue: 0.3,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+    }
+
+    return () => {
+      shiftAnimation?.stop();
+      opacityAnimation?.stop();
+    };
+  }, [disabled, isPlaying, isBuffering, waveOpacity, waveShift]);
 
   return (
     <View style={[styles.card, disabled && styles.disabled]}>
-      <View style={styles.waveWrap}>
-        {bars.map((height, index) => (
-          <View key={index} style={[styles.bar, { height }]} />
-        ))}
-      </View>
+      <Animated.View
+        style={[
+          styles.waveWrap,
+          {
+            opacity: waveOpacity,
+            transform: [{ translateX: waveShift }],
+          },
+        ]}>
+        <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
+        <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
+      </Animated.View>
 
         <View style={styles.content}>
         <View>
@@ -80,15 +156,11 @@ const styles = StyleSheet.create({
   waveWrap: {
     ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    opacity: 0.3,
-    paddingHorizontal: Spacing.two,
+    overflow: 'hidden',
   },
-  bar: {
-    width: 4,
-    borderRadius: 2,
-    backgroundColor: Palette.red['300'],
+  waveImage: {
+    flex: 1,
+    height: '100%',
   },
   content: {
     flexDirection: 'row',
