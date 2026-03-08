@@ -77,7 +77,7 @@ export default function AppTabs() {
             />
           </TabTrigger>
 
-          <TabTrigger name="explore" href="/explore" asChild>
+          <TabTrigger name="podcasts" href="/podcasts" asChild>
             <TabButton
               activeLabel={t('tabs.podcast')}
               activeColor={theme.primary}
@@ -95,7 +95,7 @@ export default function AppTabs() {
             />
           </TabTrigger>
 
-          <TabTrigger name="verified" href="/verified" asChild>
+          <TabTrigger name="premium" href="/premium" asChild>
             <TabButton
               activeLabel={t('tabs.premium')}
               activeColor={theme.primary}
@@ -104,7 +104,7 @@ export default function AppTabs() {
             />
           </TabTrigger>
 
-          <TabTrigger name="video" href="/video" asChild>
+          <TabTrigger name="direct" href="/direct" asChild>
             <TabButton
               activeLabel={t('tabs.direct')}
               activeColor={theme.primary}
