@@ -35,9 +35,7 @@
         {
           "backgroundColor": "#174197",
           "image": "./assets/expo.icon/Assets/logo-all-white.png",
-          "android": {
-            "image": "./assets/expo.icon/Assets/logo-all-white.png"
-          }
+          "imageWidth": 200
         }
       ],
       "expo-localization"
