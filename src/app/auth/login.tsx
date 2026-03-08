@@ -9,7 +9,6 @@ import { AppButton } from '@/components/ui/app-button';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
-import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { AuthScreenLayout } from './_layout';
 
@@ -20,6 +19,26 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const normalizedEmail = email.trim();
+  const normalizedPassword = password.trim();
+  const isEmailValid = normalizedEmail.length > 0;
+  const isPasswordValid = normalizedPassword.length > 0;
+  const canSubmit = isEmailValid && isPasswordValid;
+
+  const shouldShowEmailError = submitted && !isEmailValid;
+  const shouldShowPasswordError = submitted && !isPasswordValid;
+
+  const onSubmitLogin = () => {
+    setSubmitted(true);
+
+    if (!canSubmit) {
+      return;
+    }
+
+    router.replace('/(tabs)');
+  };
 
   return (
     <AuthScreenLayout
@@ -33,20 +52,30 @@ export default function LoginScreen() {
           label={t('auth.emailAddress')}
           placeholder={t('auth.emailPlaceholder')}
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(value) => setEmail(value)}
           keyboardType="email-address"
           autoCapitalize="none"
-          leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['500']} />}
+          autoCorrect={false}
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          leftAccessory={<Feather name="mail" size={17} color={theme.inputPlaceholder} />}
+          errorText={shouldShowEmailError ? t('auth.errorEmailRequired') : undefined}
         />
 
         <FormInput
           label={t('auth.password')}
           placeholder={t('auth.passwordPlaceholder')}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(value) => setPassword(value)}
           secureTextEntry
           showPasswordToggle
-          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['500']} />}
+          autoComplete="password"
+          textContentType="password"
+          returnKeyType="done"
+          onSubmitEditing={onSubmitLogin}
+          leftAccessory={<Feather name="lock" size={17} color={theme.inputPlaceholder} />}
+          errorText={shouldShowPasswordError ? t('auth.errorPasswordRequired') : undefined}
         />
       </View>
 
@@ -59,7 +88,7 @@ export default function LoginScreen() {
           </ThemedText>
         </Pressable>
 
-        <AppButton label={t('auth.signInCta')} onPress={() => router.replace('/(tabs)')} />
+        <AppButton label={t('auth.signInCta')} onPress={onSubmitLogin} />
 
         <View style={styles.dividerWrap}>
           <OrDivider />
