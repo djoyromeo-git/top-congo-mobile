@@ -1,18 +1,23 @@
+import { Asset } from 'expo-asset';
 import {
   createAudioPlayer,
   setAudioModeAsync,
   useAudioPlayerStatus,
-  type AudioStatus,
   type AudioMetadata,
   type AudioPlayer,
+  type AudioStatus,
 } from 'expo-audio';
 
 const LIVE_STREAM_URL = process.env.EXPO_PUBLIC_LIVE_STREAM_URL?.trim() ?? '';
+const LIVE_DEFAULT_ARTWORK_URL = Asset.fromModule(
+  require('../../assets/images/icon.png')
+).uri;
 
 const DEFAULT_METADATA: AudioMetadata = {
   title: 'Top Congo Live',
   artist: 'Top Congo FM',
   albumTitle: 'Direct',
+  artworkUrl: LIVE_DEFAULT_ARTWORK_URL,
 };
 
 let livePlayerInstance: AudioPlayer | null = null;
@@ -85,7 +90,10 @@ function shouldReloadSourceBeforePlay(status: AudioStatus) {
 }
 
 function applyLockScreenControls(player: AudioPlayer, metadata?: AudioMetadata) {
-  const lockScreenMetadata = metadata ?? DEFAULT_METADATA;
+  const lockScreenMetadata: AudioMetadata = {
+    ...DEFAULT_METADATA,
+    ...(metadata ?? {}),
+  };
 
   if (!lockScreenActive) {
     player.setActiveForLockScreen(
