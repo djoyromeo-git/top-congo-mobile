@@ -1,7 +1,7 @@
 import { Entypo } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,17 +11,26 @@ import { ThemedText } from '../themed-text';
 type LiveAudioCardProps = {
   title: string;
   subtitle?: string;
-  onPress?: () => void;
   onPressPlay?: () => void;
+  isPlaying?: boolean;
+  isBuffering?: boolean;
+  disabled?: boolean;
 };
 
-export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAudioCardProps) {
+export function LiveAudioCard({
+  title,
+  subtitle,
+  onPressPlay,
+  isPlaying = false,
+  isBuffering = false,
+  disabled = false,
+}: LiveAudioCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const bars = useMemo(() => [8, 16, 24, 14, 20, 10, 18, 12, 22, 14, 8, 18, 24, 16, 12, 20], []);
 
   return (
-    <Pressable style={({ pressed }) => [styles.card, pressed && styles.pressed]} onPress={onPress}>
+    <View style={[styles.card, disabled && styles.disabled]}>
       <View style={styles.waveWrap}>
         {bars.map((height, index) => (
           <View key={index} style={[styles.bar, { height }]} />
@@ -38,11 +47,23 @@ export function LiveAudioCard({ title, subtitle, onPress, onPressPlay }: LiveAud
           {/* {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>} */}
         </View>
 
-        <Pressable onPress={onPressPlay} style={({ pressed }) => [styles.playButton, pressed && styles.pressed]}>
-          <Entypo name="controller-play" size={22} color={Palette.red['800']} style={styles.playIcon} />
+        <Pressable
+          disabled={disabled}
+          onPress={onPressPlay}
+          style={({ pressed }) => [styles.playButton, disabled && styles.disabled, pressed && styles.pressed]}>
+          {isBuffering ? (
+            <ActivityIndicator size="small" color={Palette.red['800']} />
+          ) : (
+            <Entypo
+              name={isPlaying ? 'controller-paus' : 'controller-play'}
+              size={22}
+              color={Palette.red['800']}
+              style={!isPlaying ? styles.playIcon : undefined}
+            />
+          )}
         </Pressable>
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -121,5 +142,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
+  },
+  disabled: {
+    opacity: 0.55,
   },
 });

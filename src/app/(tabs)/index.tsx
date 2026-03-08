@@ -10,6 +10,7 @@ import { AppTopBar } from '@/components/ui/app-top-bar';
 import { HeadlineCard } from '@/components/ui/headline-card';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { useTheme } from '@/hooks/use-theme';
+import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus } from '@/services/live-audio';
 
 const QUICK_TOPICS = [
   { key: 'economy', emoji: '\u{1F30D}' },
@@ -22,6 +23,19 @@ export default function HomeFeedScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const liveCardBottom = insets.bottom + 76;
+  const { isPlaying, isBuffering } = useLiveAudioStatus();
+
+  const handleToggleLive = React.useCallback(() => {
+    if (!isLiveStreamConfigured) {
+      return;
+    }
+
+    void toggleLiveAudio({
+      title: t('homeFeed.liveCardTitle').replace('\n', ' '),
+      artist: t('tabs.brand'),
+      albumTitle: t('auth.liveBadge'),
+    });
+  }, [t]);
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
@@ -105,7 +119,13 @@ export default function HomeFeedScreen() {
       </ScrollView>
 
       <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
-        <LiveAudioCard title={t('homeFeed.liveCardTitle')} onPress={() => {}} onPressPlay={() => {}} />
+        <LiveAudioCard
+          title={t('homeFeed.liveCardTitle')}
+          onPressPlay={handleToggleLive}
+          isPlaying={isPlaying}
+          isBuffering={isBuffering}
+          disabled={!isLiveStreamConfigured}
+        />
       </View>
     </View>
   );
@@ -187,4 +207,3 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
-
