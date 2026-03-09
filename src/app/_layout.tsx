@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import * as Sentry from '@sentry/react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -11,7 +12,22 @@ import '@/i18n';
 
 void SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
+if (!Sentry.getClient()) {
+  const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
+  const tracesSampleRate = Number(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? 0.1);
+
+  Sentry.init({
+    dsn,
+    enabled: Boolean(dsn),
+    environment:
+      process.env.EXPO_PUBLIC_SENTRY_ENV?.trim() ||
+      process.env.EXPO_PUBLIC_APP_ENV?.trim() ||
+      (__DEV__ ? 'development' : 'production'),
+    tracesSampleRate: Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.1,
+  });
+}
+
+function RootLayout() {
   const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     'Google Sans': require('../../assets/fonts/GoogleSans-Regular.ttf'),
@@ -38,3 +54,5 @@ export default function TabLayout() {
     </KeyboardProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

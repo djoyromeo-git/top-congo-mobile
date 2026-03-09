@@ -54,7 +54,8 @@
         {
           "enableBackgroundPlayback": true
         }
-      ]
+      ],
+      "@sentry/react-native/expo"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -68,3 +69,4 @@
     }
   }
 }
+
