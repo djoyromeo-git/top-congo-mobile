@@ -1,5 +1,6 @@
 import { Asset } from 'expo-asset';
 import * as React from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   createAudioPlayer,
   setAudioModeAsync,
@@ -18,6 +19,14 @@ const LIVE_PROGRAM_HOST = process.env.EXPO_PUBLIC_LIVE_PROGRAM_HOST?.trim() || '
 const LIVE_PROGRAM_SCHEDULE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_SCHEDULE?.trim() || 'En direct';
 const LIVE_NOW_PLAYING_URL = process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_URL?.trim() ?? '';
 const LIVE_NOW_PLAYING_REFRESH_MS = Number(process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_REFRESH_MS ?? 15000);
+const LIVE_NOW_PLAYING_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_TIMEOUT_MS ?? 7000);
+const LIVE_NOW_PLAYING_RETRY_COUNT = Number(process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_RETRY_COUNT ?? 2);
+const LIVE_NOW_PLAYING_RETRY_BASE_DELAY_MS = Number(
+  process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_RETRY_BASE_DELAY_MS ?? 750
+);
+const LIVE_NOW_PLAYING_ERROR_REPORT_INTERVAL_MS = Number(
+  process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_ERROR_REPORT_INTERVAL_MS ?? 300000
+);
 
 const DEFAULT_METADATA: AudioMetadata = {
   title: LIVE_PROGRAM_TITLE,
@@ -30,6 +39,56 @@ let currentLiveMetadata: AudioMetadata = { ...DEFAULT_METADATA };
 const liveMetadataListeners = new Set<() => void>();
 let nowPlayingPollTimer: ReturnType<typeof setInterval> | null = null;
 let isNowPlayingRequestInFlight = false;
+let metadataConsumersCount = 0;
+let lastSuccessfulNowPlayingAt = 0;
+let lastNowPlayingErrorReportAt = 0;
+
+function addLiveBreadcrumb(
+  message: string,
+  data?: Record<string, unknown>,
+  level: 'debug' | 'info' | 'warning' | 'error' = 'info'
+) {
+  if (!Sentry.getClient()) {
+    return;
+  }
+
+  Sentry.addBreadcrumb({
+    category: 'live-audio',
+    level,
+    message,
+    data,
+  });
+}
+
+function asError(error: unknown) {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(typeof error === 'string' ? error : 'Unknown live-audio error');
+}
+
+function captureLiveException(error: unknown, context: Record<string, unknown>) {
+  if (!Sentry.getClient()) {
+    return;
+  }
+
+  const normalizedError = asError(error);
+
+  Sentry.withScope(scope => {
+    scope.setTag('feature', 'live-audio');
+    scope.setTag('live_stream_configured', String(isLiveStreamConfigured));
+    scope.setContext('liveAudio', {
+      streamUrlConfigured: isLiveStreamConfigured,
+      nowPlayingUrlConfigured: LIVE_NOW_PLAYING_URL.length > 0,
+      metadataTitle: currentLiveMetadata.title ?? null,
+      metadataArtist: currentLiveMetadata.artist ?? null,
+      ...context,
+    });
+
+    Sentry.captureException(normalizedError);
+  });
+}
 
 function notifyLiveMetadataChanged() {
   for (const listener of liveMetadataListeners) {
@@ -39,6 +98,11 @@ function notifyLiveMetadataChanged() {
 
 function setCurrentLiveMetadata(metadata: AudioMetadata) {
   currentLiveMetadata = { ...metadata };
+  addLiveBreadcrumb('metadata.updated', {
+    title: currentLiveMetadata.title,
+    artist: currentLiveMetadata.artist,
+    albumTitle: currentLiveMetadata.albumTitle,
+  });
 
   if (lockScreenActive && livePlayerInstance) {
     livePlayerInstance.updateLockScreenMetadata(currentLiveMetadata);
@@ -148,8 +212,14 @@ export function getCurrentLiveMetadata() {
 
 export function subscribeLiveProgramInfo(listener: () => void) {
   liveMetadataListeners.add(listener);
+  metadataConsumersCount += 1;
+  syncNowPlayingPolling();
+  void refreshLiveNowPlayingInfo({ reason: 'consumer-mount' });
+
   return () => {
     liveMetadataListeners.delete(listener);
+    metadataConsumersCount = Math.max(0, metadataConsumersCount - 1);
+    syncNowPlayingPolling();
   };
 }
 
@@ -164,20 +234,6 @@ export function useLiveProgramInfo() {
     return unsubscribe;
   }, []);
 
-  React.useEffect(() => {
-    if (!LIVE_NOW_PLAYING_URL) {
-      return;
-    }
-
-    void refreshLiveNowPlayingInfo();
-
-    const timer = setInterval(() => {
-      void refreshLiveNowPlayingInfo();
-    }, Number.isFinite(LIVE_NOW_PLAYING_REFRESH_MS) ? LIVE_NOW_PLAYING_REFRESH_MS : 15000);
-
-    return () => clearInterval(timer);
-  }, []);
-
   return programInfo;
 }
 
@@ -190,20 +246,6 @@ export function useLiveMetadata() {
     });
 
     return unsubscribe;
-  }, []);
-
-  React.useEffect(() => {
-    if (!LIVE_NOW_PLAYING_URL) {
-      return;
-    }
-
-    void refreshLiveNowPlayingInfo();
-
-    const timer = setInterval(() => {
-      void refreshLiveNowPlayingInfo();
-    }, Number.isFinite(LIVE_NOW_PLAYING_REFRESH_MS) ? LIVE_NOW_PLAYING_REFRESH_MS : 15000);
-
-    return () => clearInterval(timer);
   }, []);
 
   return metadata;
@@ -282,11 +324,10 @@ function applyLockScreenControls(player: AudioPlayer, metadata?: AudioMetadata) 
   const lockScreenMetadata: AudioMetadata = metadata
     ? {
         ...DEFAULT_METADATA,
+        ...currentLiveMetadata,
         ...metadata,
       }
-    : {
-        ...currentLiveMetadata,
-      };
+    : { ...currentLiveMetadata };
   setCurrentLiveMetadata(lockScreenMetadata);
 
   if (!lockScreenActive) {
@@ -305,59 +346,124 @@ function applyLockScreenControls(player: AudioPlayer, metadata?: AudioMetadata) 
   player.updateLockScreenMetadata(lockScreenMetadata);
 }
 
-function startNowPlayingPolling() {
-  if (!LIVE_NOW_PLAYING_URL || nowPlayingPollTimer) {
-    return;
+function syncNowPlayingPolling() {
+  const shouldPoll =
+    LIVE_NOW_PLAYING_URL.length > 0 && (metadataConsumersCount > 0 || Boolean(livePlayerInstance?.playing));
+
+  if (shouldPoll && !nowPlayingPollTimer) {
+    nowPlayingPollTimer = setInterval(() => {
+      void refreshLiveNowPlayingInfo({ reason: 'poll' });
+    }, Number.isFinite(LIVE_NOW_PLAYING_REFRESH_MS) ? LIVE_NOW_PLAYING_REFRESH_MS : 15000);
+    addLiveBreadcrumb('nowPlaying.polling.started', { consumers: metadataConsumersCount });
   }
 
-  nowPlayingPollTimer = setInterval(() => {
-    void refreshLiveNowPlayingInfo();
-  }, Number.isFinite(LIVE_NOW_PLAYING_REFRESH_MS) ? LIVE_NOW_PLAYING_REFRESH_MS : 15000);
+  if (!shouldPoll && nowPlayingPollTimer) {
+    clearInterval(nowPlayingPollTimer);
+    nowPlayingPollTimer = null;
+    addLiveBreadcrumb('nowPlaying.polling.stopped', { consumers: metadataConsumersCount });
+  }
 }
 
-function stopNowPlayingPolling() {
-  if (!nowPlayingPollTimer) {
-    return;
-  }
-
-  clearInterval(nowPlayingPollTimer);
-  nowPlayingPollTimer = null;
+function delay(ms: number) {
+  return new Promise<void>(resolve => {
+    setTimeout(resolve, ms);
+  });
 }
 
-export async function refreshLiveNowPlayingInfo() {
-  if (!LIVE_NOW_PLAYING_URL || isNowPlayingRequestInFlight) {
-    return null;
-  }
-
-  isNowPlayingRequestInFlight = true;
+async function fetchNowPlayingPayload() {
+  const timeoutMs = Number.isFinite(LIVE_NOW_PLAYING_TIMEOUT_MS) ? LIVE_NOW_PLAYING_TIMEOUT_MS : 7000;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
 
   try {
     const response = await fetch(LIVE_NOW_PLAYING_URL, {
       headers: {
         Accept: 'application/json',
       },
+      signal: controller.signal,
     });
 
     if (!response.ok) {
-      return null;
+      throw new Error(`Now playing HTTP ${response.status}`);
     }
 
-    const payload = (await response.json()) as unknown;
-    const parsed = parseNowPlayingMetadata(payload);
+    return (await response.json()) as unknown;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
-    if (!parsed) {
-      return null;
+export async function refreshLiveNowPlayingInfo(options?: { reason?: string }) {
+  if (!LIVE_NOW_PLAYING_URL || isNowPlayingRequestInFlight) {
+    return getCurrentLiveMetadata();
+  }
+
+  isNowPlayingRequestInFlight = true;
+  const reason = options?.reason ?? 'manual';
+  const maxAttempts = Math.max(1, Number.isFinite(LIVE_NOW_PLAYING_RETRY_COUNT) ? LIVE_NOW_PLAYING_RETRY_COUNT + 1 : 1);
+  let lastError: Error | null = null;
+
+  try {
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        addLiveBreadcrumb('nowPlaying.fetch.start', { reason, attempt, maxAttempts }, 'debug');
+
+        const payload = await fetchNowPlayingPayload();
+        const parsed = parseNowPlayingMetadata(payload);
+
+        if (!parsed) {
+          throw new Error('Now playing payload missing metadata');
+        }
+
+        const merged = mergeLiveMetadata(parsed);
+
+        if (!metadataEquals(currentLiveMetadata, merged)) {
+          setCurrentLiveMetadata(merged);
+        }
+
+        lastSuccessfulNowPlayingAt = Date.now();
+        addLiveBreadcrumb('nowPlaying.fetch.success', { reason, attempt }, 'info');
+        return merged;
+      } catch (error) {
+        lastError = asError(error);
+
+        addLiveBreadcrumb(
+          'nowPlaying.fetch.error',
+          {
+            reason,
+            attempt,
+            maxAttempts,
+            message: lastError.message,
+          },
+          'warning'
+        );
+
+        if (attempt < maxAttempts) {
+          const retryDelayMs = Math.max(
+            250,
+            (Number.isFinite(LIVE_NOW_PLAYING_RETRY_BASE_DELAY_MS) ? LIVE_NOW_PLAYING_RETRY_BASE_DELAY_MS : 750) *
+              attempt
+          );
+          await delay(retryDelayMs);
+        }
+      }
     }
 
-    const merged = mergeLiveMetadata(parsed);
-
-    if (!metadataEquals(currentLiveMetadata, merged)) {
-      setCurrentLiveMetadata(merged);
+    if (lastError) {
+      const now = Date.now();
+      if (now - lastNowPlayingErrorReportAt >= LIVE_NOW_PLAYING_ERROR_REPORT_INTERVAL_MS) {
+        lastNowPlayingErrorReportAt = now;
+        captureLiveException(lastError, {
+          reason,
+          maxAttempts,
+          lastSuccessfulNowPlayingAt,
+        });
+      }
     }
 
-    return merged;
-  } catch {
-    return null;
+    return getCurrentLiveMetadata();
   } finally {
     isNowPlayingRequestInFlight = false;
   }
@@ -367,37 +473,59 @@ export const isLiveStreamConfigured = LIVE_STREAM_URL.length > 0;
 
 export async function playLiveAudio(metadata?: AudioMetadata) {
   if (!isLiveStreamConfigured) {
+    addLiveBreadcrumb('play.skipped.stream_missing', undefined, 'warning');
     return;
   }
 
   const player = getLiveAudioPlayer();
-  await ensureAudioModeConfigured();
-  ensureSourcePrepared(player);
 
-  if (shouldReloadSourceBeforePlay(player.currentStatus)) {
-    replaceSource(player);
+  try {
+    addLiveBreadcrumb('play.start', {
+      playbackState: player.currentStatus.playbackState,
+      isLoaded: player.currentStatus.isLoaded,
+    });
+
+    await ensureAudioModeConfigured();
+    ensureSourcePrepared(player);
+
+    if (shouldReloadSourceBeforePlay(player.currentStatus)) {
+      addLiveBreadcrumb('play.reload_source', { playbackState: player.currentStatus.playbackState }, 'debug');
+      replaceSource(player);
+    }
+
+    applyLockScreenControls(player, metadata);
+    void refreshLiveNowPlayingInfo({ reason: 'play' });
+    player.play();
+    syncNowPlayingPolling();
+    addLiveBreadcrumb('play.success');
+  } catch (error) {
+    addLiveBreadcrumb('play.error', { message: asError(error).message }, 'error');
+    captureLiveException(error, {
+      action: 'playLiveAudio',
+      playbackState: player.currentStatus.playbackState,
+    });
+    throw error;
   }
-
-  applyLockScreenControls(player, metadata);
-  void refreshLiveNowPlayingInfo();
-  startNowPlayingPolling();
-  player.play();
 }
 
 export function pauseLiveAudio() {
   const player = getLiveAudioPlayer();
+  addLiveBreadcrumb('pause.start', { playbackState: player.currentStatus.playbackState });
   player.pause();
-  stopNowPlayingPolling();
+  syncNowPlayingPolling();
+  addLiveBreadcrumb('pause.success');
 }
 
 export async function toggleLiveAudio(metadata?: AudioMetadata) {
   const player = getLiveAudioPlayer();
 
   if (player.playing) {
+    addLiveBreadcrumb('toggle.pause');
     pauseLiveAudio();
     return;
   }
 
+  addLiveBreadcrumb('toggle.play');
   await playLiveAudio(metadata);
 }
 

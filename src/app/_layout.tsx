@@ -1,4 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import Constants from 'expo-constants';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -14,17 +15,26 @@ void SplashScreen.preventAutoHideAsync();
 
 if (!Sentry.getClient()) {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
+  const environment =
+    process.env.EXPO_PUBLIC_SENTRY_ENV?.trim() ||
+    process.env.EXPO_PUBLIC_APP_ENV?.trim() ||
+    (__DEV__ ? 'development' : 'production');
   const tracesSampleRate = Number(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? 0.1);
 
   Sentry.init({
     dsn,
     enabled: Boolean(dsn),
-    environment:
-      process.env.EXPO_PUBLIC_SENTRY_ENV?.trim() ||
-      process.env.EXPO_PUBLIC_APP_ENV?.trim() ||
-      (__DEV__ ? 'development' : 'production'),
+    environment,
     tracesSampleRate: Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.1,
   });
+
+  Sentry.setTag('app.env', environment);
+  Sentry.setTag('app.platform', 'react-native');
+
+  const appVersion = Constants.expoConfig?.version?.trim();
+  if (appVersion) {
+    Sentry.setTag('app.version', appVersion);
+  }
 }
 
 function RootLayout() {
