@@ -27,6 +27,9 @@ const LIVE_NOW_PLAYING_RETRY_BASE_DELAY_MS = Number(
 const LIVE_NOW_PLAYING_ERROR_REPORT_INTERVAL_MS = Number(
   process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_ERROR_REPORT_INTERVAL_MS ?? 300000
 );
+const LIVE_RECONNECT_BASE_DELAY_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNECT_BASE_DELAY_MS ?? 4000);
+const LIVE_RECONNECT_MAX_DELAY_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNECT_MAX_DELAY_MS ?? 30000);
+const LIVE_RECONNECT_CHECK_INTERVAL_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNECT_CHECK_INTERVAL_MS ?? 4000);
 
 const DEFAULT_METADATA: AudioMetadata = {
   title: LIVE_PROGRAM_TITLE,
@@ -42,6 +45,11 @@ let isNowPlayingRequestInFlight = false;
 let metadataConsumersCount = 0;
 let lastSuccessfulNowPlayingAt = 0;
 let lastNowPlayingErrorReportAt = 0;
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let reconnectWatchdogTimer: ReturnType<typeof setInterval> | null = null;
+let reconnectAttemptCount = 0;
+let shouldMaintainPlayback = false;
+let isReconnectInFlight = false;
 
 function addLiveBreadcrumb(
   message: string,
@@ -364,6 +372,115 @@ function syncNowPlayingPolling() {
   }
 }
 
+function clearReconnectTimer() {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+}
+
+function stopReconnectWatchdog() {
+  if (reconnectWatchdogTimer) {
+    clearInterval(reconnectWatchdogTimer);
+    reconnectWatchdogTimer = null;
+  }
+}
+
+async function attemptAutoReconnect(reason: string) {
+  if (!shouldMaintainPlayback || isReconnectInFlight || !isLiveStreamConfigured) {
+    return;
+  }
+
+  const player = getLiveAudioPlayer();
+  isReconnectInFlight = true;
+
+  try {
+    addLiveBreadcrumb('reconnect.attempt', {
+      reason,
+      attempt: reconnectAttemptCount + 1,
+      playbackState: player.currentStatus.playbackState,
+    });
+
+    if (shouldReloadSourceBeforePlay(player.currentStatus)) {
+      replaceSource(player);
+    }
+
+    player.play();
+    syncNowPlayingPolling();
+
+    if (player.playing) {
+      reconnectAttemptCount = 0;
+      addLiveBreadcrumb('reconnect.success', { reason });
+    } else {
+      scheduleAutoReconnect(`retry:${reason}`);
+    }
+  } catch (error) {
+    addLiveBreadcrumb('reconnect.error', { reason, message: asError(error).message }, 'error');
+    captureLiveException(error, {
+      action: 'attemptAutoReconnect',
+      reason,
+      attempt: reconnectAttemptCount + 1,
+      playbackState: player.currentStatus.playbackState,
+    });
+    scheduleAutoReconnect(`error:${reason}`);
+  } finally {
+    isReconnectInFlight = false;
+  }
+}
+
+function scheduleAutoReconnect(reason: string) {
+  if (!shouldMaintainPlayback || reconnectTimer || !isLiveStreamConfigured) {
+    return;
+  }
+
+  reconnectAttemptCount += 1;
+  const baseDelay = Number.isFinite(LIVE_RECONNECT_BASE_DELAY_MS) ? LIVE_RECONNECT_BASE_DELAY_MS : 4000;
+  const maxDelay = Number.isFinite(LIVE_RECONNECT_MAX_DELAY_MS) ? LIVE_RECONNECT_MAX_DELAY_MS : 30000;
+  const delayMs = Math.min(maxDelay, Math.max(1000, baseDelay * reconnectAttemptCount));
+
+  addLiveBreadcrumb('reconnect.scheduled', {
+    reason,
+    attempt: reconnectAttemptCount,
+    delayMs,
+  });
+
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    void attemptAutoReconnect(reason);
+  }, delayMs);
+}
+
+function startReconnectWatchdog() {
+  if (reconnectWatchdogTimer || !isLiveStreamConfigured) {
+    return;
+  }
+
+  const intervalMs = Number.isFinite(LIVE_RECONNECT_CHECK_INTERVAL_MS) ? LIVE_RECONNECT_CHECK_INTERVAL_MS : 4000;
+
+  reconnectWatchdogTimer = setInterval(() => {
+    if (!shouldMaintainPlayback || !livePlayerInstance) {
+      return;
+    }
+
+    const status = livePlayerInstance.currentStatus;
+    const playbackState = status.playbackState.toLowerCase();
+    const failedState =
+      playbackState === 'failed' ||
+      playbackState === 'ended' ||
+      playbackState === 'idle' ||
+      status.mediaServicesDidReset === true ||
+      status.didJustFinish;
+
+    if (!livePlayerInstance.playing && !status.isBuffering && failedState) {
+      scheduleAutoReconnect(`watchdog:${playbackState}`);
+    }
+  }, Math.max(2000, intervalMs));
+
+  addLiveBreadcrumb('reconnect.watchdog.started', {
+    intervalMs: Math.max(2000, intervalMs),
+  });
+}
+
 function delay(ms: number) {
   return new Promise<void>(resolve => {
     setTimeout(resolve, ms);
@@ -480,6 +597,11 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
   const player = getLiveAudioPlayer();
 
   try {
+    shouldMaintainPlayback = true;
+    reconnectAttemptCount = 0;
+    clearReconnectTimer();
+    startReconnectWatchdog();
+
     addLiveBreadcrumb('play.start', {
       playbackState: player.currentStatus.playbackState,
       isLoaded: player.currentStatus.isLoaded,
@@ -510,6 +632,10 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
 
 export function pauseLiveAudio() {
   const player = getLiveAudioPlayer();
+  shouldMaintainPlayback = false;
+  reconnectAttemptCount = 0;
+  clearReconnectTimer();
+  stopReconnectWatchdog();
   addLiveBreadcrumb('pause.start', { playbackState: player.currentStatus.playbackState });
   player.pause();
   syncNowPlayingPolling();
