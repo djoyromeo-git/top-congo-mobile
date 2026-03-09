@@ -9,9 +9,12 @@ import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
 
+const WAVE_TILE_WIDTH = 178;
+
 type LiveAudioCardProps = {
   title: string;
   subtitle?: string;
+  onPressCard?: () => void;
   onPressPlay?: () => void;
   isPlaying?: boolean;
   isBuffering?: boolean;
@@ -21,6 +24,7 @@ type LiveAudioCardProps = {
 export function LiveAudioCard({
   title,
   subtitle,
+  onPressCard,
   onPressPlay,
   isPlaying = false,
   isBuffering = false,
@@ -39,20 +43,13 @@ export function LiveAudioCard({
 
     if (isActive) {
       shiftAnimation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(waveShift, {
-            toValue: -24,
-            duration: 1100,
-            easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.timing(waveShift, {
-            toValue: 0,
-            duration: 1100,
-            easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
-          }),
-        ])
+        Animated.timing(waveShift, {
+          toValue: -WAVE_TILE_WIDTH,
+          duration: isBuffering ? 1200 : 1800,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        { resetBeforeIteration: true }
       );
 
       opacityAnimation = Animated.loop(
@@ -78,10 +75,11 @@ export function LiveAudioCard({
       waveShift.stopAnimation();
       waveOpacity.stopAnimation();
 
+      waveShift.setValue(0);
       Animated.timing(waveShift, {
         toValue: 0,
-        duration: 180,
-        easing: Easing.out(Easing.quad),
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
 
@@ -111,17 +109,23 @@ export function LiveAudioCard({
         ]}>
         <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
         <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
+        <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
       </Animated.View>
 
-        <View style={styles.content}>
-        <View>
-          <View style={[styles.liveBadge, { backgroundColor: theme.liveBadgeBackground }]}>
-            <View style={[styles.liveDot, { backgroundColor: theme.onPrimary }]} />
-            <ThemedText style={[styles.liveText, { color: theme.onPrimary }]}>{t('auth.liveBadge')}</ThemedText>
+      <View style={styles.content}>
+        <Pressable
+          disabled={!onPressCard}
+          onPress={onPressCard}
+          style={({ pressed }) => [styles.infoPressable, pressed && styles.pressed]}>
+          <View>
+            <View style={[styles.liveBadge, { backgroundColor: theme.liveBadgeBackground }]}>
+              <View style={[styles.liveDot, { backgroundColor: theme.onPrimary }]} />
+              <ThemedText style={[styles.liveText, { color: theme.onPrimary }]}>{t('auth.liveBadge')}</ThemedText>
+            </View>
+            <ThemedText style={styles.title}>{title}</ThemedText>
+            {/* {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>} */}
           </View>
-          <ThemedText style={styles.title}>{title}</ThemedText>
-          {/* {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>} */}
-        </View>
+        </Pressable>
 
         <Pressable
           disabled={disabled}
@@ -157,9 +161,10 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
     overflow: 'hidden',
+    width: WAVE_TILE_WIDTH * 3,
   },
   waveImage: {
-    flex: 1,
+    width: WAVE_TILE_WIDTH,
     height: '100%',
   },
   content: {
@@ -167,6 +172,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.two,
+  },
+  infoPressable: {
+    flex: 1,
+    paddingVertical: 2,
   },
   liveBadge: {
     alignSelf: 'flex-start',
