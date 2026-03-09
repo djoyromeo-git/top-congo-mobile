@@ -74,6 +74,9 @@
     usernameTitle: 'Bienvenue sur la fréquence utile !',
     usernameSubtitle: "Avant de continuer, vous devez définir un nom d’utilisateur",
     usernamePlaceholder: 'Entrez un nom d’utilisateur',
+    errorEmailRequired: "L'adresse e-mail est requise",
+    errorEmailInvalid: "L'adresse e-mail est invalide",
+    errorPasswordRequired: 'Le mot de passe est requis',
   },
   onboarding: {
     firstTitle: "Suivez l'actualité nationale et internationale en temps réel.",

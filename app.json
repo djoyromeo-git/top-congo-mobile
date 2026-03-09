@@ -35,12 +35,16 @@
         {
           "backgroundColor": "#174197",
           "image": "./assets/expo.icon/Assets/logo-all-white.png",
-          "android": {
-            "image": "./assets/expo.icon/Assets/logo-all-white.png"
-          }
+          "imageWidth": 200
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

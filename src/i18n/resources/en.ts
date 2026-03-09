@@ -74,6 +74,9 @@ const en = {
     usernameTitle: 'Welcome to the useful frequency!',
     usernameSubtitle: 'Before continuing, you need to set a username',
     usernamePlaceholder: 'Enter a username',
+    errorEmailRequired: 'Email address is required',
+    errorEmailInvalid: 'Email address is invalid',
+    errorPasswordRequired: 'Password is required',
   },
   onboarding: {
     firstTitle: 'Follow national and international news in real time.',
