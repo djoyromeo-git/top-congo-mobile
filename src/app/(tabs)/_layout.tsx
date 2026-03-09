@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,14 +11,15 @@ import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
-import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus } from '@/services/live-audio';
+import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 export default function TabsLayout() {
-  const { t } = useTranslation();
+  const router = useRouter();
   const scheme = useColorScheme();
   const normalizedScheme = scheme === 'dark' ? 'dark' : 'light';
   const theme = Colors[normalizedScheme];
   const localTheme = useTheme();
+  const program = useLiveProgramInfo();
   const insets = useSafeAreaInsets();
   const liveCardBottom = insets.bottom + 76;
   const { isPlaying, isBuffering } = useLiveAudioStatus();
@@ -29,11 +30,11 @@ export default function TabsLayout() {
     }
 
     void toggleLiveAudio({
-      title: t('homeFeed.liveCardTitle').replace('\n', ' '),
-      artist: t('tabs.brand'),
-      albumTitle: t('auth.liveBadge'),
+      title: program.title,
+      artist: program.host,
+      albumTitle: program.schedule,
     });
-  }, [t]);
+  }, [program.host, program.schedule, program.title]);
 
   return (
     <View style={[styles.container, { backgroundColor: localTheme.surfaceMuted }]}>
@@ -59,7 +60,11 @@ export default function TabsLayout() {
 
       <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
         <LiveAudioCard
-          title={t('homeFeed.liveCardTitle')}
+          title={program.title}
+          subtitle={program.schedule}
+          onPressCard={() => {
+            router.push('/live-player');
+          }}
           onPressPlay={handleToggleLive}
           isPlaying={isPlaying}
           isBuffering={isBuffering}

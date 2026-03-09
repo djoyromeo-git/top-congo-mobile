@@ -8,7 +8,11 @@
     "scheme": "topcongomobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon-red-white.png"
+      "icon": "./assets/images/icon-red-white.png",
+      "bundleIdentifier": "app.topcongo.live",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +22,13 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "app.topcongo.live",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "androidStatusBar": {
       "backgroundColor": "#FFFFFF",
