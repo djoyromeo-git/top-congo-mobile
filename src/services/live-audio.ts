@@ -30,6 +30,9 @@ const LIVE_NOW_PLAYING_ERROR_REPORT_INTERVAL_MS = Number(
 const LIVE_RECONNECT_BASE_DELAY_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNECT_BASE_DELAY_MS ?? 4000);
 const LIVE_RECONNECT_MAX_DELAY_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNECT_MAX_DELAY_MS ?? 30000);
 const LIVE_RECONNECT_CHECK_INTERVAL_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNECT_CHECK_INTERVAL_MS ?? 4000);
+const LIVE_RECONNECT_BUFFERING_TIMEOUT_MS = Number(
+  process.env.EXPO_PUBLIC_LIVE_RECONNECT_BUFFERING_TIMEOUT_MS ?? 15000
+);
 
 const DEFAULT_METADATA: AudioMetadata = {
   title: LIVE_PROGRAM_TITLE,
@@ -57,6 +60,7 @@ let reconnectWatchdogTimer: ReturnType<typeof setInterval> | null = null;
 let reconnectAttemptCount = 0;
 let shouldMaintainPlayback = false;
 let isReconnectInFlight = false;
+let bufferingSinceAt = 0;
 let reconnectState: LiveReconnectState = {
   isReconnecting: false,
   attempt: 0,
@@ -537,9 +541,32 @@ function startReconnectWatchdog() {
       playbackState === 'idle' ||
       status.mediaServicesDidReset === true ||
       status.didJustFinish;
+    const pausedUnexpectedly =
+      status.isLoaded &&
+      playbackState === 'ready' &&
+      status.timeControlStatus.toLowerCase() === 'paused' &&
+      !livePlayerInstance.playing;
+    const bufferingTimeoutMs = Number.isFinite(LIVE_RECONNECT_BUFFERING_TIMEOUT_MS)
+      ? LIVE_RECONNECT_BUFFERING_TIMEOUT_MS
+      : 15000;
+
+    if (status.isBuffering) {
+      if (bufferingSinceAt === 0) {
+        bufferingSinceAt = Date.now();
+      } else if (Date.now() - bufferingSinceAt >= Math.max(5000, bufferingTimeoutMs)) {
+        scheduleAutoReconnect('watchdog:buffering-timeout');
+      }
+      return;
+    }
+    bufferingSinceAt = 0;
 
     if (!livePlayerInstance.playing && !status.isBuffering && failedState) {
       scheduleAutoReconnect(`watchdog:${playbackState}`);
+      return;
+    }
+
+    if (pausedUnexpectedly) {
+      scheduleAutoReconnect('watchdog:interruption');
     }
   }, Math.max(2000, intervalMs));
 
@@ -666,6 +693,7 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
   try {
     shouldMaintainPlayback = true;
     reconnectAttemptCount = 0;
+    bufferingSinceAt = 0;
     setReconnectState({
       isReconnecting: false,
       attempt: 0,
@@ -706,6 +734,7 @@ export function pauseLiveAudio() {
   const player = getLiveAudioPlayer();
   shouldMaintainPlayback = false;
   reconnectAttemptCount = 0;
+  bufferingSinceAt = 0;
   setReconnectState({
     isReconnecting: false,
     attempt: 0,
