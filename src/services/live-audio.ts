@@ -38,8 +38,15 @@ const DEFAULT_METADATA: AudioMetadata = {
   artworkUrl: LIVE_DEFAULT_ARTWORK_URL,
 };
 
+export type LiveReconnectState = {
+  isReconnecting: boolean;
+  attempt: number;
+  reason: string | null;
+};
+
 let currentLiveMetadata: AudioMetadata = { ...DEFAULT_METADATA };
 const liveMetadataListeners = new Set<() => void>();
+const reconnectStateListeners = new Set<() => void>();
 let nowPlayingPollTimer: ReturnType<typeof setInterval> | null = null;
 let isNowPlayingRequestInFlight = false;
 let metadataConsumersCount = 0;
@@ -50,6 +57,11 @@ let reconnectWatchdogTimer: ReturnType<typeof setInterval> | null = null;
 let reconnectAttemptCount = 0;
 let shouldMaintainPlayback = false;
 let isReconnectInFlight = false;
+let reconnectState: LiveReconnectState = {
+  isReconnecting: false,
+  attempt: 0,
+  reason: null,
+};
 
 function addLiveBreadcrumb(
   message: string,
@@ -102,6 +114,25 @@ function notifyLiveMetadataChanged() {
   for (const listener of liveMetadataListeners) {
     listener();
   }
+}
+
+function notifyReconnectStateChanged() {
+  for (const listener of reconnectStateListeners) {
+    listener();
+  }
+}
+
+function setReconnectState(next: LiveReconnectState) {
+  if (
+    reconnectState.isReconnecting === next.isReconnecting &&
+    reconnectState.attempt === next.attempt &&
+    reconnectState.reason === next.reason
+  ) {
+    return;
+  }
+
+  reconnectState = next;
+  notifyReconnectStateChanged();
 }
 
 function setCurrentLiveMetadata(metadata: AudioMetadata) {
@@ -218,6 +249,10 @@ export function getCurrentLiveMetadata() {
   return { ...currentLiveMetadata };
 }
 
+export function getLiveReconnectState() {
+  return { ...reconnectState };
+}
+
 export function subscribeLiveProgramInfo(listener: () => void) {
   liveMetadataListeners.add(listener);
   metadataConsumersCount += 1;
@@ -228,6 +263,14 @@ export function subscribeLiveProgramInfo(listener: () => void) {
     liveMetadataListeners.delete(listener);
     metadataConsumersCount = Math.max(0, metadataConsumersCount - 1);
     syncNowPlayingPolling();
+  };
+}
+
+export function subscribeLiveReconnectState(listener: () => void) {
+  reconnectStateListeners.add(listener);
+
+  return () => {
+    reconnectStateListeners.delete(listener);
   };
 }
 
@@ -257,6 +300,20 @@ export function useLiveMetadata() {
   }, []);
 
   return metadata;
+}
+
+export function useLiveReconnectState() {
+  const [state, setState] = React.useState<LiveReconnectState>(() => getLiveReconnectState());
+
+  React.useEffect(() => {
+    const unsubscribe = subscribeLiveReconnectState(() => {
+      setState(getLiveReconnectState());
+    });
+
+    return unsubscribe;
+  }, []);
+
+  return state;
 }
 
 let livePlayerInstance: AudioPlayer | null = null;
@@ -410,6 +467,11 @@ async function attemptAutoReconnect(reason: string) {
 
     if (player.playing) {
       reconnectAttemptCount = 0;
+      setReconnectState({
+        isReconnecting: false,
+        attempt: 0,
+        reason: null,
+      });
       addLiveBreadcrumb('reconnect.success', { reason });
     } else {
       scheduleAutoReconnect(`retry:${reason}`);
@@ -434,6 +496,11 @@ function scheduleAutoReconnect(reason: string) {
   }
 
   reconnectAttemptCount += 1;
+  setReconnectState({
+    isReconnecting: true,
+    attempt: reconnectAttemptCount,
+    reason,
+  });
   const baseDelay = Number.isFinite(LIVE_RECONNECT_BASE_DELAY_MS) ? LIVE_RECONNECT_BASE_DELAY_MS : 4000;
   const maxDelay = Number.isFinite(LIVE_RECONNECT_MAX_DELAY_MS) ? LIVE_RECONNECT_MAX_DELAY_MS : 30000;
   const delayMs = Math.min(maxDelay, Math.max(1000, baseDelay * reconnectAttemptCount));
@@ -599,6 +666,11 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
   try {
     shouldMaintainPlayback = true;
     reconnectAttemptCount = 0;
+    setReconnectState({
+      isReconnecting: false,
+      attempt: 0,
+      reason: null,
+    });
     clearReconnectTimer();
     startReconnectWatchdog();
 
@@ -634,6 +706,11 @@ export function pauseLiveAudio() {
   const player = getLiveAudioPlayer();
   shouldMaintainPlayback = false;
   reconnectAttemptCount = 0;
+  setReconnectState({
+    isReconnecting: false,
+    attempt: 0,
+    reason: null,
+  });
   clearReconnectTimer();
   stopReconnectWatchdog();
   addLiveBreadcrumb('pause.start', { playbackState: player.currentStatus.playbackState });

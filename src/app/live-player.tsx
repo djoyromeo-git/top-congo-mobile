@@ -15,6 +15,7 @@ import {
   useLiveAudioStatus,
   useLiveMetadata,
   useLiveProgramInfo,
+  useLiveReconnectState,
 } from '@/services/live-audio';
 
 export default function LivePlayerScreen() {
@@ -23,6 +24,7 @@ export default function LivePlayerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const reconnectState = useLiveReconnectState();
   const program = useLiveProgramInfo();
   const metadata = useLiveMetadata();
 
@@ -105,14 +107,25 @@ export default function LivePlayerScreen() {
         </View>
 
         <View style={styles.stateWrap}>
+          {reconnectState.isReconnecting ? (
+            <View style={styles.reconnectInline}>
+              <ActivityIndicator size="small" color={theme.onPrimary} />
+              <ThemedText style={[styles.stateText, { color: theme.onPrimary }]}>
+                {`Reconnexion... (tentative ${reconnectState.attempt})`}
+              </ThemedText>
+            </View>
+          ) : null}
+
           <ThemedText style={[styles.stateText, { color: theme.onPrimary }]}>
             {!isLiveStreamConfigured
               ? 'Stream indisponible'
-              : isBuffering
-                ? 'Chargement...'
-                : isPlaying
-                  ? 'En direct'
-                  : 'Prêt à lancer'}
+              : reconnectState.isReconnecting
+                ? 'Reconnexion en cours'
+                : isBuffering
+                  ? 'Chargement...'
+                  : isPlaying
+                    ? 'En direct'
+                    : 'Pret a lancer'}
           </ThemedText>
         </View>
       </View>
@@ -237,6 +250,12 @@ const styles = StyleSheet.create({
   stateWrap: {
     alignItems: 'center',
     marginTop: 4,
+    gap: 8,
+  },
+  reconnectInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   stateText: {
     fontSize: 13,
