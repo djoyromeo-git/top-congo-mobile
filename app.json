@@ -55,7 +55,14 @@
           "enableBackgroundPlayback": true
         }
       ],
-      "@sentry/react-native/expo"
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "archi-tech",
+          "project": "top-congo-mobile"
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -69,4 +76,3 @@
     }
   }
 }
-
