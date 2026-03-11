@@ -1,7 +1,7 @@
 import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
+import { usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +20,7 @@ const HOME_SKELETON_DURATION_MS = 1400;
 
 export default function TabsLayout() {
   const router = useRouter();
+  const pathname = usePathname();
   const scheme = useColorScheme();
   const normalizedScheme = scheme === 'dark' ? 'dark' : 'light';
   const localTheme = useTheme();
@@ -28,6 +29,7 @@ export default function TabsLayout() {
   const liveCardBottom = insets.bottom + 76;
   const { isPlaying, isBuffering } = useLiveAudioStatus();
   const [isHomeLoading, setIsHomeLoading] = React.useState(true);
+  const isSearchScreen = pathname === '/search';
 
   React.useEffect(() => {
     void Asset.loadAsync([APP_BAR_LOGO_SOURCE, LIVE_CARD_WAVE_SOURCE]);
@@ -60,38 +62,42 @@ export default function TabsLayout() {
           style={normalizedScheme === 'light' ? 'light' : 'dark'}
         />
 
-        <AppTopBar
-          leftAction={{ icon: 'menu', onPress: () => {} }}
-          rightAction={{ icon: 'search', onPress: () => {} }}
-          logo={
-            <Image
-              source={APP_BAR_LOGO_SOURCE}
-              style={styles.headerLogo}
-              cachePolicy="memory-disk"
-              contentFit="contain"
-              transition={0}
-            />
-          }
-        />
+        {!isSearchScreen ? (
+          <AppTopBar
+            leftAction={{ icon: 'menu', onPress: () => {} }}
+            rightAction={{ icon: 'search', onPress: () => router.push('/search') }}
+            centerContent={
+              <Image
+                source={APP_BAR_LOGO_SOURCE}
+                style={styles.headerLogo}
+                cachePolicy="memory-disk"
+                contentFit="contain"
+                transition={0}
+              />
+            }
+          />
+        ) : null}
 
         <View style={styles.tabsContainer}>
           <AppTabs />
         </View>
 
-        <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
-          <LiveAudioCard
-            loading={isHomeLoading}
-            title={program.title}
-            subtitle={program.schedule}
-            onPressCard={() => {
-              router.push('/live-player');
-            }}
-            onPressPlay={handleToggleLive}
-            isPlaying={isPlaying}
-            isBuffering={isBuffering}
-            disabled={!isLiveStreamConfigured}
-          />
-        </View>
+        {!isSearchScreen ? (
+          <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
+            <LiveAudioCard
+              loading={isHomeLoading}
+              title={program.title}
+              subtitle={program.schedule}
+              onPressCard={() => {
+                router.push('/live-player');
+              }}
+              onPressPlay={handleToggleLive}
+              isPlaying={isPlaying}
+              isBuffering={isBuffering}
+              disabled={!isLiveStreamConfigured}
+            />
+          </View>
+        ) : null}
       </View>
     </HomeLoadingProvider>
   );

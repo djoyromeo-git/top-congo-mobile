@@ -1,5 +1,4 @@
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -7,47 +6,11 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { HeadlineCard } from '@/components/ui/headline-card';
 import { useHomeLoading } from '@/components/ui/home-loading-context';
+import { NewsListItem } from '@/components/ui/news-list-item';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
+import { FEATURED_NEWS, NEWS_ITEMS, QUICK_TOPICS } from '@/constants/home-feed';
 import { useTheme } from '@/hooks/use-theme';
-
-const QUICK_TOPICS = [
-  { key: 'economy', emoji: '\u{1F30D}' },
-  { key: 'technology', emoji: '\u{1F4BB}' },
-  { key: 'security', emoji: '\u{1FA96}' },
-] as const;
-
-const FEATURED_NEWS = [
-  {
-    key: 'featuredOne',
-    badgeKey: 'cardOneBadge',
-    dateKey: 'cardOneDate',
-    titleKey: 'cardOneTitle',
-    imageSource: require('@/assets/images/home/concert.png'),
-    fallbackVariant: 'dark' as const,
-    saved: false,
-    showBadgeDot: true,
-  },
-  {
-    key: 'featuredTwo',
-    badgeKey: 'cardTwoBadge',
-    dateKey: 'cardTwoDate',
-    titleKey: 'cardTwoTitle',
-    imageSource: require('@/assets/images/home/emission.png'),
-    fallbackVariant: 'blue' as const,
-    saved: true,
-    showBadgeDot: false,
-  },
-] as const;
-
-const NEWS_ITEMS = [
-  { key: 'listOneTitle', imageSource: require('@/assets/images/home/concert.png'), saved: true, hasBadge: true },
-  { key: 'listTwoTitle', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: true },
-  { key: 'listThreeTitle', imageSource: require('@/assets/images/home/concert.png'), saved: false, hasBadge: false },
-  { key: 'listFourTitle', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: false },
-  { key: 'listFiveTitle', imageSource: require('@/assets/images/home/concert.png'), saved: true, hasBadge: false },
-  { key: 'listSixTitle', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: true },
-] as const;
 
 export default function HomeFeedScreen() {
   const isHomeLoading = useHomeLoading();
@@ -151,47 +114,15 @@ function HomeContent() {
 
       <View style={[styles.newsList, { borderTopColor: theme.homeChipBorder }]}>
         {NEWS_ITEMS.map((item, index) => (
-          <View
+          <NewsListItem
             key={item.key}
-            style={[
-              styles.newsRow,
-              index < NEWS_ITEMS.length - 1 && {
-                borderBottomColor: theme.homeChipBorder,
-                borderBottomWidth: 1,
-              },
-            ]}>
-            <Pressable style={({ pressed }) => [styles.newsMain, pressed && styles.pressed]}>
-              <View style={styles.newsMedia}>
-                <Image source={item.imageSource} style={styles.newsImage} contentFit="cover" transition={0} />
-                {item.hasBadge ? (
-                  <View style={styles.newsBadge}>
-                    <FontAwesome5 name="certificate" size={18} color={theme.headlineAccent} />
-                    <Feather
-                      name="check"
-                      size={9}
-                      color={theme.headlineAccentText}
-                      style={styles.newsBadgeCheck}
-                    />
-                  </View>
-                ) : null}
-              </View>
-
-              <ThemedText numberOfLines={3} style={[styles.newsTitle, { color: theme.homeTitle }]}>
-                {t(`homeFeed.${item.key}`)}
-              </ThemedText>
-            </Pressable>
-
-            <Pressable
-              hitSlop={8}
-              onPress={() => toggleNewsSaved(item.key)}
-              style={({ pressed }) => [styles.newsSave, pressed && styles.pressed]}>
-              {savedNews[item.key] ? (
-                <FontAwesome5 name="bookmark" size={18} color={theme.primary} solid />
-              ) : (
-                <Feather name="bookmark" size={20} color={theme.homeSectionLink} />
-              )}
-            </Pressable>
-          </View>
+            title={t(`homeFeed.${item.key}`)}
+            imageSource={item.imageSource}
+            saved={savedNews[item.key]}
+            hasBadge={item.hasBadge}
+            showDivider={index < NEWS_ITEMS.length - 1}
+            onPressSave={() => toggleNewsSaved(item.key)}
+          />
         ))}
       </View>
     </>
@@ -542,44 +473,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     borderTopWidth: 1,
   },
-  newsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-  },
-  newsMain: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  newsMedia: {
-    position: 'relative',
-  },
-  newsImage: {
-    width: 124,
-    height: 70,
-    borderRadius: 6,
-  },
-  newsBadge: {
-    position: 'absolute',
-    right: 8,
-    bottom: 8,
-    width: 18,
-    height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  newsBadgeCheck: {
-    position: 'absolute',
-  },
-  newsTitle: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
   newsSkeletonTextBlock: {
     flex: 1,
     gap: 8,
@@ -593,10 +486,6 @@ const styles = StyleSheet.create({
     width: '74%',
     height: 10,
     borderRadius: 4,
-  },
-  newsSave: {
-    width: 24,
-    alignItems: 'flex-end',
   },
   pressed: {
     opacity: 0.8,

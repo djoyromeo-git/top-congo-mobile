@@ -68,6 +68,10 @@ export default function AppTabs() {
 
       <TabList asChild>
         <CustomTabList bottomInset={insets.bottom}>
+          <TabTrigger name="search" href="/search" asChild>
+            <View style={styles.hiddenTrigger} />
+          </TabTrigger>
+
           <TabTrigger name="index" href="/(tabs)" asChild>
             <TabButton
               activeLabel={t('tabs.headline')}
@@ -133,6 +137,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 26,
     paddingTop: 12,
     paddingBottom: 16,
+  },
+  hiddenTrigger: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    opacity: 0,
   },
   trigger: {
     minHeight: 48,

@@ -40,6 +40,13 @@
     listSixTitle: 'ENQUÊTE EXCLUSIVE : Traçabilité du Coltan, ce que disent les multinationales',
     liveCardTitle: 'Suivez l’actualité en\ncontinue avec Top Congo',
   },
+  search: {
+    placeholder: "Rechercher l'actualité",
+    recentSection: 'Resultats récents',
+    emptyRecent: 'Vos recherches récentes apparaitront ici dès que vous commencerez à explorer.',
+    allNews: "Toute l'actualité",
+    resultsFound: '{{count}} Résultats trouvés',
+  },
   auth: {
     createAccount: 'Créer un compte',
     alreadyHaveAccount: 'Vous avez déjà un compte ?',

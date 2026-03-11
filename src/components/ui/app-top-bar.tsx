@@ -16,19 +16,26 @@ type TopBarAction = {
 type AppTopBarProps = {
   leftAction?: TopBarAction;
   rightAction?: TopBarAction;
-  logo?: React.ReactNode;
+  centerContent?: React.ReactNode;
+  reserveRightSlot?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-export function AppTopBar({ leftAction, rightAction, logo, style }: AppTopBarProps) {
+export function AppTopBar({
+  leftAction,
+  rightAction,
+  centerContent,
+  reserveRightSlot = true,
+  style,
+}: AppTopBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.secondary, paddingTop: insets.top + Spacing.two }, style]}>
       <ActionButton action={leftAction} />
-      <View style={styles.logoContainer}>
-        {logo ?? (
+      <View style={styles.centerContainer}>
+        {centerContent ?? (
           <Image
             source={require('@/assets/expo.icon/Assets/logo-all-white.png')}
             style={styles.defaultLogo}
@@ -36,7 +43,7 @@ export function AppTopBar({ leftAction, rightAction, logo, style }: AppTopBarPro
           />
         )}
       </View>
-      <ActionButton action={rightAction} />
+      {reserveRightSlot || rightAction ? <ActionButton action={rightAction} /> : null}
     </View>
   );
 }
@@ -80,7 +87,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoContainer: {
+  centerContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
