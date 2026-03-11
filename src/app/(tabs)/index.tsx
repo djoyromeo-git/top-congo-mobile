@@ -6,6 +6,8 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { HeadlineCard } from '@/components/ui/headline-card';
+import { useHomeLoading } from '@/components/ui/home-loading-context';
+import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -48,6 +50,8 @@ const NEWS_ITEMS = [
 ] as const;
 
 export default function HomeFeedScreen() {
+  const isHomeLoading = useHomeLoading();
+
   return (
     <TabShell>
       {({ liveCardBottom }) => (
@@ -55,7 +59,7 @@ export default function HomeFeedScreen() {
           style={styles.scroll}
           contentContainerStyle={[styles.content, { paddingBottom: liveCardBottom + 90 }]}
           showsVerticalScrollIndicator={false}>
-          <HomeContent />
+          {isHomeLoading ? <HomeSkeleton /> : <HomeContent />}
         </ScrollView>
       )}
     </TabShell>
@@ -90,7 +94,7 @@ function HomeContent() {
     <>
       <View>
         <ThemedText style={[styles.title, { color: theme.homeTitle }]}>
-          {t('homeFeed.welcome', { name: 'Trésor' })}
+          {t('homeFeed.welcome', { name: 'Tr\u00e9sor' })}
         </ThemedText>
         <ThemedText style={[styles.subtitle, { color: theme.homeSubtitle }]}>
           {t('homeFeed.subtitle')}
@@ -194,6 +198,161 @@ function HomeContent() {
   );
 }
 
+function HomeSkeleton() {
+  const theme = useTheme();
+
+  return (
+    <>
+      <View>
+        <SkeletonBlock style={styles.titleSkeleton} />
+        <SkeletonBlock style={styles.subtitleSkeleton} />
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicsRow}>
+        {[120, 128, 112, 96].map((width, index) => (
+          <View
+            key={`topic-skeleton-${index}`}
+            style={[
+              styles.topicChip,
+              {
+                width,
+                borderColor: theme.homeChipBorder,
+                backgroundColor: theme.homeChipBackground,
+              },
+            ]}>
+            <SkeletonBlock style={styles.topicLineSkeleton} />
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={styles.sectionHeader}>
+        <SkeletonBlock style={styles.sectionTitleSkeleton} />
+        <SkeletonBlock style={styles.sectionLinkSkeleton} />
+      </View>
+
+      <ScrollView
+        horizontal
+        style={styles.headlinesScroll}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.cardsRow}>
+        <HeadlineCardSkeleton withActiveAction={false} showLiveDot />
+        <HeadlineCardSkeleton withActiveAction showLiveDot={false} />
+      </ScrollView>
+
+      <View style={styles.sectionHeader}>
+        <SkeletonBlock style={styles.sectionTitleSkeletonAlt} />
+        <SkeletonBlock style={styles.sectionLinkSkeleton} />
+      </View>
+
+      <View style={[styles.newsList, { borderTopColor: theme.homeChipBorder }]}>
+        {NEWS_ITEMS.map((item, index) => (
+          <NewsRowSkeleton
+            key={`news-skeleton-${item.key}`}
+            showBadge={item.hasBadge}
+            saved={item.saved}
+            showDivider={index < NEWS_ITEMS.length - 1}
+          />
+        ))}
+      </View>
+    </>
+  );
+}
+
+function HeadlineCardSkeleton({
+  withActiveAction,
+  showLiveDot,
+}: {
+  withActiveAction: boolean;
+  showLiveDot: boolean;
+}) {
+  const theme = useTheme();
+
+  return (
+    <View style={[styles.headlineSkeletonCard, { backgroundColor: theme.headlineCardBackground }]}>
+      <View style={[styles.headlineSkeletonMedia, { backgroundColor: theme.homeChipBorder }]}>
+        <View style={[styles.headlineSkeletonBadge, { backgroundColor: theme.headlineBadgeBackground }]}>
+          {showLiveDot ? <View style={[styles.headlineSkeletonBadgeDot, { backgroundColor: theme.headlineBadgeText }]} /> : null}
+          <SkeletonBlock style={styles.headlineSkeletonBadgeText} color="rgba(255,255,255,0.9)" />
+        </View>
+        <View style={styles.headlineSkeletonCert}>
+          <FontAwesome5 name="certificate" size={17} color={theme.headlineAccent} />
+          <Feather name="check" size={9} color={theme.headlineAccentText} style={styles.newsBadgeCheck} />
+        </View>
+      </View>
+
+      <SkeletonBlock style={styles.headlineSkeletonDate} />
+      <SkeletonBlock style={styles.headlineSkeletonTitleWide} />
+      <SkeletonBlock style={styles.headlineSkeletonTitleMedium} />
+      <SkeletonBlock style={styles.headlineSkeletonTitleShort} />
+
+      <View
+        style={[
+          styles.headlineSkeletonAction,
+          {
+            borderColor: withActiveAction ? theme.primary : theme.border,
+            backgroundColor: withActiveAction ? `${theme.primary}14` : 'transparent',
+          },
+        ]}>
+        {withActiveAction ? (
+          <FontAwesome5 name="bookmark" size={14} color={theme.primary} solid />
+        ) : (
+          <Feather name="bookmark" size={15} color={theme.homeChipBorder} />
+        )}
+        <SkeletonBlock style={styles.headlineSkeletonActionText} />
+      </View>
+    </View>
+  );
+}
+
+function NewsRowSkeleton({
+  showBadge,
+  saved,
+  showDivider,
+}: {
+  showBadge: boolean;
+  saved: boolean;
+  showDivider: boolean;
+}) {
+  const theme = useTheme();
+
+  return (
+    <View
+      style={[
+        styles.newsRow,
+        showDivider && {
+          borderBottomColor: theme.homeChipBorder,
+          borderBottomWidth: 1,
+        },
+      ]}>
+      <View style={styles.newsMain}>
+        <View style={styles.newsMedia}>
+          <SkeletonBlock style={styles.newsImage} />
+          {showBadge ? (
+            <View style={styles.newsBadge}>
+              <FontAwesome5 name="certificate" size={18} color={theme.headlineAccent} />
+              <Feather name="check" size={9} color={theme.headlineAccentText} style={styles.newsBadgeCheck} />
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.newsSkeletonTextBlock}>
+          <SkeletonBlock style={styles.newsSkeletonLineWide} />
+          <SkeletonBlock style={styles.newsSkeletonLineWide} />
+          <SkeletonBlock style={styles.newsSkeletonLineShort} />
+        </View>
+      </View>
+
+      <View style={styles.newsSave}>
+        {saved ? (
+          <FontAwesome5 name="bookmark" size={18} color={theme.primary} solid />
+        ) : (
+          <Feather name="bookmark" size={20} color={theme.homeChipBorder} />
+        )}
+      </View>
+    </View>
+  );
+}
+
 function SectionHeader({ title, actionLabel }: { title: string; actionLabel: string }) {
   const theme = useTheme();
 
@@ -227,6 +386,17 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: 500,
   },
+  titleSkeleton: {
+    width: '52%',
+    height: 16,
+    borderRadius: 4,
+  },
+  subtitleSkeleton: {
+    width: '54%',
+    height: 12,
+    borderRadius: 4,
+    marginTop: 14,
+  },
   topicsRow: {
     gap: 8,
     paddingVertical: 2,
@@ -242,6 +412,12 @@ const styles = StyleSheet.create({
     fontSize: 17 / 1.2,
     lineHeight: 22 / 1.2,
     fontWeight: 500,
+  },
+  topicLineSkeleton: {
+    width: '72%',
+    height: 10,
+    borderRadius: 999,
+    alignSelf: 'center',
   },
   sectionHeader: {
     marginTop: 6,
@@ -259,6 +435,21 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: 500,
   },
+  sectionTitleSkeleton: {
+    width: 88,
+    height: 14,
+    borderRadius: 4,
+  },
+  sectionTitleSkeletonAlt: {
+    width: 120,
+    height: 14,
+    borderRadius: 4,
+  },
+  sectionLinkSkeleton: {
+    width: 54,
+    height: 10,
+    borderRadius: 4,
+  },
   cardsRow: {
     gap: 12,
     paddingLeft: 16,
@@ -266,6 +457,86 @@ const styles = StyleSheet.create({
   },
   headlinesScroll: {
     marginHorizontal: -16,
+  },
+  headlineSkeletonCard: {
+    width: 232,
+    borderRadius: 12,
+    padding: 8,
+  },
+  headlineSkeletonMedia: {
+    height: 128,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  headlineSkeletonBadge: {
+    marginTop: 8,
+    marginLeft: 8,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  headlineSkeletonBadgeDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 999,
+  },
+  headlineSkeletonBadgeText: {
+    width: 26,
+    height: 7,
+    borderRadius: 999,
+  },
+  headlineSkeletonCert: {
+    position: 'absolute',
+    right: 8,
+    bottom: 8,
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headlineSkeletonDate: {
+    width: 76,
+    height: 10,
+    borderRadius: 4,
+    marginTop: 16,
+  },
+  headlineSkeletonTitleWide: {
+    width: '78%',
+    height: 11,
+    borderRadius: 4,
+    marginTop: 14,
+  },
+  headlineSkeletonTitleMedium: {
+    width: '88%',
+    height: 11,
+    borderRadius: 4,
+    marginTop: 8,
+  },
+  headlineSkeletonTitleShort: {
+    width: '82%',
+    height: 11,
+    borderRadius: 4,
+    marginTop: 8,
+  },
+  headlineSkeletonAction: {
+    marginTop: 18,
+    minHeight: 36,
+    borderRadius: 6,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  headlineSkeletonActionText: {
+    width: '74%',
+    height: 10,
+    borderRadius: 999,
   },
   newsList: {
     marginTop: 2,
@@ -308,6 +579,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontWeight: 700,
+  },
+  newsSkeletonTextBlock: {
+    flex: 1,
+    gap: 8,
+  },
+  newsSkeletonLineWide: {
+    width: '90%',
+    height: 10,
+    borderRadius: 4,
+  },
+  newsSkeletonLineShort: {
+    width: '74%',
+    height: 10,
+    borderRadius: 4,
   },
   newsSave: {
     width: 24,

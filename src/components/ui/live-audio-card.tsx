@@ -7,6 +7,7 @@ import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, View } from
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+import { SkeletonBlock } from './skeleton-block';
 import { ThemedText } from '../themed-text';
 
 const WAVE_TILE_WIDTH = 178;
@@ -20,6 +21,7 @@ type LiveAudioCardProps = {
   isPlaying?: boolean;
   isBuffering?: boolean;
   disabled?: boolean;
+  loading?: boolean;
 };
 
 export function LiveAudioCard({
@@ -30,6 +32,7 @@ export function LiveAudioCard({
   isPlaying = false,
   isBuffering = false,
   disabled = false,
+  loading = false,
 }: LiveAudioCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -97,6 +100,34 @@ export function LiveAudioCard({
       opacityAnimation?.stop();
     };
   }, [disabled, isPlaying, isBuffering, waveOpacity, waveShift]);
+
+  if (loading) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.loadingWaveOverlay} />
+
+        <View style={styles.content}>
+          <View style={styles.infoPressable}>
+            <View style={[styles.liveBadge, { backgroundColor: theme.liveBadgeBackground }]}>
+              <View style={[styles.liveDot, { backgroundColor: theme.onPrimary }]} />
+              <SkeletonBlock style={styles.loadingBadgeText} color="rgba(255,255,255,0.92)" />
+            </View>
+            <SkeletonBlock style={styles.loadingTitle} color="rgba(255,255,255,0.92)" />
+            <SkeletonBlock style={styles.loadingSubtitle} color="rgba(255,255,255,0.82)" />
+          </View>
+
+          <View style={styles.playButton}>
+            <Entypo
+              name="controller-play"
+              size={22}
+              color={Palette.red['800']}
+              style={styles.playIcon}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.card, disabled && styles.disabled]}>
@@ -186,6 +217,10 @@ const styles = StyleSheet.create({
     width: WAVE_TILE_WIDTH,
     height: '100%',
   },
+  loadingWaveOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -217,11 +252,28 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     fontWeight: 700,
   },
+  loadingBadgeText: {
+    width: 24,
+    height: 7,
+    borderRadius: 999,
+  },
   title: {
     color: Palette.neutral['100'],
     fontSize: 15,
     lineHeight: 17,
     fontWeight: 500,
+  },
+  loadingTitle: {
+    width: '76%',
+    height: 11,
+    borderRadius: 999,
+    marginTop: 2,
+  },
+  loadingSubtitle: {
+    width: '68%',
+    height: 11,
+    borderRadius: 999,
+    marginTop: 8,
   },
   subtitle: {
     color: Palette.neutral['100'],

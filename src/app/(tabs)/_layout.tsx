@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppTabs from '@/components/app-tabs';
 import { AppTopBar } from '@/components/ui/app-top-bar';
+import { HomeLoadingProvider } from '@/components/ui/home-loading-context';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,6 +16,7 @@ import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLivePro
 
 const APP_BAR_LOGO_SOURCE = require('@/assets/images/logos/app-bar-logo.png');
 const LIVE_CARD_WAVE_SOURCE = require('@/assets/images/live/live-wave.svg');
+const HOME_SKELETON_DURATION_MS = 1400;
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -25,9 +27,18 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const liveCardBottom = insets.bottom + 76;
   const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const [isHomeLoading, setIsHomeLoading] = React.useState(true);
 
   React.useEffect(() => {
     void Asset.loadAsync([APP_BAR_LOGO_SOURCE, LIVE_CARD_WAVE_SOURCE]);
+  }, []);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsHomeLoading(false);
+    }, HOME_SKELETON_DURATION_MS);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleToggleLive = React.useCallback(() => {
@@ -43,43 +54,46 @@ export default function TabsLayout() {
   }, [program.host, program.schedule, program.title]);
 
   return (
-    <View style={[styles.container, { backgroundColor: localTheme.surfaceMuted }]}>
-      <StatusBar
-        style={normalizedScheme === 'light' ? 'light' : 'dark'}
-      />
-
-      <AppTopBar
-        leftAction={{ icon: 'menu', onPress: () => {} }}
-        rightAction={{ icon: 'search', onPress: () => {} }}
-        logo={
-          <Image
-            source={APP_BAR_LOGO_SOURCE}
-            style={styles.headerLogo}
-            cachePolicy="memory-disk"
-            contentFit="contain"
-            transition={0}
-          />
-        }
-      />
-
-      <View style={styles.tabsContainer}>
-        <AppTabs />
-      </View>
-
-      <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
-        <LiveAudioCard
-          title={program.title}
-          subtitle={program.schedule}
-          onPressCard={() => {
-            router.push('/live-player');
-          }}
-          onPressPlay={handleToggleLive}
-          isPlaying={isPlaying}
-          isBuffering={isBuffering}
-          disabled={!isLiveStreamConfigured}
+    <HomeLoadingProvider value={isHomeLoading}>
+      <View style={[styles.container, { backgroundColor: localTheme.surfaceMuted }]}>
+        <StatusBar
+          style={normalizedScheme === 'light' ? 'light' : 'dark'}
         />
+
+        <AppTopBar
+          leftAction={{ icon: 'menu', onPress: () => {} }}
+          rightAction={{ icon: 'search', onPress: () => {} }}
+          logo={
+            <Image
+              source={APP_BAR_LOGO_SOURCE}
+              style={styles.headerLogo}
+              cachePolicy="memory-disk"
+              contentFit="contain"
+              transition={0}
+            />
+          }
+        />
+
+        <View style={styles.tabsContainer}>
+          <AppTabs />
+        </View>
+
+        <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
+          <LiveAudioCard
+            loading={isHomeLoading}
+            title={program.title}
+            subtitle={program.schedule}
+            onPressCard={() => {
+              router.push('/live-player');
+            }}
+            onPressPlay={handleToggleLive}
+            isPlaying={isPlaying}
+            isBuffering={isBuffering}
+            disabled={!isLiveStreamConfigured}
+          />
+        </View>
       </View>
-    </View>
+    </HomeLoadingProvider>
   );
 }
 
