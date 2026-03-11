@@ -1,3 +1,4 @@
+import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -8,21 +9,26 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppTabs from '@/components/app-tabs';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
+
+const APP_BAR_LOGO_SOURCE = require('@/assets/images/logos/app-bar-logo.png');
+const LIVE_CARD_WAVE_SOURCE = require('@/assets/images/live/live-wave.svg');
 
 export default function TabsLayout() {
   const router = useRouter();
   const scheme = useColorScheme();
   const normalizedScheme = scheme === 'dark' ? 'dark' : 'light';
-  const theme = Colors[normalizedScheme];
   const localTheme = useTheme();
   const program = useLiveProgramInfo();
   const insets = useSafeAreaInsets();
   const liveCardBottom = insets.bottom + 76;
   const { isPlaying, isBuffering } = useLiveAudioStatus();
+
+  React.useEffect(() => {
+    void Asset.loadAsync([APP_BAR_LOGO_SOURCE, LIVE_CARD_WAVE_SOURCE]);
+  }, []);
 
   const handleToggleLive = React.useCallback(() => {
     if (!isLiveStreamConfigured) {
@@ -47,9 +53,11 @@ export default function TabsLayout() {
         rightAction={{ icon: 'search', onPress: () => {} }}
         logo={
           <Image
-            source={require('@/assets/images/logos/app-bar-logo.svg')}
+            source={APP_BAR_LOGO_SOURCE}
             style={styles.headerLogo}
+            cachePolicy="memory-disk"
             contentFit="contain"
+            transition={0}
           />
         }
       />

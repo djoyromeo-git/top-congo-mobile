@@ -10,6 +10,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '../themed-text';
 
 const WAVE_TILE_WIDTH = 178;
+const LIVE_WAVE_SOURCE = require('@/assets/images/live/live-wave.svg');
 
 type LiveAudioCardProps = {
   title: string;
@@ -107,9 +108,27 @@ export function LiveAudioCard({
             transform: [{ translateX: waveShift }],
           },
         ]}>
-        <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
-        <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
-        <Image source={require('@/assets/images/live/live-wave.svg')} style={styles.waveImage} contentFit="cover" />
+        <Image
+          source={LIVE_WAVE_SOURCE}
+          style={styles.waveImage}
+          cachePolicy="memory-disk"
+          contentFit="cover"
+          transition={0}
+        />
+        <Image
+          source={LIVE_WAVE_SOURCE}
+          style={styles.waveImage}
+          cachePolicy="memory-disk"
+          contentFit="cover"
+          transition={0}
+        />
+        <Image
+          source={LIVE_WAVE_SOURCE}
+          style={styles.waveImage}
+          cachePolicy="memory-disk"
+          contentFit="cover"
+          transition={0}
+        />
       </Animated.View>
 
       <View style={styles.content}>
