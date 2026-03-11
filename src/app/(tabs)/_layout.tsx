@@ -64,7 +64,7 @@ export default function TabsLayout() {
 
         {!isSearchScreen ? (
           <AppTopBar
-            leftAction={{ icon: 'menu', onPress: () => {} }}
+            leftAction={{ icon: 'menu', onPress: () => router.push('/drawer') }}
             rightAction={{ icon: 'search', onPress: () => router.push('/search') }}
             centerContent={
               <Image
