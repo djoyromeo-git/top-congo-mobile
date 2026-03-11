@@ -13,6 +13,9 @@ import { Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
+const LOGO_SOURCE = require('@/assets/expo.icon/Assets/logo.png');
+const WAVEFORM_SOURCE = require('@/assets/images/waveform-top-congo.png');
+
 export default function UsernameSetupScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -36,16 +39,20 @@ export default function UsernameSetupScreen() {
         keyboardDismissMode="interactive"
         showsVerticalScrollIndicator={false}>
         <Image
-          source={require('@/assets/expo.icon/Assets/logo.png')}
+          source={LOGO_SOURCE}
           style={styles.logo}
+          cachePolicy="memory-disk"
           contentFit="contain"
+          transition={0}
         />
 
         <View style={styles.waveWrap}>
           <Image
-            source={require('@/assets/images/waveform-top-congo.png')}
+            source={WAVEFORM_SOURCE}
             style={styles.waveImage}
+            cachePolicy="memory-disk"
             contentFit="contain"
+            transition={0}
           />
         </View>
 

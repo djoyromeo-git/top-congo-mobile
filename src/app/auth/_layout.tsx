@@ -1,3 +1,4 @@
+import { Asset } from 'expo-asset';
 import { Stack } from 'expo-router';
 import React from 'react';
 import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
@@ -16,7 +17,16 @@ import { Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
+const USERNAME_SCREEN_ASSETS = [
+  require('@/assets/expo.icon/Assets/logo.png'),
+  require('@/assets/images/waveform-top-congo.png'),
+];
+
 export default function AuthLayout() {
+  React.useEffect(() => {
+    void Asset.loadAsync(USERNAME_SCREEN_ASSETS);
+  }, []);
+
   return <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }} />;
 }
 
