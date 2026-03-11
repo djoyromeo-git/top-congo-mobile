@@ -83,6 +83,7 @@ const en = {
     firstSubtitle:
       'Reliable and verified information, streamed continuously to connect you with events shaping Congo and the world.',
     createAccount: 'Create an account',
+    continueWithoutAccount: 'Continue without an account',
     tryPremium: 'Try Top Congo premium ($3.99/month)',
   },
   topics: {

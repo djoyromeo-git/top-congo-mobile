@@ -83,6 +83,7 @@
     firstSubtitle:
       'Une information fiable et vérifiée, diffusée en continu pour vous connecter aux événements qui façonnent le Congo et le monde.',
     createAccount: 'Créer un compte',
+    continueWithoutAccount: 'Poursuivre sans compte',
     tryPremium: 'Essayer Top Congo premium (3.99$/Mois)',
   },
   topics: {

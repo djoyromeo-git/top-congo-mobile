@@ -12,17 +12,21 @@ import { Palette, Spacing } from '@/constants/theme';
 
 type OnboardingScreenProps = {
   onPressCreateAccount?: () => void;
+  onPressContinueWithoutAccount?: () => void;
   onPressTryPremium?: () => void;
 };
 
 export default function OnboardingScreen({
   onPressCreateAccount,
+  onPressContinueWithoutAccount,
   onPressTryPremium,
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const handleCreateAccount = onPressCreateAccount ?? (() => router.replace('/auth/register'));
-  const handleTryPremium = onPressTryPremium ?? (() => router.replace('/(tabs)'));
+  const handleContinueWithoutAccount =
+    onPressContinueWithoutAccount ?? (() => router.replace('/(tabs)'));
+  const handleTryPremium = onPressTryPremium ?? (() => router.replace('/premium'));
 
   return (
     <View style={styles.screen}>
@@ -54,10 +58,24 @@ export default function OnboardingScreen({
             </View>
 
             <AppButton
+              testID="onboarding-create-account"
               label={t('onboarding.createAccount')}
+              size="lg"
               onPress={handleCreateAccount}
             />
-            <Pressable onPress={handleTryPremium} style={({ pressed }) => pressed && styles.pressed}>
+            <AppButton
+              testID="onboarding-continue-without-account"
+              label={t('onboarding.continueWithoutAccount')}
+              variant="ghost"
+              size="lg"
+              onPress={handleContinueWithoutAccount}
+              style={styles.secondaryButton}
+              labelStyle={styles.secondaryButtonLabel}
+            />
+            <Pressable
+              testID="onboarding-try-premium"
+              onPress={handleTryPremium}
+              style={({ pressed }) => pressed && styles.pressed}>
               <ThemedText
                 style={styles.secondaryAction}
                 numberOfLines={1}
@@ -164,17 +182,12 @@ const styles = StyleSheet.create({
     bottom: -352,
     left: -280,
   },
-  primaryButton: {
-    backgroundColor: Palette.blue['800'],
-    borderColor: Palette.blue['800'],
-    borderRadius: 14,
-    minHeight: 58,
+  secondaryButton: {
+    borderColor: Palette.neutral['100'],
+    backgroundColor: 'transparent',
   },
-  primaryButtonLabel: {
+  secondaryButtonLabel: {
     color: Palette.neutral['100'],
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: 600,
   },
   secondaryAction: {
     color: Palette.neutral['100'],
