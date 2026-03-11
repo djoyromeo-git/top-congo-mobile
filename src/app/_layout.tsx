@@ -7,7 +7,6 @@ import React from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as Sentry from '@sentry/react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import '@/i18n';
 
@@ -58,7 +57,6 @@ function RootLayout() {
   return (
     <KeyboardProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AnimatedSplashOverlay />
         <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />
       </ThemeProvider>
     </KeyboardProvider>
