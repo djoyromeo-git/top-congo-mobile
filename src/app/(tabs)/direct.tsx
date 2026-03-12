@@ -1,6 +1,6 @@
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,17 +11,42 @@ import { AppTopBar } from '@/components/ui/app-top-bar';
 import { TabShell } from '@/components/ui/tab-shell';
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { consumeRequestedDirectMode } from '@/services/direct-mode-intent';
 
 const DIRECT_HERO_SOURCE = require('@/assets/images/home/emission.png');
 
 type DirectMode = 'video' | 'audio';
 
+function resolveDirectModeParam(value: string | string[] | undefined): DirectMode | null {
+  const normalized = Array.isArray(value) ? value[0] : value;
+  return normalized === 'audio' || normalized === 'video' ? normalized : null;
+}
+
 export default function DirectScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useLocalSearchParams<{ mode?: string | string[] }>();
   const theme = useTheme();
   const [mode, setMode] = React.useState<DirectMode>('video');
   const [saved, setSaved] = React.useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const requestedMode = consumeRequestedDirectMode();
+      if (requestedMode) {
+        setMode(requestedMode);
+      }
+    }, [])
+  );
+
+  React.useEffect(() => {
+    const requestedMode = resolveDirectModeParam(params.mode);
+    if (!requestedMode) {
+      return;
+    }
+
+    setMode(requestedMode);
+  }, [params.mode]);
 
   const handleBack = React.useCallback(() => {
     if (router.canGoBack()) {

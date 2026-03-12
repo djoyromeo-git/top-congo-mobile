@@ -14,9 +14,10 @@ const LIVE_STREAM_URL = process.env.EXPO_PUBLIC_LIVE_STREAM_URL?.trim() ?? '';
 const LIVE_DEFAULT_ARTWORK_URL = Asset.fromModule(
   require('../../assets/images/icon.png')
 ).uri;
-const LIVE_PROGRAM_TITLE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_TITLE?.trim() || 'Top Congo Live';
-const LIVE_PROGRAM_HOST = process.env.EXPO_PUBLIC_LIVE_PROGRAM_HOST?.trim() || 'Top Congo FM';
-const LIVE_PROGRAM_SCHEDULE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_SCHEDULE?.trim() || 'En direct';
+const LIVE_PROGRAM_TITLE =
+  process.env.EXPO_PUBLIC_LIVE_PROGRAM_TITLE?.trim() || 'Suivez l’actualité en continue avec Top Congo';
+const LIVE_PROGRAM_HOST = process.env.EXPO_PUBLIC_LIVE_PROGRAM_HOST?.trim() || '';
+const LIVE_PROGRAM_SCHEDULE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_SCHEDULE?.trim() || '';
 const LIVE_NOW_PLAYING_URL = process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_URL?.trim() ?? '';
 const LIVE_NOW_PLAYING_REFRESH_MS = Number(process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_REFRESH_MS ?? 15000);
 const LIVE_NOW_PLAYING_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_TIMEOUT_MS ?? 7000);
@@ -36,8 +37,8 @@ const LIVE_RECONNECT_BUFFERING_TIMEOUT_MS = Number(
 
 const DEFAULT_METADATA: AudioMetadata = {
   title: LIVE_PROGRAM_TITLE,
-  artist: LIVE_PROGRAM_HOST,
-  albumTitle: LIVE_PROGRAM_SCHEDULE,
+  ...(LIVE_PROGRAM_HOST ? { artist: LIVE_PROGRAM_HOST } : {}),
+  ...(LIVE_PROGRAM_SCHEDULE ? { albumTitle: LIVE_PROGRAM_SCHEDULE } : {}),
   artworkUrl: LIVE_DEFAULT_ARTWORK_URL,
 };
 

@@ -21,6 +21,7 @@ import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { requestDirectMode } from '@/services/direct-mode-intent';
 import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 const APP_BAR_LOGO_SOURCE = require('@/assets/images/logos/app-bar-logo.png');
@@ -43,6 +44,8 @@ export default function DrawerScreen() {
   });
   const translateX = React.useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = React.useRef(new Animated.Value(0)).current;
+  const waveShift = React.useRef(new Animated.Value(0)).current;
+  const waveOpacity = React.useRef(new Animated.Value(0.26)).current;
   const isClosingRef = React.useRef(false);
 
   const isLiveActive = isPlaying || isBuffering;
@@ -103,6 +106,61 @@ export default function DrawerScreen() {
     return () => subscription.remove();
   }, [closeDrawer]);
 
+  React.useEffect(() => {
+    let shiftAnimation: Animated.CompositeAnimation | null = null;
+    let opacityAnimation: Animated.CompositeAnimation | null = null;
+
+    if (isLiveActive) {
+      waveShift.setValue(0);
+
+      shiftAnimation = Animated.loop(
+        Animated.timing(waveShift, {
+          toValue: -WAVE_TILE_WIDTH,
+          duration: isBuffering ? 1200 : 1800,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        { resetBeforeIteration: true }
+      );
+
+      opacityAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(waveOpacity, {
+            toValue: 0.42,
+            duration: 900,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveOpacity, {
+            toValue: 0.24,
+            duration: 900,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      shiftAnimation.start();
+      opacityAnimation.start();
+    } else {
+      waveShift.stopAnimation();
+      waveOpacity.stopAnimation();
+
+      waveShift.setValue(0);
+      Animated.timing(waveOpacity, {
+        toValue: 0.26,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+    }
+
+    return () => {
+      shiftAnimation?.stop();
+      opacityAnimation?.stop();
+    };
+  }, [isBuffering, isLiveActive, waveOpacity, waveShift]);
+
   const toggleSection = React.useCallback((key: ExpandableSectionKey) => {
     setExpandedSections((current) => ({ ...current, [key]: !current[key] }));
   }, []);
@@ -155,7 +213,14 @@ export default function DrawerScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           <View style={styles.liveBanner}>
-            <View style={styles.waveWrap}>
+            <Animated.View
+              style={[
+                styles.waveWrap,
+                {
+                  opacity: waveOpacity,
+                  transform: [{ translateX: waveShift }],
+                },
+              ]}>
               <Image
                 source={LIVE_WAVE_SOURCE}
                 style={styles.waveImage}
@@ -177,11 +242,14 @@ export default function DrawerScreen() {
                 contentFit="cover"
                 transition={0}
               />
-            </View>
+            </Animated.View>
 
             <Pressable
               style={({ pressed }) => [styles.liveInfo, pressed && styles.pressed]}
-              onPress={() => handleNavigate('/live-player')}>
+              onPress={() => {
+                requestDirectMode('audio');
+                handleNavigate('/direct');
+              }}>
               {isLiveActive ? (
                 <>
                   <View style={styles.liveActiveRow}>
@@ -190,9 +258,11 @@ export default function DrawerScreen() {
                       {program.title}
                     </ThemedText>
                   </View>
-                  <ThemedText numberOfLines={1} style={styles.liveProgramMeta}>
-                    {program.schedule}
-                  </ThemedText>
+                  {program.schedule ? (
+                    <ThemedText numberOfLines={1} style={styles.liveProgramMeta}>
+                      {program.schedule}
+                    </ThemedText>
+                  ) : null}
                 </>
               ) : (
                 <View style={styles.liveListenRow}>

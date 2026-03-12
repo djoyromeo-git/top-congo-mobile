@@ -65,8 +65,12 @@ export default function LivePlayerScreen() {
 
         <View style={styles.infoWrap}>
           <ThemedText style={[styles.programTitle, { color: theme.onPrimary }]}>{program.title}</ThemedText>
-          <ThemedText style={[styles.programHost, { color: theme.onPrimary }]}>{program.host}</ThemedText>
-          <ThemedText style={[styles.programSchedule, { color: theme.onPrimary }]}>{program.schedule}</ThemedText>
+          {program.host ? (
+            <ThemedText style={[styles.programHost, { color: theme.onPrimary }]}>{program.host}</ThemedText>
+          ) : null}
+          {program.schedule ? (
+            <ThemedText style={[styles.programSchedule, { color: theme.onPrimary }]}>{program.schedule}</ThemedText>
+          ) : null}
         </View>
 
         <View style={styles.sliderWrap}>

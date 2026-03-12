@@ -12,6 +12,7 @@ import { HomeLoadingProvider } from '@/components/ui/home-loading-context';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
+import { requestDirectMode } from '@/services/direct-mode-intent';
 import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 const APP_BAR_LOGO_SOURCE = require('@/assets/images/logos/app-bar-logo.png');
@@ -89,9 +90,10 @@ export default function TabsLayout() {
             <LiveAudioCard
               loading={isHomeLoading}
               title={program.title}
-              subtitle={program.schedule}
+              subtitle={program.schedule || undefined}
               onPressCard={() => {
-                router.push('/live-player');
+                requestDirectMode('audio');
+                router.push('/direct');
               }}
               onPressPlay={handleToggleLive}
               isPlaying={isPlaying}

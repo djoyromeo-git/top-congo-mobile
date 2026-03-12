@@ -46,6 +46,8 @@ export function LiveAudioCard({
     const isActive = !disabled && (isPlaying || isBuffering);
 
     if (isActive) {
+      waveShift.setValue(0);
+
       shiftAnimation = Animated.loop(
         Animated.timing(waveShift, {
           toValue: -WAVE_TILE_WIDTH,
@@ -59,13 +61,13 @@ export function LiveAudioCard({
       opacityAnimation = Animated.loop(
         Animated.sequence([
           Animated.timing(waveOpacity, {
-            toValue: 0.45,
+            toValue: 0.42,
             duration: 900,
             easing: Easing.inOut(Easing.quad),
             useNativeDriver: true,
           }),
           Animated.timing(waveOpacity, {
-            toValue: 0.25,
+            toValue: 0.24,
             duration: 900,
             easing: Easing.inOut(Easing.quad),
             useNativeDriver: true,
@@ -80,13 +82,6 @@ export function LiveAudioCard({
       waveOpacity.stopAnimation();
 
       waveShift.setValue(0);
-      Animated.timing(waveShift, {
-        toValue: 0,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start();
-
       Animated.timing(waveOpacity, {
         toValue: 0.3,
         duration: 180,

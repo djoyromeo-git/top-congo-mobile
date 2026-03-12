@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "check-stream-metadata": "node ./scripts/read-icy-metadata.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
