@@ -8,8 +8,9 @@ import { AppButton } from '@/components/ui/app-button';
 import { AuthLegal } from '@/components/ui/auth-legal';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
-import { SocialAuthButton } from '@/components/ui/social-auth-button';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { Palette } from '@/constants/theme';
+import { SocialAuthActions } from '@/features/auth/presentation/social-auth-actions';
 import { AuthScreenLayout } from './_layout';
 
 export default function RegisterScreen() {
@@ -20,13 +21,22 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const handleBack = React.useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/onboarding');
+  }, [router]);
+
   return (
     <AuthScreenLayout
       title={t('auth.createAccount')}
       subtitle={t('auth.alreadyHaveAccount')}
       actionLabel={t('auth.signIn')}
       onPressAction={() => router.push('/auth/login')}
-      onPressBack={() => router.back()}>
+      onPressBack={handleBack}>
       <View style={styles.formSection}>
         <FormInput
           label={t('auth.emailAddress')}
@@ -66,10 +76,7 @@ export default function RegisterScreen() {
           <OrDivider />
         </View>
 
-        <View style={styles.socialButtons}>
-          <SocialAuthButton provider="apple" />
-          <SocialAuthButton provider="google" />
-        </View>
+        <SocialAuthActions appleButtonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP} />
 
         <View style={styles.legalWrap}>
           <AuthLegal />
@@ -91,9 +98,6 @@ const styles = StyleSheet.create({
   dividerWrap: {
     marginTop: 8,
     marginBottom: 4,
-  },
-  socialButtons: {
-    gap: 8,
   },
   legalWrap: {
     marginTop: 8,

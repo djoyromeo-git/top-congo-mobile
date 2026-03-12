@@ -8,6 +8,7 @@ import React from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as Sentry from '@sentry/react-native';
 
+import { AuthSessionProvider } from '@/features/auth/presentation/auth-session-provider';
 import '@/features/notifications/infrastructure/background-notification-task';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotificationBootstrap } from '@/features/notifications/presentation/use-notification-bootstrap';
@@ -65,11 +66,13 @@ function RootLayout() {
 
   return (
     <KeyboardProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="drawer" options={{ presentation: 'transparentModal', animation: 'none' }} />
-        </Stack>
-      </ThemeProvider>
+      <AuthSessionProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="drawer" options={{ presentation: 'transparentModal', animation: 'none' }} />
+          </Stack>
+        </ThemeProvider>
+      </AuthSessionProvider>
     </KeyboardProvider>
   );
 }

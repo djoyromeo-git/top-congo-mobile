@@ -10,6 +10,7 @@
     "ios": {
       "icon": "./assets/images/icon-red-white.png",
       "bundleIdentifier": "app.topcongo.live",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
@@ -66,6 +67,7 @@
           "enableBackgroundRemoteNotifications": true
         }
       ],
+      "expo-apple-authentication",
       [
         "@sentry/react-native/expo",
         {
@@ -73,7 +75,8 @@
           "project": "top-congo-mobile"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

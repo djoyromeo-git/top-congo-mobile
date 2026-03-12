@@ -1,0 +1,93 @@
+import React from 'react';
+
+import { AuthSessionService } from '@/features/auth/application/auth-session-service';
+import type { AuthProvider, AuthState } from '@/features/auth/domain/models';
+import { SentryAuthLogger } from '@/features/auth/infrastructure/auth-logger';
+import { ExpoAppleAuthProvider } from '@/features/auth/infrastructure/expo-apple-auth-provider';
+import { ExpoGoogleAuthProvider } from '@/features/auth/infrastructure/expo-google-auth-provider';
+import { SecureStoreAuthSessionStore } from '@/features/auth/infrastructure/secure-store-auth-session-store';
+
+type AuthSessionContextValue = {
+  state: AuthState;
+  signIn: (provider: AuthProvider) => Promise<boolean>;
+  signOut: () => Promise<void>;
+  clearError: () => void;
+};
+
+const AuthSessionContext = React.createContext<AuthSessionContextValue | null>(null);
+
+export function AuthSessionProvider({ children }: { children: React.ReactNode }) {
+  const serviceRef = React.useRef<AuthSessionService | null>(null);
+  const [state, setState] = React.useState<AuthState>({
+    isHydrated: false,
+    session: null,
+    isSigningIn: false,
+    activeProvider: null,
+    error: null,
+    capabilities: {
+      apple: false,
+      google: false,
+    },
+  });
+
+  if (!serviceRef.current) {
+    serviceRef.current = new AuthSessionService(
+      new SecureStoreAuthSessionStore(),
+      {
+        apple: new ExpoAppleAuthProvider(),
+        google: new ExpoGoogleAuthProvider(),
+      },
+      new SentryAuthLogger()
+    );
+  }
+
+  React.useEffect(() => {
+    const service = serviceRef.current;
+    if (!service) {
+      return;
+    }
+
+    const unsubscribe = service.subscribe(setState);
+    void service.start();
+
+    return unsubscribe;
+  }, []);
+
+  const value = React.useMemo<AuthSessionContextValue>(() => {
+    const service = serviceRef.current;
+
+    return {
+      state,
+      async signIn(provider) {
+        if (!service) {
+          return false;
+        }
+
+        const session = await service.signIn(provider);
+        return Boolean(session);
+      },
+      async signOut() {
+        if (!service) {
+          return;
+        }
+
+        await service.signOut();
+      },
+      clearError() {
+        service?.clearError();
+      },
+    };
+  }, [state]);
+
+  return <AuthSessionContext.Provider value={value}>{children}</AuthSessionContext.Provider>;
+}
+
+export function useAuthSessionContext() {
+  const value = React.useContext(AuthSessionContext);
+
+  if (!value) {
+    throw new Error('useAuthSessionContext must be used within AuthSessionProvider.');
+  }
+
+  return value;
+}

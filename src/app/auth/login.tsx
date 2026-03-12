@@ -8,7 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
-import { SocialAuthButton } from '@/components/ui/social-auth-button';
+import { SocialAuthActions } from '@/features/auth/presentation/social-auth-actions';
 import { useTheme } from '@/hooks/use-theme';
 import { AuthScreenLayout } from './_layout';
 
@@ -94,10 +94,7 @@ export default function LoginScreen() {
           <OrDivider />
         </View>
 
-        <View style={styles.socialButtons}>
-          <SocialAuthButton provider="apple" />
-          <SocialAuthButton provider="google" />
-        </View>
+        <SocialAuthActions />
       </View>
     </AuthScreenLayout>
   );
@@ -120,9 +117,6 @@ const styles = StyleSheet.create({
   dividerWrap: {
     marginTop: 8,
     marginBottom: 4,
-  },
-  socialButtons: {
-    gap: 8,
   },
   pressed: {
     opacity: 0.8,
