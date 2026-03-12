@@ -8,7 +8,9 @@ import React from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as Sentry from '@sentry/react-native';
 
+import '@/features/notifications/infrastructure/background-notification-task';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useNotificationBootstrap } from '@/features/notifications/presentation/use-notification-bootstrap';
 import '@/i18n';
 
 void SplashScreen.preventAutoHideAsync();
@@ -39,6 +41,7 @@ if (!Sentry.getClient()) {
 
 function RootLayout() {
   const colorScheme = useColorScheme();
+  useNotificationBootstrap();
   const [fontsLoaded] = useFonts({
     'Google Sans': require('../../assets/fonts/GoogleSans-Regular.ttf'),
     'Google Sans Medium': require('../../assets/fonts/GoogleSans-Medium.ttf'),
