@@ -1,4 +1,4 @@
-﻿const fr = {
+const fr = {
   common: {
     or: 'ou',
     continue: 'Continuer',
@@ -50,11 +50,21 @@
   direct: {
     title: 'Top Congo en direct',
     back: 'Retour',
-    search: 'Rechercher',
+    more: 'Plus d’options',
     videoMode: 'Direct vidéo',
     audioMode: 'Direct audio',
     badge: 'Direct',
-    heroTitle: 'Emission parcours avec Ndungu Mambimbi dit Masumu Debrindet',
+    play: 'Lancer le direct',
+    pause: 'Mettre en pause le direct',
+    mute: 'Couper le son',
+    unmute: 'Réactiver le son',
+    expand: 'Agrandir le lecteur',
+    collapse: 'Réduire le lecteur',
+    upNext: 'La suite du programme',
+    scheduleJournal: 'Le journal de 19h00',
+    scheduleParlonsEn: 'Parlons-en: vulgarisation de la stratégie nationale de l’alimentation',
+    scheduleInfosSport: 'Infos sport',
+    scheduleMagazineDebat: 'Magazine le debat',
   },
   drawer: {
     close: 'Fermer le menu',

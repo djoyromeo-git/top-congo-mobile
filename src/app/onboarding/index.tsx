@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -60,14 +60,12 @@ export default function OnboardingScreen({
             <AppButton
               testID="onboarding-create-account"
               label={t('onboarding.createAccount')}
-              size="lg"
               onPress={handleCreateAccount}
             />
             <AppButton
               testID="onboarding-continue-without-account"
               label={t('onboarding.continueWithoutAccount')}
               variant="ghost"
-              size="lg"
               onPress={handleContinueWithoutAccount}
               style={styles.secondaryButton}
               labelStyle={styles.secondaryButtonLabel}
@@ -158,7 +156,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     position: 'relative',
-    gap: 16,
+    gap: 8,
     paddingBottom: Spacing.one,
   },
   buttonArcMask: {

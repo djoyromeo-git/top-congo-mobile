@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   buttonMd: {
-    minHeight: 46,
+    minHeight: 49,
     borderRadius: 5,
   },
   buttonLg: {
