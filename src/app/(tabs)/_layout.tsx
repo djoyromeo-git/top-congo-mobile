@@ -30,6 +30,8 @@ export default function TabsLayout() {
   const { isPlaying, isBuffering } = useLiveAudioStatus();
   const [isHomeLoading, setIsHomeLoading] = React.useState(true);
   const isSearchScreen = pathname === '/search';
+  const isDirectScreen = pathname === '/direct';
+  const usesCustomScreenHeader = isSearchScreen || isDirectScreen;
 
   React.useEffect(() => {
     void Asset.loadAsync([APP_BAR_LOGO_SOURCE, LIVE_CARD_WAVE_SOURCE]);
@@ -62,7 +64,7 @@ export default function TabsLayout() {
           style={normalizedScheme === 'light' ? 'light' : 'dark'}
         />
 
-        {!isSearchScreen ? (
+        {!usesCustomScreenHeader ? (
           <AppTopBar
             leftAction={{ icon: 'menu', onPress: () => router.push('/drawer') }}
             rightAction={{ icon: 'search', onPress: () => router.push('/search') }}
@@ -82,7 +84,7 @@ export default function TabsLayout() {
           <AppTabs />
         </View>
 
-        {!isSearchScreen ? (
+        {!usesCustomScreenHeader ? (
           <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
             <LiveAudioCard
               loading={isHomeLoading}

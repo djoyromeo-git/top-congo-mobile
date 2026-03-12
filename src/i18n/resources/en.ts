@@ -47,6 +47,15 @@ const en = {
     allNews: 'All news',
     resultsFound: '{{count}} results found',
   },
+  direct: {
+    title: 'Top Congo live',
+    back: 'Back',
+    search: 'Search',
+    videoMode: 'Video live',
+    audioMode: 'Audio live',
+    badge: 'Live',
+    heroTitle: 'Parcours show with Ndungu Mambimbi alias Masumu Debrindet',
+  },
   drawer: {
     close: 'Close menu',
     listenLive: 'Listen live',

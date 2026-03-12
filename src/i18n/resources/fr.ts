@@ -47,6 +47,15 @@
     allNews: "Toute l'actualité",
     resultsFound: '{{count}} Résultats trouvés',
   },
+  direct: {
+    title: 'Top Congo en direct',
+    back: 'Retour',
+    search: 'Rechercher',
+    videoMode: 'Direct vidéo',
+    audioMode: 'Direct audio',
+    badge: 'Direct',
+    heroTitle: 'Emission parcours avec Ndungu Mambimbi dit Masumu Debrindet',
+  },
   drawer: {
     close: 'Fermer le menu',
     listenLive: 'Ecouter le direct',
