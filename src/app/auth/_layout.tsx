@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import React from 'react';
 import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
 import {
+  Platform,
   StyleSheet,
   View,
   type StyleProp,
@@ -60,6 +61,7 @@ export function AuthScreenLayout({
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const topSpacing = Platform.OS === 'web' ? Spacing.three : 0;
   const resolvedStatusBarStyle: StatusBarStyle =
     statusBarStyle ?? (colorScheme === 'dark' ? 'light' : 'dark');
 
@@ -73,6 +75,7 @@ export function AuthScreenLayout({
         contentContainerStyle={[
           styles.content,
           {
+            paddingTop: topSpacing,
             paddingBottom: insets.bottom + Spacing.three,
           },
           contentContainerStyle,

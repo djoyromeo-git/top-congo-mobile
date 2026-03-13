@@ -2,7 +2,7 @@ import { Entypo } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -12,6 +12,7 @@ import { ThemedText } from '../themed-text';
 
 const WAVE_TILE_WIDTH = 178;
 const LIVE_WAVE_SOURCE = require('@/assets/images/live/live-wave.svg');
+const WEB_LIVE_WAVE_SOURCE = require('@/assets/images/waveform-top-congo.png');
 
 type LiveAudioCardProps = {
   title: string;
@@ -36,10 +37,15 @@ export function LiveAudioCard({
 }: LiveAudioCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const isWeb = Platform.OS === 'web';
   const waveShift = React.useRef(new Animated.Value(0)).current;
   const waveOpacity = React.useRef(new Animated.Value(0.3)).current;
 
   React.useEffect(() => {
+    if (isWeb) {
+      return;
+    }
+
     let shiftAnimation: Animated.CompositeAnimation | null = null;
     let opacityAnimation: Animated.CompositeAnimation | null = null;
 
@@ -94,7 +100,7 @@ export function LiveAudioCard({
       shiftAnimation?.stop();
       opacityAnimation?.stop();
     };
-  }, [disabled, isPlaying, isBuffering, waveOpacity, waveShift]);
+  }, [disabled, isPlaying, isBuffering, isWeb, waveOpacity, waveShift]);
 
   if (loading) {
     return (
@@ -126,36 +132,48 @@ export function LiveAudioCard({
 
   return (
     <View style={[styles.card, disabled && styles.disabled]}>
-      <Animated.View
-        style={[
-          styles.waveWrap,
-          {
-            opacity: waveOpacity,
-            transform: [{ translateX: waveShift }],
-          },
-        ]}>
-        <Image
-          source={LIVE_WAVE_SOURCE}
-          style={styles.waveImage}
-          cachePolicy="memory-disk"
-          contentFit="cover"
-          transition={0}
-        />
-        <Image
-          source={LIVE_WAVE_SOURCE}
-          style={styles.waveImage}
-          cachePolicy="memory-disk"
-          contentFit="cover"
-          transition={0}
-        />
-        <Image
-          source={LIVE_WAVE_SOURCE}
-          style={styles.waveImage}
-          cachePolicy="memory-disk"
-          contentFit="cover"
-          transition={0}
-        />
-      </Animated.View>
+      {isWeb ? (
+        <View style={styles.webWaveWrap}>
+          <Image
+            source={WEB_LIVE_WAVE_SOURCE}
+            style={styles.webWaveImage}
+            cachePolicy="memory-disk"
+            contentFit="cover"
+            transition={0}
+          />
+        </View>
+      ) : (
+        <Animated.View
+          style={[
+            styles.waveWrap,
+            {
+              opacity: waveOpacity,
+              transform: [{ translateX: waveShift }],
+            },
+          ]}>
+          <Image
+            source={LIVE_WAVE_SOURCE}
+            style={styles.waveImage}
+            cachePolicy="memory-disk"
+            contentFit="cover"
+            transition={0}
+          />
+          <Image
+            source={LIVE_WAVE_SOURCE}
+            style={styles.waveImage}
+            cachePolicy="memory-disk"
+            contentFit="cover"
+            transition={0}
+          />
+          <Image
+            source={LIVE_WAVE_SOURCE}
+            style={styles.waveImage}
+            cachePolicy="memory-disk"
+            contentFit="cover"
+            transition={0}
+          />
+        </Animated.View>
+      )}
 
       <View style={styles.content}>
         <Pressable
@@ -210,6 +228,14 @@ const styles = StyleSheet.create({
   },
   waveImage: {
     width: WAVE_TILE_WIDTH,
+    height: '100%',
+  },
+  webWaveWrap: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.18,
+  },
+  webWaveImage: {
+    width: '100%',
     height: '100%',
   },
   loadingWaveOverlay: {

@@ -11,6 +11,7 @@ import {
   BackHandler,
   Dimensions,
   Easing,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,6 +28,7 @@ import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLivePro
 
 const APP_BAR_LOGO_SOURCE = require('@/assets/images/logos/app-bar-logo.png');
 const LIVE_WAVE_SOURCE = require('@/assets/images/live/live-wave.svg');
+const WEB_LIVE_WAVE_SOURCE = require('@/assets/images/waveform-top-congo.png');
 const WAVE_TILE_WIDTH = 178;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH;
@@ -38,6 +40,7 @@ export default function DrawerScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { signOut } = useAuthSession();
+  const isWeb = Platform.OS === 'web';
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
   const [expandedSections, setExpandedSections] = React.useState<Record<ExpandableSectionKey, boolean>>({
@@ -109,6 +112,10 @@ export default function DrawerScreen() {
   }, [closeDrawer]);
 
   React.useEffect(() => {
+    if (isWeb) {
+      return;
+    }
+
     let shiftAnimation: Animated.CompositeAnimation | null = null;
     let opacityAnimation: Animated.CompositeAnimation | null = null;
 
@@ -161,7 +168,7 @@ export default function DrawerScreen() {
       shiftAnimation?.stop();
       opacityAnimation?.stop();
     };
-  }, [isBuffering, isLiveActive, waveOpacity, waveShift]);
+  }, [isBuffering, isLiveActive, isWeb, waveOpacity, waveShift]);
 
   const toggleSection = React.useCallback((key: ExpandableSectionKey) => {
     setExpandedSections((current) => ({ ...current, [key]: !current[key] }));
@@ -215,36 +222,48 @@ export default function DrawerScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           <View style={styles.liveBanner}>
-            <Animated.View
-              style={[
-                styles.waveWrap,
-                {
-                  opacity: waveOpacity,
-                  transform: [{ translateX: waveShift }],
-                },
-              ]}>
-              <Image
-                source={LIVE_WAVE_SOURCE}
-                style={styles.waveImage}
-                cachePolicy="memory-disk"
-                contentFit="cover"
-                transition={0}
-              />
-              <Image
-                source={LIVE_WAVE_SOURCE}
-                style={styles.waveImage}
-                cachePolicy="memory-disk"
-                contentFit="cover"
-                transition={0}
-              />
-              <Image
-                source={LIVE_WAVE_SOURCE}
-                style={styles.waveImage}
-                cachePolicy="memory-disk"
-                contentFit="cover"
-                transition={0}
-              />
-            </Animated.View>
+            {isWeb ? (
+              <View style={styles.webWaveWrap}>
+                <Image
+                  source={WEB_LIVE_WAVE_SOURCE}
+                  style={styles.webWaveImage}
+                  cachePolicy="memory-disk"
+                  contentFit="cover"
+                  transition={0}
+                />
+              </View>
+            ) : (
+              <Animated.View
+                style={[
+                  styles.waveWrap,
+                  {
+                    opacity: waveOpacity,
+                    transform: [{ translateX: waveShift }],
+                  },
+                ]}>
+                <Image
+                  source={LIVE_WAVE_SOURCE}
+                  style={styles.waveImage}
+                  cachePolicy="memory-disk"
+                  contentFit="cover"
+                  transition={0}
+                />
+                <Image
+                  source={LIVE_WAVE_SOURCE}
+                  style={styles.waveImage}
+                  cachePolicy="memory-disk"
+                  contentFit="cover"
+                  transition={0}
+                />
+                <Image
+                  source={LIVE_WAVE_SOURCE}
+                  style={styles.waveImage}
+                  cachePolicy="memory-disk"
+                  contentFit="cover"
+                  transition={0}
+                />
+              </Animated.View>
+            )}
 
             <Pressable
               style={({ pressed }) => [styles.liveInfo, pressed && styles.pressed]}
@@ -479,6 +498,14 @@ const styles = StyleSheet.create({
   },
   waveImage: {
     width: WAVE_TILE_WIDTH,
+    height: '100%',
+  },
+  webWaveWrap: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.18,
+  },
+  webWaveImage: {
+    width: '100%',
     height: '100%',
   },
   liveInfo: {
