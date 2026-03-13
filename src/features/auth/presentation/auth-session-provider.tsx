@@ -1,15 +1,18 @@
 import React from 'react';
 
 import { AuthSessionService } from '@/features/auth/application/auth-session-service';
-import type { AuthProvider, AuthState } from '@/features/auth/domain/models';
+import type { AuthCredentialsInput, AuthRegistrationInput, AuthState, SocialAuthProvider } from '@/features/auth/domain/models';
 import { SentryAuthLogger } from '@/features/auth/infrastructure/auth-logger';
 import { ExpoAppleAuthProvider } from '@/features/auth/infrastructure/expo-apple-auth-provider';
 import { ExpoGoogleAuthProvider } from '@/features/auth/infrastructure/expo-google-auth-provider';
+import { FetchTopCongoAuthGateway } from '@/features/auth/infrastructure/fetch-top-congo-auth-gateway';
 import { SecureStoreAuthSessionStore } from '@/features/auth/infrastructure/secure-store-auth-session-store';
 
 type AuthSessionContextValue = {
   state: AuthState;
-  signIn: (provider: AuthProvider) => Promise<boolean>;
+  signIn: (provider: SocialAuthProvider) => Promise<boolean>;
+  signInWithCredentials: (input: AuthCredentialsInput) => Promise<boolean>;
+  registerWithCredentials: (input: AuthRegistrationInput) => Promise<boolean>;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
@@ -37,6 +40,7 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
         apple: new ExpoAppleAuthProvider(),
         google: new ExpoGoogleAuthProvider(),
       },
+      new FetchTopCongoAuthGateway(),
       new SentryAuthLogger()
     );
   }
@@ -64,6 +68,22 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
         }
 
         const session = await service.signIn(provider);
+        return Boolean(session);
+      },
+      async signInWithCredentials(input) {
+        if (!service) {
+          return false;
+        }
+
+        const session = await service.signInWithCredentials(input);
+        return Boolean(session);
+      },
+      async registerWithCredentials(input) {
+        if (!service) {
+          return false;
+        }
+
+        const session = await service.registerWithCredentials(input);
         return Boolean(session);
       },
       async signOut() {

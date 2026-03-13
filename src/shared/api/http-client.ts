@@ -1,0 +1,148 @@
+import { ApiError } from '@/shared/api/api-error';
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+type RequestOptions = {
+  method?: HttpMethod;
+  path: string;
+  body?: Record<string, unknown> | null;
+  headers?: Record<string, string>;
+  accessToken?: string;
+  timeoutMs?: number;
+  signal?: AbortSignal;
+};
+
+type HttpClientOptions = {
+  baseUrl: string | null;
+  defaultTimeoutMs?: number;
+  defaultHeaders?: Record<string, string>;
+};
+
+function buildUrl(baseUrl: string | null, path: string) {
+  if (!baseUrl) {
+    throw new ApiError({
+      code: 'configuration',
+      message: 'HTTP client base URL is not configured.',
+    });
+  }
+
+  const normalizedBase = baseUrl.replace(/\/+$/, '');
+  const normalizedPath = path.replace(/^\/+/, '');
+  return `${normalizedBase}/${normalizedPath}`;
+}
+
+function extractErrorMessage(body: unknown, status: number) {
+  if (body && typeof body === 'object') {
+    const record = body as Record<string, unknown>;
+
+    if (typeof record.message === 'string' && record.message.trim().length > 0) {
+      return record.message.trim();
+    }
+  }
+
+  return `Request failed with HTTP ${status}.`;
+}
+
+async function parseResponseBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return text;
+  }
+}
+
+export type HttpClient = ReturnType<typeof createHttpClient>;
+
+export function createHttpClient({
+  baseUrl,
+  defaultHeaders = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+  defaultTimeoutMs = 15000,
+}: HttpClientOptions) {
+  return {
+    async request<TResponse>({ method = 'GET', path, body, headers, accessToken, timeoutMs, signal }: RequestOptions) {
+      const url = buildUrl(baseUrl, path);
+
+      const controller = new AbortController();
+      const signals = [controller.signal, signal].filter(Boolean) as AbortSignal[];
+      const activeSignal =
+        signals.length === 1
+          ? signals[0]
+          : AbortSignal.any
+            ? AbortSignal.any(signals)
+            : controller.signal;
+
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, timeoutMs ?? defaultTimeoutMs);
+
+      let response: Response;
+
+      try {
+        response = await fetch(url, {
+          method,
+          headers: {
+            ...defaultHeaders,
+            ...headers,
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: body ? JSON.stringify(body) : undefined,
+          signal: activeSignal,
+        });
+      } catch (error) {
+        clearTimeout(timeoutId);
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new ApiError({
+            code: 'timeout',
+            message: 'The request timed out.',
+          });
+        }
+
+        throw new ApiError({
+          code: 'network',
+          message: 'Network request failed.',
+        });
+      }
+
+      clearTimeout(timeoutId);
+
+      const responseBody = await parseResponseBody(response);
+
+      if (!response.ok) {
+        throw new ApiError({
+          code: 'http',
+          status: response.status,
+          body: responseBody,
+          message: extractErrorMessage(responseBody, response.status),
+        });
+      }
+
+      return responseBody as TResponse;
+    },
+
+    get<TResponse>(path: string, options?: Omit<RequestOptions, 'method' | 'path' | 'body'>) {
+      return this.request<TResponse>({
+        ...options,
+        method: 'GET',
+        path,
+      });
+    },
+
+    post<TResponse>(path: string, body?: Record<string, unknown> | null, options?: Omit<RequestOptions, 'method' | 'path' | 'body'>) {
+      return this.request<TResponse>({
+        ...options,
+        method: 'POST',
+        path,
+        body,
+      });
+    },
+  };
+}

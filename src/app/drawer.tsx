@@ -20,6 +20,7 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { Palette, Spacing } from '@/constants/theme';
+import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
 import { useTheme } from '@/hooks/use-theme';
 import { requestDirectMode } from '@/services/direct-mode-intent';
 import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
@@ -36,6 +37,7 @@ export default function DrawerScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
+  const { signOut } = useAuthSession();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
   const [expandedSections, setExpandedSections] = React.useState<Record<ExpandableSectionKey, boolean>>({
@@ -370,6 +372,12 @@ export default function DrawerScreen() {
             <DrawerMenuItem
               icon={<MaterialCommunityIcons name="logout-variant" size={22} color={theme.homeTitle} />}
               label={t('drawer.logout')}
+              onPress={() => {
+                void (async () => {
+                  await signOut();
+                  closeDrawer('/onboarding');
+                })();
+              }}
               showDivider={false}
             />
           </View>

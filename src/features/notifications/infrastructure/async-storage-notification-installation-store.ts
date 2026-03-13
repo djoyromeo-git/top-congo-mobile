@@ -2,25 +2,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { NotificationInstallationStore } from '@/features/notifications/domain/ports';
 import type { NotificationEvent, PersistedDeviceRegistration } from '@/features/notifications/domain/models';
+import { AsyncStorageJsonStore } from '@/shared/storage/async-storage-json-store';
+import { createVersionedStorageKey } from '@/shared/storage/storage-keys';
 
-const DEVICE_UUID_KEY = 'topcongo.notifications.deviceUuid';
-const LAST_SYNCED_REGISTRATION_KEY = 'topcongo.notifications.lastSyncedRegistration';
-const LAST_HANDLED_RESPONSE_ID_KEY = 'topcongo.notifications.lastHandledResponseId';
-const LAST_NOTIFICATION_EVENT_KEY = 'topcongo.notifications.lastNotificationEvent';
-
-function parseJsonValue<T>(value: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
+const DEVICE_UUID_KEY = createVersionedStorageKey('notifications', 'deviceUuid', 1);
+const LAST_SYNCED_REGISTRATION_KEY = createVersionedStorageKey('notifications', 'lastSyncedRegistration', 1);
+const LAST_HANDLED_RESPONSE_ID_KEY = createVersionedStorageKey('notifications', 'lastHandledResponseId', 1);
+const LAST_NOTIFICATION_EVENT_KEY = createVersionedStorageKey('notifications', 'lastNotificationEvent', 1);
 
 export class AsyncStorageNotificationInstallationStore implements NotificationInstallationStore {
+  private readonly lastSyncedRegistrationStore = new AsyncStorageJsonStore<PersistedDeviceRegistration>(
+    LAST_SYNCED_REGISTRATION_KEY
+  );
+  private readonly lastNotificationEventStore = new AsyncStorageJsonStore<NotificationEvent>(LAST_NOTIFICATION_EVENT_KEY);
+
   async getDeviceUuid() {
     return AsyncStorage.getItem(DEVICE_UUID_KEY);
   }
@@ -30,12 +25,11 @@ export class AsyncStorageNotificationInstallationStore implements NotificationIn
   }
 
   async getLastSyncedRegistration() {
-    const value = await AsyncStorage.getItem(LAST_SYNCED_REGISTRATION_KEY);
-    return parseJsonValue<PersistedDeviceRegistration>(value);
+    return this.lastSyncedRegistrationStore.get();
   }
 
   async saveLastSyncedRegistration(registration: PersistedDeviceRegistration) {
-    await AsyncStorage.setItem(LAST_SYNCED_REGISTRATION_KEY, JSON.stringify(registration));
+    await this.lastSyncedRegistrationStore.set(registration);
   }
 
   async getLastHandledResponseId() {
@@ -47,6 +41,6 @@ export class AsyncStorageNotificationInstallationStore implements NotificationIn
   }
 
   async saveLastNotificationEvent(event: NotificationEvent) {
-    await AsyncStorage.setItem(LAST_NOTIFICATION_EVENT_KEY, JSON.stringify(event));
+    await this.lastNotificationEventStore.set(event);
   }
 }

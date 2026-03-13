@@ -1,4 +1,21 @@
-export type AuthProvider = 'apple' | 'google';
+export type SocialAuthProvider = 'apple' | 'google';
+export type AuthProvider = SocialAuthProvider | 'credentials';
+
+export type AuthCredentialsInput = {
+  email: string;
+  password: string;
+};
+
+export type AuthRegistrationGender = 'male' | 'female';
+
+export type AuthRegistrationInput = {
+  name: string;
+  email: string;
+  phone: string;
+  gender: AuthRegistrationGender;
+  password: string;
+  passwordConfirmation: string;
+};
 
 export type AuthUserProfile = {
   id: string;
@@ -8,6 +25,10 @@ export type AuthUserProfile = {
   familyName: string | null;
   avatarUrl: string | null;
   emailVerified: boolean | null;
+  phone: string | null;
+  gender: AuthRegistrationGender | null;
+  role: string | null;
+  createdAt: string | null;
 };
 
 export type AuthSession = {
@@ -39,6 +60,10 @@ export type AuthErrorCode =
   | 'misconfigured'
   | 'token_exchange_failed'
   | 'profile_fetch_failed'
+  | 'invalid_credentials'
+  | 'validation_failed'
+  | 'network'
+  | 'configuration'
   | 'unknown';
 
 export type AuthErrorDescriptor = {

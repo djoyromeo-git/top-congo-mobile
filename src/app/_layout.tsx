@@ -13,6 +13,7 @@ import '@/features/notifications/infrastructure/background-notification-task';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotificationBootstrap } from '@/features/notifications/presentation/use-notification-bootstrap';
 import '@/i18n';
+import { AppQueryProvider } from '@/shared/query/query-provider';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -66,13 +67,15 @@ function RootLayout() {
 
   return (
     <KeyboardProvider>
-      <AuthSessionProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="drawer" options={{ presentation: 'transparentModal', animation: 'none' }} />
-          </Stack>
-        </ThemeProvider>
-      </AuthSessionProvider>
+      <AppQueryProvider>
+        <AuthSessionProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="drawer" options={{ presentation: 'transparentModal', animation: 'none' }} />
+            </Stack>
+          </ThemeProvider>
+        </AuthSessionProvider>
+      </AppQueryProvider>
     </KeyboardProvider>
   );
 }

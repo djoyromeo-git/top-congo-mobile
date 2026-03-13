@@ -1,11 +1,24 @@
-import type { AuthProvider, AuthSession } from '@/features/auth/domain/models';
+import type {
+  AuthCredentialsInput,
+  AuthRegistrationInput,
+  AuthSession,
+  AuthUserProfile,
+  SocialAuthProvider,
+} from '@/features/auth/domain/models';
 
-export type AuthCapabilityMap = Record<AuthProvider, boolean>;
+export type AuthCapabilityMap = Record<SocialAuthProvider, boolean>;
 
 export interface SocialAuthProviderPort {
-  readonly provider: AuthProvider;
+  readonly provider: SocialAuthProvider;
   isAvailableAsync(): Promise<boolean>;
   signInAsync(): Promise<AuthSession>;
+}
+
+export interface CredentialsAuthGateway {
+  signInWithCredentials(input: AuthCredentialsInput): Promise<AuthSession>;
+  register(input: AuthRegistrationInput): Promise<AuthSession>;
+  fetchProfile(accessToken: string): Promise<AuthUserProfile>;
+  logout(accessToken: string): Promise<void>;
 }
 
 export interface AuthSessionStore {

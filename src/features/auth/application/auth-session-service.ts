@@ -1,6 +1,17 @@
-import type { AuthSessionStore, AuthLogger, SocialAuthProviderPort } from '@/features/auth/domain/ports';
-import type { AuthProvider, AuthSession, AuthState } from '@/features/auth/domain/models';
-import { normalizeSocialAuthError } from '@/features/auth/domain/errors';
+import type {
+  AuthLogger,
+  AuthSessionStore,
+  CredentialsAuthGateway,
+  SocialAuthProviderPort,
+} from '@/features/auth/domain/ports';
+import type {
+  AuthCredentialsInput,
+  AuthRegistrationInput,
+  AuthSession,
+  AuthState,
+  SocialAuthProvider,
+} from '@/features/auth/domain/models';
+import { normalizeCredentialsAuthError, normalizeSocialAuthError } from '@/features/auth/domain/errors';
 
 type AuthStateListener = (state: AuthState) => void;
 
@@ -31,6 +42,10 @@ function mergeSessionWithExisting(existing: AuthSession | null, next: AuthSessio
       familyName: next.user.familyName ?? existing.user.familyName,
       avatarUrl: next.user.avatarUrl ?? existing.user.avatarUrl,
       emailVerified: next.user.emailVerified ?? existing.user.emailVerified,
+      phone: next.user.phone ?? existing.user.phone,
+      gender: next.user.gender ?? existing.user.gender,
+      role: next.user.role ?? existing.user.role,
+      createdAt: next.user.createdAt ?? existing.user.createdAt,
     },
     idToken: next.idToken ?? existing.idToken,
     accessToken: next.accessToken ?? existing.accessToken,
@@ -46,7 +61,8 @@ export class AuthSessionService {
 
   constructor(
     private readonly store: AuthSessionStore,
-    private readonly providers: Record<AuthProvider, SocialAuthProviderPort>,
+    private readonly providers: Record<SocialAuthProvider, SocialAuthProviderPort>,
+    private readonly credentialsGateway: CredentialsAuthGateway,
     private readonly logger: AuthLogger
   ) {}
 
@@ -86,7 +102,7 @@ export class AuthSessionService {
     });
   }
 
-  async signIn(provider: AuthProvider) {
+  async signIn(provider: SocialAuthProvider) {
     const authProvider = this.providers[provider];
 
     if (!authProvider || this.state.isSigningIn) {
@@ -144,7 +160,30 @@ export class AuthSessionService {
     }
   }
 
+  async signInWithCredentials(input: AuthCredentialsInput) {
+    return this.authenticateWithCredentials('auth.credentials_sign_in', () =>
+      this.credentialsGateway.signInWithCredentials(input)
+    );
+  }
+
+  async registerWithCredentials(input: AuthRegistrationInput) {
+    return this.authenticateWithCredentials('auth.credentials_register', () => this.credentialsGateway.register(input));
+  }
+
   async signOut() {
+    const currentSession = this.state.session;
+
+    if (currentSession?.provider === 'credentials' && currentSession.accessToken) {
+      try {
+        await this.credentialsGateway.logout(currentSession.accessToken);
+      } catch (error) {
+        this.logger.warn('auth.sign_out_remote_failed', {
+          provider: currentSession.provider,
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
     await this.store.clear();
 
     this.setState({
@@ -170,6 +209,56 @@ export class AuthSessionService {
 
     for (const listener of this.listeners) {
       listener(this.state);
+    }
+  }
+
+  private async authenticateWithCredentials(action: string, operation: () => Promise<AuthSession>) {
+    if (this.state.isSigningIn) {
+      return null;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const nextSession = await operation();
+      const mergedSession = mergeSessionWithExisting(this.state.session, nextSession);
+      await this.store.set(mergedSession);
+
+      this.logger.info(`${action}_succeeded`, {
+        provider: mergedSession.provider,
+        userId: mergedSession.user.id,
+      });
+
+      this.setState({
+        ...this.state,
+        session: mergedSession,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return mergedSession;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error(`${action}_failed`, normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return null;
     }
   }
 }
