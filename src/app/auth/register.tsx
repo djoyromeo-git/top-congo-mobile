@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import type { Country, CountryCode } from 'react-native-country-picker-modal';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
@@ -10,7 +11,11 @@ import { AuthIdentifierTabs, type AuthIdentifierMode } from '@/components/ui/aut
 import { AuthLegal } from '@/components/ui/auth-legal';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
-import { PhoneNumberInput } from '@/components/ui/phone-number-input';
+import {
+  DEFAULT_PHONE_CALLING_CODE,
+  DEFAULT_PHONE_COUNTRY_CODE,
+  PhoneNumberInput,
+} from '@/components/ui/phone-number-input';
 import { Palette } from '@/constants/theme';
 import { SocialAuthActions } from '@/features/auth/presentation/social-auth-actions';
 import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
@@ -27,13 +32,15 @@ export default function RegisterScreen() {
   const [identifierMode, setIdentifierMode] = useState<AuthIdentifierMode>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneCountryCode, setPhoneCountryCode] = useState<CountryCode>(DEFAULT_PHONE_COUNTRY_CODE);
+  const [phoneCallingCode, setPhoneCallingCode] = useState(DEFAULT_PHONE_CALLING_CODE);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const registrationGender = 'male' as const;
 
   const normalizedEmail = email.trim();
-  const normalizedPhone = phone.trim();
+  const normalizedPhone = buildInternationalPhoneNumber(phoneCallingCode, phone);
   const normalizedPassword = password.trim();
   const normalizedConfirmPassword = confirmPassword.trim();
   const derivedName = identifierMode === 'email' ? normalizedEmail : normalizedPhone;
@@ -93,6 +100,12 @@ export default function RegisterScreen() {
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [error]);
 
+  const onChangePhoneCountry = React.useCallback((country: Country) => {
+    clearError();
+    setPhoneCountryCode(country.cca2);
+    setPhoneCallingCode(getCountryCallingCode(country));
+  }, [clearError]);
+
   return (
     <AuthScreenLayout
       title={t('auth.createAccount')}
@@ -137,8 +150,10 @@ export default function RegisterScreen() {
         ) : (
           <PhoneNumberInput
             label={t('auth.phoneNumber')}
-            placeholder={t('auth.phonePlaceholder')}
+            placeholder="812 345 678"
             value={phone}
+            countryCode={phoneCountryCode}
+            onChangeCountry={onChangePhoneCountry}
             onChangeText={(value) => {
               clearError();
               setPhone(value);
@@ -236,3 +251,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+
+function getCountryCallingCode(country: Country) {
+  const nextCallingCode = country.callingCode[0];
+  return nextCallingCode ? `+${nextCallingCode}` : DEFAULT_PHONE_CALLING_CODE;
+}
+
+function buildInternationalPhoneNumber(callingCode: string, phone: string) {
+  const digitsOnly = phone.replace(/[^\d]/g, '');
+  return digitsOnly ? `${callingCode}${digitsOnly}` : '';
+}

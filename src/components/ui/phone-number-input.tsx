@@ -1,11 +1,20 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Platform, Pressable, StatusBar, StyleSheet, TextInput, View } from 'react-native';
+import CountryPicker, {
+  getCallingCode,
+  type Country,
+  type CountryCode,
+} from 'react-native-country-picker-modal';
 
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
+
+export const DEFAULT_PHONE_COUNTRY_CODE: CountryCode = 'CD';
+export const DEFAULT_PHONE_CALLING_CODE = '+243';
 
 type PhoneNumberInputProps = {
   label: string;
@@ -13,7 +22,8 @@ type PhoneNumberInputProps = {
   onChangeText: (value: string) => void;
   placeholder: string;
   errorText?: string;
-  countryCode?: string;
+  countryCode?: CountryCode;
+  onChangeCountry?: (country: Country) => void;
 };
 
 export function PhoneNumberInput({
@@ -22,24 +32,72 @@ export function PhoneNumberInput({
   onChangeText,
   placeholder,
   errorText,
-  countryCode = '+243',
+  countryCode = DEFAULT_PHONE_COUNTRY_CODE,
+  onChangeCountry,
 }: PhoneNumberInputProps) {
+  const { i18n } = useTranslation();
   const theme = useTheme();
+  const [callingCode, setCallingCode] = React.useState(DEFAULT_PHONE_CALLING_CODE);
+  const androidModalTopOffset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 8 : 0;
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    void getCallingCode(countryCode)
+      .then((nextCallingCode) => {
+        if (isMounted) {
+          setCallingCode(`+${nextCallingCode}`);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setCallingCode(DEFAULT_PHONE_CALLING_CODE);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [countryCode]);
 
   return (
     <View style={styles.wrapper}>
       <ThemedText style={styles.label}>{label}</ThemedText>
 
       <View style={styles.row}>
-        <Pressable style={[styles.countryBox, { borderColor: theme.inputBorder }]} onPress={() => {}}>
-          <ThemedText style={styles.countryText}>{countryCode}</ThemedText>
-          <Feather name="chevron-down" size={18} color={theme.text} />
-        </Pressable>
+        <CountryPicker
+          countryCode={countryCode}
+          onSelect={onChangeCountry ?? (() => {})}
+          preferredCountries={['CD', 'CG', 'BE', 'FR', 'CA', 'US']}
+          translation={i18n.language.startsWith('fr') ? 'fra' : 'common'}
+          withFilter
+          withEmoji
+          withFlag
+          withFlagButton
+          withCountryNameButton={false}
+          withCallingCode={false}
+          withCloseButton
+          closeButtonStyle={androidModalTopOffset ? { marginTop: androidModalTopOffset } : undefined}
+          filterProps={androidModalTopOffset ? { style: { marginTop: androidModalTopOffset } } : undefined}
+          renderFlagButton={({ onOpen }) => (
+            <Pressable
+              style={[styles.countryBox, { borderColor: theme.inputBorder }]}
+              onPress={onOpen}>
+              <View style={styles.countryInner}>
+                <ThemedText style={styles.flag}>{countryCodeToEmoji(countryCode)}</ThemedText>
+                <Feather name="chevron-down" size={18} color={theme.text} />
+              </View>
+            </Pressable>
+          )}
+        />
 
         <View style={[styles.inputBox, { borderColor: theme.inputBorder }]}>
+          <ThemedText style={styles.countryCode}>{callingCode}</ThemedText>
           <TextInput
             value={value}
-            onChangeText={onChangeText}
+            onChangeText={(nextValue) => {
+              onChangeText(formatPhoneInput(nextValue));
+            }}
             placeholder={placeholder}
             placeholderTextColor={theme.inputPlaceholder}
             keyboardType="phone-pad"
@@ -49,7 +107,9 @@ export function PhoneNumberInput({
         </View>
       </View>
 
-      {!!errorText && <ThemedText style={[styles.errorText, { color: theme.danger }]}>{errorText}</ThemedText>}
+      {!!errorText && (
+        <ThemedText style={[styles.errorText, { color: theme.danger }]}>{errorText}</ThemedText>
+      )}
     </View>
   );
 }
@@ -66,36 +126,51 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 12,
+    alignItems: 'stretch',
   },
   countryBox: {
     minHeight: 46,
-    minWidth: 104,
+    width: 84,
     borderWidth: 1,
     borderRadius: 5,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    flexShrink: 0,
+    backgroundColor: 'transparent',
+  },
+  countryInner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.three,
+    gap: 10,
   },
-  countryText: {
-    fontSize: 16,
+  flag: {
+    fontSize: 20,
     lineHeight: 22,
-    fontWeight: 700,
   },
   inputBox: {
     flex: 1,
     minHeight: 46,
     borderWidth: 1,
     borderRadius: 5,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.three,
+  },
+  countryCode: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: 700,
+    minWidth: 38,
+    marginRight: 6,
   },
   input: {
     fontFamily: Fonts.sans,
     minHeight: 46,
     fontSize: 14,
-    lineHeight: 24,
+    lineHeight: 22,
     fontWeight: 400,
+    flex: 1,
   },
   errorText: {
     fontSize: 13,
@@ -103,3 +178,14 @@ const styles = StyleSheet.create({
     fontWeight: 600,
   },
 });
+
+function countryCodeToEmoji(countryCode: CountryCode) {
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
+}
+
+function formatPhoneInput(value: string) {
+  const digitsOnly = value.replace(/[^\d]/g, '').slice(0, 15);
+  return digitsOnly.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+}

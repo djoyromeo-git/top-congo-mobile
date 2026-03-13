@@ -3,13 +3,18 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import type { Country, CountryCode } from 'react-native-country-picker-modal';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
 import { AuthIdentifierTabs, type AuthIdentifierMode } from '@/components/ui/auth-identifier-tabs';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
-import { PhoneNumberInput } from '@/components/ui/phone-number-input';
+import {
+  DEFAULT_PHONE_CALLING_CODE,
+  DEFAULT_PHONE_COUNTRY_CODE,
+  PhoneNumberInput,
+} from '@/components/ui/phone-number-input';
 import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
 import { SocialAuthActions } from '@/features/auth/presentation/social-auth-actions';
 import { useTheme } from '@/hooks/use-theme';
@@ -25,11 +30,13 @@ export default function LoginScreen() {
   const [identifierMode, setIdentifierMode] = useState<AuthIdentifierMode>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneCountryCode, setPhoneCountryCode] = useState<CountryCode>(DEFAULT_PHONE_COUNTRY_CODE);
+  const [phoneCallingCode, setPhoneCallingCode] = useState(DEFAULT_PHONE_CALLING_CODE);
   const [password, setPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const normalizedEmail = email.trim();
-  const normalizedPhone = phone.trim();
+  const normalizedPhone = buildInternationalPhoneNumber(phoneCallingCode, phone);
   const normalizedPassword = password.trim();
   const isIdentifierValid = identifierMode === 'email' ? normalizedEmail.length > 0 : normalizedPhone.length > 0;
   const isPasswordValid = normalizedPassword.length > 0;
@@ -63,6 +70,12 @@ export default function LoginScreen() {
 
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [error]);
+
+  const onChangePhoneCountry = React.useCallback((country: Country) => {
+    clearError();
+    setPhoneCountryCode(country.cca2);
+    setPhoneCallingCode(getCountryCallingCode(country));
+  }, [clearError]);
 
   return (
     <AuthScreenLayout
@@ -112,6 +125,8 @@ export default function LoginScreen() {
             label={t('auth.phoneNumber')}
             placeholder={t('auth.phonePlaceholder')}
             value={phone}
+            countryCode={phoneCountryCode}
+            onChangeCountry={onChangePhoneCountry}
             onChangeText={(value) => {
               clearError();
               setPhone(value);
@@ -201,3 +216,13 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
+
+function getCountryCallingCode(country: Country) {
+  const nextCallingCode = country.callingCode[0];
+  return nextCallingCode ? `+${nextCallingCode}` : DEFAULT_PHONE_CALLING_CODE;
+}
+
+function buildInternationalPhoneNumber(callingCode: string, phone: string) {
+  const digitsOnly = phone.replace(/[^\d]/g, '');
+  return digitsOnly ? `${callingCode}${digitsOnly}` : '';
+}
