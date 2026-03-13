@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
 export const Palette = {
   blue: {
     '100': '#FFFFFF',
-    '200': '#E1E1F0',
+    '200': '#F5F5F7',
     '300': '#C4C4E1',
     '400': '#A6A8D3',
     '500': '#888CC4',

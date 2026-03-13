@@ -6,8 +6,10 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
+import { AuthIdentifierTabs, type AuthIdentifierMode } from '@/components/ui/auth-identifier-tabs';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
+import { PhoneNumberInput } from '@/components/ui/phone-number-input';
 import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
 import { SocialAuthActions } from '@/features/auth/presentation/social-auth-actions';
 import { useTheme } from '@/hooks/use-theme';
@@ -20,17 +22,20 @@ export default function LoginScreen() {
   const { clearError, error, isSubmitting, signInWithCredentials } = useCredentialsAuth();
   const scrollRef = React.useRef<{ scrollTo: (options: { y?: number; animated?: boolean }) => void } | null>(null);
 
+  const [identifierMode, setIdentifierMode] = useState<AuthIdentifierMode>('email');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const normalizedEmail = email.trim();
+  const normalizedPhone = phone.trim();
   const normalizedPassword = password.trim();
-  const isEmailValid = normalizedEmail.length > 0;
+  const isIdentifierValid = identifierMode === 'email' ? normalizedEmail.length > 0 : normalizedPhone.length > 0;
   const isPasswordValid = normalizedPassword.length > 0;
-  const canSubmit = isEmailValid && isPasswordValid;
+  const canSubmit = isIdentifierValid && isPasswordValid;
 
-  const shouldShowEmailError = submitted && !isEmailValid;
+  const shouldShowIdentifierError = submitted && !isIdentifierValid;
   const shouldShowPasswordError = submitted && !isPasswordValid;
 
   const onSubmitLogin = async () => {
@@ -41,7 +46,8 @@ export default function LoginScreen() {
     }
 
     const isSignedIn = await signInWithCredentials({
-      email: normalizedEmail,
+      email: identifierMode === 'email' ? normalizedEmail : '',
+      phone: identifierMode === 'phone' ? normalizedPhone : '',
       password: normalizedPassword,
     });
 
@@ -73,23 +79,46 @@ export default function LoginScreen() {
       ) : null}
 
       <View style={styles.formSection}>
-        <FormInput
-          label={t('auth.emailAddress')}
-          placeholder={t('auth.emailPlaceholder')}
-          value={email}
-          onChangeText={(value) => {
+        <AuthIdentifierTabs
+          value={identifierMode}
+          onChange={(value) => {
             clearError();
-            setEmail(value);
+            setIdentifierMode(value);
           }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="email"
-          textContentType="emailAddress"
-          returnKeyType="next"
-          leftAccessory={<Feather name="mail" size={17} color={theme.inputPlaceholder} />}
-          errorText={shouldShowEmailError ? t('auth.errorEmailRequired') : undefined}
+          emailLabel={t('auth.emailAddress')}
+          phoneLabel={t('auth.phoneNumber')}
         />
+
+        {identifierMode === 'email' ? (
+          <FormInput
+            label={t('auth.emailAddress')}
+            placeholder={t('auth.emailPlaceholder')}
+            value={email}
+            onChangeText={(value) => {
+              clearError();
+              setEmail(value);
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+            returnKeyType="next"
+            leftAccessory={<Feather name="mail" size={17} color={theme.inputPlaceholder} />}
+            errorText={shouldShowIdentifierError ? t('auth.errorEmailRequired') : undefined}
+          />
+        ) : (
+          <PhoneNumberInput
+            label={t('auth.phoneNumber')}
+            placeholder={t('auth.phonePlaceholder')}
+            value={phone}
+            onChangeText={(value) => {
+              clearError();
+              setPhone(value);
+            }}
+            errorText={shouldShowIdentifierError ? t('auth.errorPhoneRequired') : undefined}
+          />
+        )}
 
         <FormInput
           label={t('auth.password')}

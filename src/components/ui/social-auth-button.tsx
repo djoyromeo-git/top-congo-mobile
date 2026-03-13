@@ -2,7 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,9 +15,10 @@ type SocialAuthButtonProps = Omit<PressableProps, 'style'> & {
   provider: SocialProvider;
   label?: string;
   loading?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function SocialAuthButton({ provider, label, loading = false, disabled, ...props }: SocialAuthButtonProps) {
+export function SocialAuthButton({ provider, label, loading = false, disabled, style, ...props }: SocialAuthButtonProps) {
   const theme = useTheme();
   const { t } = useTranslation();
   const isApple = provider === 'apple';
@@ -30,6 +31,7 @@ export function SocialAuthButton({ provider, label, loading = false, disabled, .
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundElement },
+        style,
         disabled && styles.disabled,
         pressed && styles.pressed,
       ]}

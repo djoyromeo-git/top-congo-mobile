@@ -121,6 +121,8 @@ const en = {
     privacy: 'Privacy policy',
     continueWithApple: 'Continue with Apple',
     continueWithGoogle: 'Continue with Google',
+    withApple: 'With Apple',
+    withGoogle: 'With Google',
     socialAuthFailed: 'Unable to sign in right now. Please try again.',
     appleUnavailable: 'Apple sign-in is unavailable on this device.',
     googleUnavailable: 'Google Sign-In is not configured yet.',

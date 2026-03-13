@@ -1,4 +1,3 @@
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -8,16 +7,9 @@ import { ThemedText } from '@/components/themed-text';
 import { SocialAuthButton } from '@/components/ui/social-auth-button';
 import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { AppleSignInButton } from '@/features/auth/presentation/apple-sign-in-button';
 import { useSocialAuth } from '@/features/auth/presentation/use-auth-session';
 
-type SocialAuthActionsProps = {
-  appleButtonType?: AppleAuthentication.AppleAuthenticationButtonType;
-};
-
-export function SocialAuthActions({
-  appleButtonType = AppleAuthentication.AppleAuthenticationButtonType.CONTINUE,
-}: SocialAuthActionsProps) {
+export function SocialAuthActions() {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
@@ -53,22 +45,31 @@ export function SocialAuthActions({
         </View>
       ) : null}
 
-      {capabilities.apple ? (
-        <AppleSignInButton
-          buttonType={appleButtonType}
-          loading={isSigningIn && activeProvider === 'apple'}
-          onPress={handleApplePress}
-        />
-      ) : null}
+      <View style={styles.row}>
+        {capabilities.apple ? (
+          <SocialAuthButton
+            provider="apple"
+            label={t('auth.withApple')}
+            disabled={!isHydrated || isSigningIn}
+            loading={isSigningIn && activeProvider === 'apple'}
+            style={styles.button}
+            onPress={() => {
+              void handleApplePress();
+            }}
+          />
+        ) : null}
 
-      <SocialAuthButton
-        provider="google"
-        disabled={!isHydrated || isSigningIn}
-        loading={isSigningIn && activeProvider === 'google'}
-        onPress={() => {
-          void handleGooglePress();
-        }}
-      />
+        <SocialAuthButton
+          provider="google"
+          label={t('auth.withGoogle')}
+          disabled={!isHydrated || isSigningIn}
+          loading={isSigningIn && activeProvider === 'google'}
+          style={styles.button}
+          onPress={() => {
+            void handleGooglePress();
+          }}
+        />
+      </View>
 
       {errorTranslationKey ? (
         <ThemedText style={[styles.errorText, { color: theme.danger }]}>
@@ -87,6 +88,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 24,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  button: {
+    flex: 1,
   },
   errorText: {
     fontSize: 13,

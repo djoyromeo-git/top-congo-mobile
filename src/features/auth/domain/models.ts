@@ -3,6 +3,7 @@ export type AuthProvider = SocialAuthProvider | 'credentials';
 
 export type AuthCredentialsInput = {
   email: string;
+  phone: string;
   password: string;
 };
 

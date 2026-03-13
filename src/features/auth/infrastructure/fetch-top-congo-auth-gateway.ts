@@ -31,7 +31,7 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
       path: '/auth/login',
       body: {
         email: input.email,
-        phone: '',
+        phone: input.phone,
         password: input.password,
       },
     });

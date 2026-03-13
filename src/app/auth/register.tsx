@@ -6,14 +6,15 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
+import { AuthIdentifierTabs, type AuthIdentifierMode } from '@/components/ui/auth-identifier-tabs';
 import { AuthLegal } from '@/components/ui/auth-legal';
 import { FormInput } from '@/components/ui/form-input';
 import { OrDivider } from '@/components/ui/or-divider';
+import { PhoneNumberInput } from '@/components/ui/phone-number-input';
 import { Palette } from '@/constants/theme';
 import { SocialAuthActions } from '@/features/auth/presentation/social-auth-actions';
 import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
 import { useTheme } from '@/hooks/use-theme';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { AuthScreenLayout } from './_layout';
 
 export default function RegisterScreen() {
@@ -23,7 +24,7 @@ export default function RegisterScreen() {
   const { clearError, error, isSubmitting, registerWithCredentials } = useCredentialsAuth();
   const scrollRef = React.useRef<{ scrollTo: (options: { y?: number; animated?: boolean }) => void } | null>(null);
 
-  const [name, setName] = useState('');
+  const [identifierMode, setIdentifierMode] = useState<AuthIdentifierMode>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -31,20 +32,17 @@ export default function RegisterScreen() {
   const [submitted, setSubmitted] = useState(false);
   const registrationGender = 'male' as const;
 
-  const normalizedName = name.trim();
   const normalizedEmail = email.trim();
   const normalizedPhone = phone.trim();
   const normalizedPassword = password.trim();
   const normalizedConfirmPassword = confirmPassword.trim();
+  const derivedName = identifierMode === 'email' ? normalizedEmail : normalizedPhone;
 
-  const isNameValid = normalizedName.length > 0;
-  const isEmailValid = normalizedEmail.length > 0;
-  const isPhoneValid = normalizedPhone.length > 0;
+  const isIdentifierValid = identifierMode === 'email' ? normalizedEmail.length > 0 : normalizedPhone.length > 0;
   const isPasswordValid = normalizedPassword.length > 0;
   const isConfirmPasswordValid = normalizedConfirmPassword.length > 0;
   const passwordsMatch = normalizedPassword === normalizedConfirmPassword;
-  const canSubmit =
-    isNameValid && isEmailValid && isPhoneValid && isPasswordValid && isConfirmPasswordValid && passwordsMatch;
+  const canSubmit = isIdentifierValid && isPasswordValid && isConfirmPasswordValid && passwordsMatch;
 
   const handleBack = React.useCallback(() => {
     if (router.canGoBack()) {
@@ -63,9 +61,9 @@ export default function RegisterScreen() {
     }
 
     const isRegistered = await registerWithCredentials({
-      name: normalizedName,
-      email: normalizedEmail,
-      phone: normalizedPhone,
+      name: derivedName,
+      email: identifierMode === 'email' ? normalizedEmail : '',
+      phone: identifierMode === 'phone' ? normalizedPhone : '',
       gender: registrationGender,
       password: normalizedPassword,
       passwordConfirmation: normalizedConfirmPassword,
@@ -76,9 +74,10 @@ export default function RegisterScreen() {
     }
   }, [
     canSubmit,
+    derivedName,
+    identifierMode,
     normalizedConfirmPassword,
     normalizedEmail,
-    normalizedName,
     normalizedPhone,
     normalizedPassword,
     registerWithCredentials,
@@ -109,49 +108,44 @@ export default function RegisterScreen() {
       ) : null}
 
       <View style={styles.formSection}>
-        <FormInput
-          label={t('auth.fullName')}
-          placeholder={t('auth.fullNamePlaceholder')}
-          value={name}
-          onChangeText={(value) => {
+        <AuthIdentifierTabs
+          value={identifierMode}
+          onChange={(value) => {
             clearError();
-            setName(value);
+            setIdentifierMode(value);
           }}
-          autoCapitalize="words"
-          textContentType="name"
-          leftAccessory={<Feather name="user" size={17} color={Palette.neutral['500']} />}
-          errorText={submitted && !isNameValid ? t('auth.errorNameRequired') : undefined}
+          emailLabel={t('auth.emailAddress')}
+          phoneLabel={t('auth.phoneNumber')}
         />
 
-        <FormInput
-          label={t('auth.emailAddress')}
-          placeholder={t('auth.emailPlaceholder')}
-          value={email}
-          onChangeText={(value) => {
-            clearError();
-            setEmail(value);
-          }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          textContentType="emailAddress"
-          leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['500']} />}
-          errorText={submitted && !isEmailValid ? t('auth.errorEmailRequired') : undefined}
-        />
-
-        <FormInput
-          label={t('auth.phoneNumber')}
-          placeholder={t('auth.phonePlaceholder')}
-          value={phone}
-          onChangeText={(value) => {
-            clearError();
-            setPhone(value);
-          }}
-          keyboardType="phone-pad"
-          textContentType="telephoneNumber"
-          leftAccessory={<Feather name="phone" size={17} color={Palette.neutral['500']} />}
-          errorText={submitted && !isPhoneValid ? t('auth.errorPhoneRequired') : undefined}
-        />
+        {identifierMode === 'email' ? (
+          <FormInput
+            label={t('auth.emailAddress')}
+            placeholder={t('auth.emailPlaceholder')}
+            value={email}
+            onChangeText={(value) => {
+              clearError();
+              setEmail(value);
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            textContentType="emailAddress"
+            leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['500']} />}
+            errorText={submitted && !isIdentifierValid ? t('auth.errorEmailRequired') : undefined}
+          />
+        ) : (
+          <PhoneNumberInput
+            label={t('auth.phoneNumber')}
+            placeholder={t('auth.phonePlaceholder')}
+            value={phone}
+            onChangeText={(value) => {
+              clearError();
+              setPhone(value);
+            }}
+            errorText={submitted && !isIdentifierValid ? t('auth.errorPhoneRequired') : undefined}
+          />
+        )}
 
         <FormInput
           label={t('auth.password')}
@@ -204,7 +198,7 @@ export default function RegisterScreen() {
           <OrDivider />
         </View>
 
-        <SocialAuthActions appleButtonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP} />
+        <SocialAuthActions />
 
         <View style={styles.legalWrap}>
           <AuthLegal />

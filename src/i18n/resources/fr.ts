@@ -121,6 +121,8 @@ const fr = {
     privacy: 'Politique de confidentialité',
     continueWithApple: 'Continuer avec Apple',
     continueWithGoogle: 'Continuer avec Google',
+    withApple: 'Avec Apple',
+    withGoogle: 'Avec Google',
     socialAuthFailed: 'Connexion impossible pour le moment. Réessayez.',
     appleUnavailable: 'La connexion Apple est indisponible sur cet appareil.',
     googleUnavailable: 'Google Sign-In n’est pas encore configuré.',
