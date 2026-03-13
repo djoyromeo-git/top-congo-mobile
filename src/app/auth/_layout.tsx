@@ -41,6 +41,7 @@ type AuthScreenLayoutProps = {
   children: React.ReactNode;
   contentContainerStyle?: StyleProp<ViewStyle>;
   bodyStyle?: StyleProp<ViewStyle>;
+  scrollRef?: React.RefObject<any>;
 };
 
 export function AuthScreenLayout({
@@ -54,6 +55,7 @@ export function AuthScreenLayout({
   children,
   contentContainerStyle,
   bodyStyle,
+  scrollRef,
 }: AuthScreenLayoutProps) {
   const theme = useTheme();
   const colorScheme = useColorScheme();
@@ -66,6 +68,7 @@ export function AuthScreenLayout({
       <StatusBar style={resolvedStatusBarStyle} backgroundColor={theme.background} translucent={false} />
 
       <KeyboardAwareScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,

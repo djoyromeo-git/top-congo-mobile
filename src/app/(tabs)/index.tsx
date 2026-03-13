@@ -10,6 +10,7 @@ import { NewsListItem } from '@/components/ui/news-list-item';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
 import { FEATURED_NEWS, NEWS_ITEMS, QUICK_TOPICS } from '@/constants/home-feed';
+import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function HomeFeedScreen() {
@@ -32,6 +33,7 @@ export default function HomeFeedScreen() {
 function HomeContent() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const { session } = useAuthSession();
   const [featuredSaved, setFeaturedSaved] = React.useState<Record<string, boolean>>(() =>
     FEATURED_NEWS.reduce<Record<string, boolean>>((acc, item) => {
       acc[item.key] = item.saved;
@@ -53,11 +55,17 @@ function HomeContent() {
     setSavedNews((current) => ({ ...current, [key]: !current[key] }));
   }, []);
 
+  const displayName =
+    session?.user.fullName?.trim() ||
+    session?.user.givenName?.trim() ||
+    session?.user.email?.trim() ||
+    'Top Congo';
+
   return (
     <>
       <View>
         <ThemedText style={[styles.title, { color: theme.homeTitle }]}>
-          {t('homeFeed.welcome', { name: 'Tr\u00e9sor' })}
+          {t('homeFeed.welcome', { name: displayName })}
         </ThemedText>
         <ThemedText style={[styles.subtitle, { color: theme.homeSubtitle }]}>
           {t('homeFeed.subtitle')}

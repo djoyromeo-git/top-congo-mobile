@@ -29,7 +29,13 @@ function getErrorTranslationKey(error: AuthErrorDescriptor | null) {
 }
 
 export function useAuthSession() {
-  return useAuthSessionContext();
+  const context = useAuthSessionContext();
+
+  return {
+    ...context,
+    session: context.state.session,
+    isHydrated: context.state.isHydrated,
+  };
 }
 
 export function useSocialAuth() {

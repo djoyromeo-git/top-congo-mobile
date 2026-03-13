@@ -85,11 +85,13 @@ export class AuthSessionService {
     }
 
     this.started = true;
-    const [session, appleAvailable, googleAvailable] = await Promise.all([
+    const [storedSession, appleAvailable, googleAvailable] = await Promise.all([
       this.store.get(),
       this.providers.apple.isAvailableAsync(),
       this.providers.google.isAvailableAsync(),
     ]);
+
+    const session = await this.hydrateStoredSession(storedSession);
 
     this.setState({
       ...this.state,
@@ -120,6 +122,7 @@ export class AuthSessionService {
       const nextSession = await authProvider.signInAsync();
       const mergedSession = mergeSessionWithExisting(this.state.session, nextSession);
       await this.store.set(mergedSession);
+      this.logSessionPersisted('social_sign_in', mergedSession);
 
       this.logger.info('auth.sign_in_succeeded', {
         provider,
@@ -212,6 +215,32 @@ export class AuthSessionService {
     }
   }
 
+  private async hydrateStoredSession(session: AuthSession | null) {
+    if (!session || session.provider !== 'credentials' || !session.accessToken) {
+      return session;
+    }
+
+    try {
+      const profile = await this.credentialsGateway.fetchProfile(session.accessToken);
+      const nextSession = mergeSessionWithExisting(session, {
+        ...session,
+        user: profile,
+      });
+
+      await this.store.set(nextSession);
+      this.logSessionPersisted('session_hydration', nextSession);
+
+      return nextSession;
+    } catch (error) {
+      this.logger.warn('auth.session_hydration_profile_failed', {
+        provider: session.provider,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      return session;
+    }
+  }
+
   private async authenticateWithCredentials(action: string, operation: () => Promise<AuthSession>) {
     if (this.state.isSigningIn) {
       return null;
@@ -228,6 +257,7 @@ export class AuthSessionService {
       const nextSession = await operation();
       const mergedSession = mergeSessionWithExisting(this.state.session, nextSession);
       await this.store.set(mergedSession);
+      this.logSessionPersisted(action, mergedSession);
 
       this.logger.info(`${action}_succeeded`, {
         provider: mergedSession.provider,
@@ -259,6 +289,25 @@ export class AuthSessionService {
       });
 
       return null;
+    }
+  }
+
+  private logSessionPersisted(reason: string, session: AuthSession) {
+    const context = {
+      reason,
+      provider: session.provider,
+      userId: session.user.id,
+      fullName: session.user.fullName,
+      email: session.user.email,
+      hasAccessToken: Boolean(session.accessToken),
+      issuedAt: session.issuedAt,
+      lastAuthenticatedAt: session.lastAuthenticatedAt,
+    };
+
+    this.logger.debug('auth.session_saved', context);
+
+    if (__DEV__) {
+      console.info('[auth] session saved', context);
     }
   }
 }

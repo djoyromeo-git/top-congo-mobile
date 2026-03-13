@@ -21,6 +21,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { clearError, error, isSubmitting, registerWithCredentials } = useCredentialsAuth();
+  const scrollRef = React.useRef<{ scrollTo: (options: { y?: number; animated?: boolean }) => void } | null>(null);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -85,13 +86,22 @@ export default function RegisterScreen() {
     router,
   ]);
 
+  React.useEffect(() => {
+    if (error?.provider !== 'credentials') {
+      return;
+    }
+
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [error]);
+
   return (
     <AuthScreenLayout
       title={t('auth.createAccount')}
       subtitle={t('auth.alreadyHaveAccount')}
       actionLabel={t('auth.signIn')}
       onPressAction={() => router.push('/auth/login')}
-      onPressBack={handleBack}>
+      onPressBack={handleBack}
+      scrollRef={scrollRef}>
       {error?.provider === 'credentials' ? (
         <View style={styles.screenErrorWrap}>
           <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
