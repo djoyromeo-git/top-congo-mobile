@@ -20,6 +20,10 @@ function asNativePlatform(platform: string): NotificationPlatform | null {
   return null;
 }
 
+const noopSubscription = {
+  remove() {},
+};
+
 function asRecord(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};
@@ -122,6 +126,10 @@ export class ExpoNotificationRuntime implements NotificationRuntime {
   addPushTokenRefreshListener(
     listener: (registration: Omit<DeviceRegistration, 'deviceUuid'>) => Promise<void> | void
   ) {
+    if (Platform.OS === 'web') {
+      return noopSubscription;
+    }
+
     return Notifications.addPushTokenListener(token => {
       const platform = asNativePlatform(token.type);
       if (!platform || typeof token.data !== 'string' || token.data.trim().length === 0) {
@@ -136,12 +144,20 @@ export class ExpoNotificationRuntime implements NotificationRuntime {
   }
 
   addForegroundNotificationListener(listener: (event: NotificationEvent) => Promise<void> | void) {
+    if (Platform.OS === 'web') {
+      return noopSubscription;
+    }
+
     return Notifications.addNotificationReceivedListener(notification => {
       void listener(createNotificationEvent(notification, 'foreground'));
     });
   }
 
   addNotificationResponseListener(listener: (event: NotificationEvent) => Promise<void> | void) {
+    if (Platform.OS === 'web') {
+      return noopSubscription;
+    }
+
     return Notifications.addNotificationResponseReceivedListener(response => {
       void listener(
         createNotificationEvent(response.notification, 'foreground', response.actionIdentifier ?? null)
@@ -150,6 +166,10 @@ export class ExpoNotificationRuntime implements NotificationRuntime {
   }
 
   async getLastNotificationResponseAsync() {
+    if (Platform.OS === 'web') {
+      return null;
+    }
+
     const response = await Notifications.getLastNotificationResponseAsync();
     if (!response) {
       return null;
@@ -159,6 +179,10 @@ export class ExpoNotificationRuntime implements NotificationRuntime {
   }
 
   clearLastNotificationResponse() {
+    if (Platform.OS === 'web') {
+      return;
+    }
+
     Notifications.clearLastNotificationResponse();
   }
 
