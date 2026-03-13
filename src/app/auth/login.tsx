@@ -18,6 +18,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { clearError, error, isSubmitting, signInWithCredentials } = useCredentialsAuth();
+  const scrollRef = React.useRef<{ scrollTo: (options: { y?: number; animated?: boolean }) => void } | null>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,13 +50,28 @@ export default function LoginScreen() {
     }
   };
 
+  React.useEffect(() => {
+    if (error?.provider !== 'credentials') {
+      return;
+    }
+
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [error]);
+
   return (
     <AuthScreenLayout
       title={t('auth.signInCta')}
       subtitle={t('auth.noAccount')}
       actionLabel={t('auth.createAccount')}
       onPressAction={() => router.push('/auth/register')}
-      onPressBack={() => router.back()}>
+      onPressBack={() => router.back()}
+      scrollRef={scrollRef}>
+      {error?.provider === 'credentials' ? (
+        <View style={styles.screenErrorWrap}>
+          <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
+        </View>
+      ) : null}
+
       <View style={styles.formSection}>
         <FormInput
           label={t('auth.emailAddress')}
@@ -116,10 +132,6 @@ export default function LoginScreen() {
           <OrDivider />
         </View>
 
-        {error?.provider === 'credentials' ? (
-          <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
-        ) : null}
-
         <SocialAuthActions />
       </View>
     </AuthScreenLayout>
@@ -133,6 +145,13 @@ const styles = StyleSheet.create({
   actionsSection: {
     marginTop: 16,
     gap: 18,
+  },
+  screenErrorWrap: {
+    marginBottom: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#FDECEC',
   },
   forgotText: {
     textAlign: 'right',
