@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Entypo, Feather, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Entypo, Feather, FontAwesome5, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Asset } from 'expo-asset';
 import Constants from 'expo-constants';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -16,6 +17,16 @@ import '@/i18n';
 import { AppQueryProvider } from '@/shared/query/query-provider';
 
 void SplashScreen.preventAutoHideAsync();
+
+const PRELOADED_IMAGE_ASSETS = [
+  require('@/assets/expo.icon/Assets/logo-all-white.png'),
+  require('@/assets/expo.icon/Assets/logo.png'),
+  require('@/assets/images/logo-glow.png'),
+  require('@/assets/images/logos/app-bar-logo.png'),
+  require('@/assets/images/waveform-top-congo.png'),
+  require('@/assets/images/live/live-wave.svg'),
+  require('@/assets/images/google-logo.png'),
+];
 
 if (!Sentry.getClient()) {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
@@ -44,6 +55,7 @@ if (!Sentry.getClient()) {
 function RootLayout() {
   const colorScheme = useColorScheme();
   useNotificationBootstrap();
+  const [assetsLoaded, setAssetsLoaded] = React.useState(false);
   const [fontsLoaded] = useFonts({
     'Google Sans': require('../../assets/fonts/GoogleSans-Regular.ttf'),
     'Google Sans Medium': require('../../assets/fonts/GoogleSans-Medium.ttf'),
@@ -51,17 +63,32 @@ function RootLayout() {
     ...Feather.font,
     ...Entypo.font,
     ...Ionicons.font,
+    ...MaterialCommunityIcons.font,
     ...MaterialIcons.font,
     ...FontAwesome5.font,
   });
 
   React.useEffect(() => {
-    if (fontsLoaded) {
+    let cancelled = false;
+
+    void Asset.loadAsync(PRELOADED_IMAGE_ASSETS).then(() => {
+      if (!cancelled) {
+        setAssetsLoaded(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (fontsLoaded && assetsLoaded) {
       void SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [assetsLoaded, fontsLoaded]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !assetsLoaded) {
     return null;
   }
 

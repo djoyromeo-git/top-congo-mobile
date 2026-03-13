@@ -1,4 +1,3 @@
-import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
 import { usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -16,7 +15,6 @@ import { requestDirectMode } from '@/services/direct-mode-intent';
 import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 const APP_BAR_LOGO_SOURCE = require('@/assets/images/logos/app-bar-logo.png');
-const LIVE_CARD_WAVE_SOURCE = require('@/assets/images/live/live-wave.svg');
 const HOME_SKELETON_DURATION_MS = 1400;
 
 export default function TabsLayout() {
@@ -33,10 +31,6 @@ export default function TabsLayout() {
   const isSearchScreen = pathname === '/search';
   const isDirectScreen = pathname === '/direct';
   const usesCustomScreenHeader = isSearchScreen || isDirectScreen;
-
-  React.useEffect(() => {
-    void Asset.loadAsync([APP_BAR_LOGO_SOURCE, LIVE_CARD_WAVE_SOURCE]);
-  }, []);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
