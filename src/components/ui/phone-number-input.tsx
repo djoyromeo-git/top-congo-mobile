@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StatusBar, StyleSheet, TextInput, View } from 'react-native';
 import CountryPicker, {
+  Flag,
   getCallingCode,
   type Country,
   type CountryCode,
@@ -71,12 +72,13 @@ export function PhoneNumberInput({
           preferredCountries={['CD', 'CG', 'BE', 'FR', 'CA', 'US']}
           translation={i18n.language.startsWith('fr') ? 'fra' : 'common'}
           withFilter
-          withEmoji
+          withEmoji={Platform.OS !== 'web'}
           withFlag
           withFlagButton
           withCountryNameButton={false}
           withCallingCode={false}
           withCloseButton
+          modalProps={Platform.OS === 'web' ? { ariaHideApp: false } : undefined}
           closeButtonStyle={androidModalTopOffset ? { marginTop: androidModalTopOffset } : undefined}
           filterProps={androidModalTopOffset ? { style: { marginTop: androidModalTopOffset } } : undefined}
           renderFlagButton={({ onOpen }) => (
@@ -84,7 +86,11 @@ export function PhoneNumberInput({
               style={[styles.countryBox, { borderColor: theme.inputBorder }]}
               onPress={onOpen}>
               <View style={styles.countryInner}>
-                <ThemedText style={styles.flag}>{countryCodeToEmoji(countryCode)}</ThemedText>
+                {Platform.OS === 'web' ? (
+                  <Flag countryCode={countryCode} flagSize={18} withEmoji={false} withFlagButton />
+                ) : (
+                  <ThemedText style={styles.flag}>{countryCodeToEmoji(countryCode)}</ThemedText>
+                )}
                 <Feather name="chevron-down" size={18} color={theme.text} />
               </View>
             </Pressable>
