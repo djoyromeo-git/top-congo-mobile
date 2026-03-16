@@ -51,6 +51,7 @@ export const PODCASTS = [
     dateKey: 'podcastDate',
     titleKey: 'podcastTitle',
     imageSource: require('@/assets/images/home/emission.png'),
+    saved: false,
   },
   {
     key: 'podcastTwo',
@@ -58,6 +59,7 @@ export const PODCASTS = [
     dateKey: 'podcastDate',
     titleKey: 'podcastTitleTwo',
     imageSource: require('@/assets/images/home/concert.png'),
+    saved: true,
   },
   {
     key: 'podcastThree',
@@ -65,5 +67,6 @@ export const PODCASTS = [
     dateKey: 'podcastDate',
     titleKey: 'podcastTitleThree',
     imageSource: require('@/assets/images/home/emission.png'),
+    saved: false,
   },
 ] as const;

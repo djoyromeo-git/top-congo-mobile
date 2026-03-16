@@ -89,7 +89,7 @@ export function HeadlineCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: 232,
+    width: 240,
     borderRadius: 12,
     padding: 8,
   },

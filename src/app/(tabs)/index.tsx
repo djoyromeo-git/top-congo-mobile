@@ -47,6 +47,12 @@ function HomeContent() {
       return acc;
     }, {})
   );
+  const [savedPodcasts, setSavedPodcasts] = React.useState<Record<string, boolean>>(() =>
+    PODCASTS.reduce<Record<string, boolean>>((acc, item) => {
+      acc[item.key] = item.saved;
+      return acc;
+    }, {})
+  );
   const [selectedTopic, setSelectedTopic] = React.useState<string>('all');
 
   const filteredNews = React.useMemo(
@@ -64,23 +70,29 @@ function HomeContent() {
   const toggleNewsSaved = React.useCallback((key: string) => {
     setSavedNews((current) => ({ ...current, [key]: !current[key] }));
   }, []);
+  const togglePodcastSaved = React.useCallback((key: string) => {
+    setSavedPodcasts((current) => ({ ...current, [key]: !current[key] }));
+  }, []);
 
   const displayName =
     session?.user.fullName?.trim() ||
     session?.user.givenName?.trim() ||
     session?.user.email?.trim() ||
     'Top Congo';
+  const isAuthenticated = !!session;
 
   return (
     <>
-      <View>
-        <ThemedText style={[styles.title, { color: theme.homeTitle }]}>
-          {t('homeFeed.welcome', { name: displayName })}
-        </ThemedText>
-        <ThemedText style={[styles.subtitle, { color: theme.homeSubtitle }]}>
-          {t('homeFeed.subtitle')}
-        </ThemedText>
-      </View>
+      {isAuthenticated ? (
+        <View>
+          <ThemedText style={[styles.title, { color: theme.homeTitle }]}>
+            {t('homeFeed.welcome', { name: displayName })}
+          </ThemedText>
+          <ThemedText style={[styles.subtitle, { color: theme.homeSubtitle }]}>
+            {t('homeFeed.subtitle')}
+          </ThemedText>
+        </View>
+      ) : null}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicsRow}>
         {HOME_TOPICS.map((topic) => {
@@ -94,14 +106,14 @@ function HomeContent() {
                 styles.topicChip,
                 {
                   borderColor: isSelected ? theme.primary : theme.homeChipBorder,
-                  backgroundColor: isSelected ? `${theme.primary}14` : theme.homeChipBackground,
+                  backgroundColor: isSelected ? `${theme.primary}` : theme.homeChipBackground,
                 },
                 pressed && styles.pressed,
               ]}>
               <ThemedText
                 style={[
                   styles.topicText,
-                  { color: isSelected ? theme.primary : theme.homeChipText },
+                  { color: isSelected ? theme.onPrimary : theme.homeChipText },
                 ]}>
                 {topic.key === 'all' ? t('homeFeed.topicAll') : t(`topics.${topic.key}`)}
               </ThemedText>
@@ -160,15 +172,23 @@ function HomeContent() {
         style={styles.podcastsScroll}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.cardsRow}>
-        {PODCASTS.map((item) => (
-          <PodcastCard
-            key={item.key}
-            badge={t(`homeFeed.${item.badgeKey}`)}
-            date={t(`homeFeed.${item.dateKey}`)}
-            title={t(`homeFeed.${item.titleKey}`)}
-            imageSource={item.imageSource}
-          />
-        ))}
+        {PODCASTS.map((item) => {
+          const isSaved = savedPodcasts[item.key];
+
+          return (
+            <HeadlineCard
+              key={item.key}
+              badge={t(`homeFeed.${item.badgeKey}`)}
+              date={t(`homeFeed.${item.dateKey}`)}
+              title={t(`homeFeed.${item.titleKey}`)}
+              imageSource={item.imageSource}
+              fallbackVariant="blue"
+              actionLabel={t(isSaved ? 'homeFeed.cancelSaved' : 'homeFeed.saveForLater')}
+              actionActive={isSaved}
+              onPressAction={() => togglePodcastSaved(item.key)}
+            />
+          );
+        })}
       </ScrollView>
 
       <SectionHeader title={t('homeFeed.newsFeedSection')} actionLabel={t('homeFeed.seeMore')} />
@@ -257,13 +277,8 @@ function HomeSkeleton() {
         style={styles.podcastsScroll}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.cardsRow}>
-        {[0, 1].map((index) => (
-          <View key={`podcast-skeleton-${index}`} style={[styles.podcastSkeletonCard, { gap: 10 }]}>
-            <SkeletonBlock style={{ height: 104, borderRadius: 10 }} />
-            <SkeletonBlock style={{ width: '62%', height: 10, borderRadius: 6 }} />
-            <SkeletonBlock style={{ width: '94%', height: 12, borderRadius: 6 }} />
-          </View>
-        ))}
+        <HeadlineCardSkeleton withActiveAction showLiveDot />
+        <HeadlineCardSkeleton withActiveAction showLiveDot />
       </ScrollView>
 
       <View style={styles.sectionHeader}>
@@ -394,51 +409,18 @@ function ShowCard({ title, imageSource }: { title: string; imageSource?: number 
   );
 }
 
-function PodcastCard({
-  badge,
-  date,
-  title,
-  imageSource,
-}: {
-  badge: string;
-  date: string;
-  title: string;
-  imageSource?: number;
-}) {
-  const theme = useTheme();
-
-  return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.podcastCard,
-        { backgroundColor: theme.headlineCardBackground },
-        pressed && styles.pressed,
-      ]}>
-      <View style={styles.podcastMedia}>
-        <Image source={imageSource} style={styles.podcastImage} contentFit="cover" transition={0} />
-        <View style={[styles.podcastOverlay, { backgroundColor: theme.headlineMediaOverlay }]} />
-        <View style={[styles.podcastBadge, { backgroundColor: theme.headlineBadgeBackground }]}>
-          <ThemedText style={[styles.podcastBadgeText, { color: theme.headlineBadgeText }]}>{badge}</ThemedText>
-        </View>
-      </View>
-
-      <ThemedText style={[styles.podcastDate, { color: theme.headlineDate }]}>{date}</ThemedText>
-      <ThemedText numberOfLines={2} style={[styles.podcastTitle, { color: theme.homeTitle }]}>
-        {title}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 function SectionHeader({ title, actionLabel }: { title: string; actionLabel: string }) {
   const theme = useTheme();
 
   return (
     <View style={styles.sectionHeader}>
-      <ThemedText style={[styles.sectionTitle, { color: theme.homeSectionTitle }]}>{title}</ThemedText>
-      <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
-        <ThemedText style={[styles.seeMore, { color: theme.primary }]}>{actionLabel}</ThemedText>
-      </Pressable>
+      <View style={styles.sectionHeaderTop}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.homeSectionTitle }]}>{title}</ThemedText>
+        <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
+          <ThemedText style={[styles.seeMore, { color: theme.primary }]}>{actionLabel}</ThemedText>
+        </Pressable>
+      </View>
+      <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
     </View>
   );
 }
@@ -480,8 +462,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   topicChip: {
-    minHeight: 38,
-    borderRadius: 20,
+    minHeight: 37,
+    borderRadius: 36,
     borderWidth: 1,
     justifyContent: 'center',
     paddingHorizontal: 14,
@@ -499,6 +481,9 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginTop: 6,
+    gap: 6,
+  },
+  sectionHeaderTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -527,6 +512,10 @@ const styles = StyleSheet.create({
     width: 54,
     height: 10,
     borderRadius: 4,
+  },
+  sectionDivider: {
+    height: 1,
+    borderRadius: 999,
   },
   cardsRow: {
     gap: 12,
@@ -623,8 +612,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   showCard: {
-    width: 200,
-    height: 120,
+    width: 228,
+    height: 132,
     borderRadius: 12,
     overflow: 'hidden',
     marginRight: 12,
@@ -638,51 +627,16 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   showTitle: {
-    fontSize: 15,
-    lineHeight: 20,
-    fontWeight: 800,
+    fontSize: 16,
+    lineHeight: 17,
+    fontWeight: 700,
+    letterSpacing: 0,
   },
   podcastCard: {
     width: 200,
     borderRadius: 12,
     padding: 10,
     marginRight: 12,
-  },
-  podcastMedia: {
-    height: 104,
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginBottom: 10,
-  },
-  podcastImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  podcastOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  podcastBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  podcastBadgeText: {
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: 700,
-  },
-  podcastDate: {
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: 500,
-  },
-  podcastTitle: {
-    marginTop: 4,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
   },
   newsList: {
     marginTop: 2,
