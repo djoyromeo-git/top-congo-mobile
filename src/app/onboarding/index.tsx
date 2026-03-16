@@ -174,6 +174,7 @@ export default function OnboardingScreen({
                 data={slides}
                 horizontal
                 pagingEnabled
+                scrollEnabled={false}
                 snapToAlignment="center"
                 decelerationRate="fast"
                 showsHorizontalScrollIndicator={false}
