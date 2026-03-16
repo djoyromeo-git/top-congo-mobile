@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -23,10 +23,142 @@ export default function OnboardingScreen({
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { width: windowWidth } = useWindowDimensions();
+  const [sliderWidth, setSliderWidth] = React.useState(() => {
+    const deviceWidth = Dimensions.get('window')?.width || windowWidth || 0;
+    return Math.max(1, Math.round(deviceWidth));
+  });
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const flatListRef = React.useRef<FlatList>(null);
+  const currentIndexRef = React.useRef(0);
+
+  const slides = React.useMemo(
+    () => [
+      {
+        key: 'news',
+        title: t('onboarding.firstTitle'),
+        subtitle: t('onboarding.firstSubtitle'),
+      },
+      {
+        key: 'live',
+        title: t('onboarding.secondTitle'),
+        subtitle: t('onboarding.secondSubtitle'),
+      },
+      {
+        key: 'premium',
+        title: t('onboarding.thirdTitle'),
+        subtitle: t('onboarding.thirdSubtitle'),
+      },
+    ],
+    [t]
+  );
+
   const handleCreateAccount = onPressCreateAccount ?? (() => router.replace('/auth/register'));
   const handleContinueWithoutAccount =
     onPressContinueWithoutAccount ?? (() => router.replace('/(tabs)'));
   const handleTryPremium = onPressTryPremium ?? (() => router.replace('/premium'));
+
+  const applyIndex = React.useCallback((index: number) => {
+    setActiveIndex(index);
+    currentIndexRef.current = index;
+  }, []);
+
+  const handleMomentumEnd = React.useCallback(
+    (event) => {
+      const { contentOffset, layoutMeasurement } = event.nativeEvent;
+      const pageWidth = layoutMeasurement?.width || sliderWidth;
+      if (!pageWidth) {
+        return;
+      }
+      const index = Math.round(contentOffset.x / pageWidth);
+      applyIndex(index);
+    },
+    [applyIndex, sliderWidth]
+  );
+
+  const handleSliderLayout = React.useCallback(
+    (event) => {
+      const measuredWidth = Math.round(event.nativeEvent.layout.width);
+      if (measuredWidth && measuredWidth !== sliderWidth) {
+        setSliderWidth(measuredWidth);
+      }
+    },
+    [sliderWidth]
+  );
+
+  const handleScroll = React.useCallback(
+    (event) => {
+      const { contentOffset, layoutMeasurement } = event.nativeEvent;
+      const pageWidth = layoutMeasurement?.width || sliderWidth;
+      if (!pageWidth) {
+        return;
+      }
+      const index = Math.round(contentOffset.x / pageWidth);
+      if (index !== activeIndex) {
+        applyIndex(index);
+      }
+    },
+    [activeIndex, applyIndex, sliderWidth]
+  );
+
+  React.useEffect(() => {
+    const nextWidth = Math.round(windowWidth);
+    if (nextWidth && nextWidth !== sliderWidth) {
+      setSliderWidth(nextWidth);
+    }
+  }, [windowWidth, sliderWidth]);
+
+  const renderSlide = React.useCallback(
+    ({ item }: { item: (typeof slides)[number] }) => (
+      <View style={[styles.slide, { width: sliderWidth }]}>
+        <ThemedText style={styles.title}>{item.title}</ThemedText>
+        <ThemedText style={styles.subtitle}>{item.subtitle}</ThemedText>
+      </View>
+    ),
+    [sliderWidth, styles.subtitle, styles.title]
+  );
+
+  const scrollToIndex = React.useCallback(
+    (index: number) => {
+      if (!flatListRef.current || !sliderWidth) {
+        return false;
+      }
+      try {
+        flatListRef.current.scrollToIndex({ index, animated: true });
+        applyIndex(index);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [applyIndex, sliderWidth]
+  );
+
+  const getItemLayout = React.useCallback(
+    (_: unknown, index: number) => ({
+      length: sliderWidth,
+      offset: sliderWidth * index,
+      index,
+    }),
+    [sliderWidth]
+  );
+
+  React.useEffect(() => {
+    if (!sliderWidth || slides.length === 0) {
+      return;
+    }
+    const interval = setInterval(() => {
+      const nextIndex = (currentIndexRef.current + 1) % slides.length;
+      const ok = scrollToIndex(nextIndex);
+      if (!ok) {
+        const offset = nextIndex * sliderWidth;
+        flatListRef.current?.scrollToOffset({ offset, animated: true });
+        applyIndex(nextIndex);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [applyIndex, scrollToIndex, sliderWidth, slides.length]);
 
   return (
     <View style={styles.screen}>
@@ -43,13 +175,39 @@ export default function OnboardingScreen({
             />
 
             <View style={styles.pagination}>
-              <View style={styles.paginationActive} />
-              <View style={styles.paginationDot} />
-              <View style={styles.paginationDot} />
+              {slides.map((slide, index) => (
+                <View
+                  key={slide.key}
+                  style={[styles.paginationDot, index === activeIndex && styles.paginationDotActive]}
+                />
+              ))}
             </View>
 
-            <ThemedText style={styles.title}>{t('onboarding.firstTitle')}</ThemedText>
-            <ThemedText style={styles.subtitle}>{t('onboarding.firstSubtitle')}</ThemedText>
+            <View style={styles.sliderContainer}>
+              <FlatList
+                ref={flatListRef}
+                data={slides}
+                horizontal
+                pagingEnabled
+                snapToAlignment="center"
+                decelerationRate="fast"
+                showsHorizontalScrollIndicator={false}
+                scrollEventThrottle={16}
+                extraData={sliderWidth}
+                onScrollToIndexFailed={({ index }) => {
+                  const offset = index * sliderWidth;
+                  flatListRef.current?.scrollToOffset({ offset, animated: true });
+                }}
+                keyExtractor={(item) => item.key}
+                style={[styles.slider, { width: sliderWidth }]}
+                onMomentumScrollEnd={handleMomentumEnd}
+                onScroll={handleScroll}
+                onLayout={handleSliderLayout}
+                getItemLayout={getItemLayout}
+                snapToInterval={sliderWidth}
+                renderItem={renderSlide}
+              />
+            </View>
           </View>
 
           <View style={styles.actions}>
@@ -121,19 +279,32 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
     marginTop: Spacing.three,
   },
-  paginationActive: {
-    width: 60,
-    height: 6,
-    borderRadius: 999,
-    marginBottom: Spacing.two,
-    backgroundColor: Palette.neutral['100'],
-  },
   paginationDot: {
-    width: 6,
-    height: 6,
+    width: 8,
+    height: 8,
     marginBottom: Spacing.two,
     borderRadius: 5,
-    backgroundColor: Palette.blue['300'],
+    backgroundColor: Palette.blue['400'],
+    opacity: 0.65,
+  },
+  paginationDotActive: {
+    width: 52,
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: Palette.neutral['100'],
+    opacity: 1,
+  },
+  sliderContainer: {
+    marginTop: Spacing.two,
+    marginHorizontal: -20,
+  },
+  slider: {
+    flexGrow: 0,
+    width: '100%',
+  },
+  slide: {
+    paddingHorizontal: 20,
+    alignItems: 'center',
   },
   title: {
     color: Palette.neutral['100'],

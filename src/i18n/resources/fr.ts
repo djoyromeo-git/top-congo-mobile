@@ -158,6 +158,12 @@ const fr = {
     createAccount: 'Créer un compte',
     continueWithoutAccount: 'Poursuivre sans compte',
     tryPremium: 'Essayer Top Congo premium (3.99$/Mois)',
+    secondTitle: 'Suivez nos émissions en direct, où que vous soyez.',
+    secondSubtitle:
+      'Écoutez la radio en live ou regardez nos programmes en vidéo tout en restant connecté aux débats, analyses et grandes interviews qui font l’actualité.',
+    thirdTitle: 'Retrouvez vos émissions quand vous le voulez.',
+    thirdSubtitle:
+      'Podcasts, interviews et débats disponibles à tout moment. Réécoutez les moments forts de TopCongo et ne manquez plus aucune émission.',
   },
   topics: {
     economy: 'Économie',
@@ -216,3 +222,7 @@ const fr = {
 } as const;
 
 export default fr;
+
+
+
+

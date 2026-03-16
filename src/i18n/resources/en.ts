@@ -155,6 +155,12 @@ const en = {
     firstTitle: 'Follow national and international news in real time.',
     firstSubtitle:
       'Reliable and verified information, streamed continuously to connect you with events shaping Congo and the world.',
+    secondTitle: 'Follow our live shows wherever you are.',
+    secondSubtitle:
+      'Listen to live radio or watch our video programs while staying connected to the debates, analysis, and flagship interviews that shape the news.',
+    thirdTitle: 'Catch your shows whenever you want.',
+    thirdSubtitle:
+      'Podcasts, interviews, and debates available anytime. Replay TopCongo highlights and never miss a show again.',
     createAccount: 'Create an account',
     continueWithoutAccount: 'Continue without an account',
     tryPremium: 'Try Top Congo premium ($3.99/month)',
