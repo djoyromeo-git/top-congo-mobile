@@ -311,7 +311,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     position: 'relative',
-    gap: 8,
+    zIndex: -1,
+
+    gap: 12,
     paddingBottom: Spacing.one,
   },
   buttonArcMask: {
@@ -323,7 +325,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
-    zIndex: -1,
   },
   buttonArc: {
     position: 'absolute',
@@ -350,6 +351,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 24,
     fontWeight: 500,
+    marginTop: Spacing.two,
   },
   topRing: {
     position: 'absolute',
