@@ -77,7 +77,7 @@ export default function RegisterScreen() {
     });
 
     if (isRegistered) {
-      router.replace('/(tabs)');
+      router.replace('/auth/otp');
     }
   }, [
     canSubmit,
