@@ -12,6 +12,9 @@ type NewsListItemProps = {
   saved: boolean;
   hasBadge?: boolean;
   showDivider?: boolean;
+  date?: string;
+  badgeLabel?: string;
+  badgeTone?: 'primary' | 'danger';
   onPress?: () => void;
   onPressSave?: () => void;
 };
@@ -22,10 +25,14 @@ export function NewsListItem({
   saved,
   hasBadge = false,
   showDivider = false,
+  date,
+  badgeLabel,
+  badgeTone = 'primary',
   onPress,
   onPressSave,
 }: NewsListItemProps) {
   const theme = useTheme();
+  const badgeColor = badgeTone === 'danger' ? theme.headlineBadgeBackground : theme.primary;
 
   return (
     <View
@@ -50,6 +57,23 @@ export function NewsListItem({
               />
             </View>
           ) : null}
+        </View>
+
+        <View style={styles.metaRow}>
+          {badgeLabel ? (
+            <View
+              style={[
+                styles.badgePill,
+                {
+                  backgroundColor: `${badgeColor}1A`,
+                  borderColor: badgeColor,
+                },
+              ]}>
+              <ThemedText style={[styles.badgePillText, { color: badgeColor }]}>{badgeLabel}</ThemedText>
+            </View>
+          ) : null}
+
+          {date ? <ThemedText style={[styles.date, { color: theme.homeSubtitle }]}>{date}</ThemedText> : null}
         </View>
 
         <ThemedText numberOfLines={3} style={[styles.title, { color: theme.homeTitle }]}>
@@ -103,6 +127,30 @@ const styles = StyleSheet.create({
   },
   badgeCheck: {
     position: 'absolute',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  date: {
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: 500,
+  },
+  badgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  badgePillText: {
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: 600,
   },
   title: {
     flex: 1,

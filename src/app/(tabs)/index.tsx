@@ -1,4 +1,5 @@
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -9,7 +10,7 @@ import { useHomeLoading } from '@/components/ui/home-loading-context';
 import { NewsListItem } from '@/components/ui/news-list-item';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
-import { FEATURED_NEWS, NEWS_ITEMS, QUICK_TOPICS } from '@/constants/home-feed';
+import { FEATURED_NEWS, HOME_TOPICS, NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
 import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -46,6 +47,15 @@ function HomeContent() {
       return acc;
     }, {})
   );
+  const [selectedTopic, setSelectedTopic] = React.useState<string>('all');
+
+  const filteredNews = React.useMemo(
+    () =>
+      selectedTopic === 'all'
+        ? NEWS_ITEMS
+        : NEWS_ITEMS.filter((item) => item.topicKey === selectedTopic),
+    [selectedTopic]
+  );
 
   const toggleFeaturedSaved = React.useCallback((key: string) => {
     setFeaturedSaved((current) => ({ ...current, [key]: !current[key] }));
@@ -73,22 +83,31 @@ function HomeContent() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicsRow}>
-        {QUICK_TOPICS.map((topic) => (
-          <Pressable
-            key={topic.key}
-            style={({ pressed }) => [
-              styles.topicChip,
-              {
-                borderColor: theme.homeChipBorder,
-                backgroundColor: theme.homeChipBackground,
-              },
-              pressed && styles.pressed,
-            ]}>
-            <ThemedText style={[styles.topicText, { color: theme.homeChipText }]}>
-              {topic.emoji} {t(`topics.${topic.key}`)}
-            </ThemedText>
-          </Pressable>
-        ))}
+        {HOME_TOPICS.map((topic) => {
+          const isSelected = topic.key === selectedTopic;
+
+          return (
+            <Pressable
+              key={topic.key}
+              onPress={() => setSelectedTopic(topic.key)}
+              style={({ pressed }) => [
+                styles.topicChip,
+                {
+                  borderColor: isSelected ? theme.primary : theme.homeChipBorder,
+                  backgroundColor: isSelected ? `${theme.primary}14` : theme.homeChipBackground,
+                },
+                pressed && styles.pressed,
+              ]}>
+              <ThemedText
+                style={[
+                  styles.topicText,
+                  { color: isSelected ? theme.primary : theme.homeChipText },
+                ]}>
+                {topic.key === 'all' ? t('homeFeed.topicAll') : t(`topics.${topic.key}`)}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
       </ScrollView>
 
       <SectionHeader title={t('homeFeed.headlineSection')} actionLabel={t('common.learnMore')} />
@@ -118,17 +137,54 @@ function HomeContent() {
         })}
       </ScrollView>
 
-      <SectionHeader title={t('homeFeed.newsListSection')} actionLabel={t('common.learnMore')} />
+      <SectionHeader title={t('homeFeed.showsSection')} actionLabel={t('homeFeed.seeMore')} />
+
+      <ScrollView
+        horizontal
+        style={styles.showsScroll}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.cardsRow}>
+        {SHOWS.map((item) => (
+          <ShowCard
+            key={item.key}
+            title={t(`homeFeed.${item.titleKey}`)}
+            imageSource={item.imageSource}
+          />
+        ))}
+      </ScrollView>
+
+      <SectionHeader title={t('homeFeed.podcastSection')} actionLabel={t('homeFeed.seeMore')} />
+
+      <ScrollView
+        horizontal
+        style={styles.podcastsScroll}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.cardsRow}>
+        {PODCASTS.map((item) => (
+          <PodcastCard
+            key={item.key}
+            badge={t(`homeFeed.${item.badgeKey}`)}
+            date={t(`homeFeed.${item.dateKey}`)}
+            title={t(`homeFeed.${item.titleKey}`)}
+            imageSource={item.imageSource}
+          />
+        ))}
+      </ScrollView>
+
+      <SectionHeader title={t('homeFeed.newsFeedSection')} actionLabel={t('homeFeed.seeMore')} />
 
       <View style={[styles.newsList, { borderTopColor: theme.homeChipBorder }]}>
-        {NEWS_ITEMS.map((item, index) => (
+        {filteredNews.map((item, index) => (
           <NewsListItem
             key={item.key}
             title={t(`homeFeed.${item.key}`)}
+            date={t(`homeFeed.${item.dateKey}`)}
             imageSource={item.imageSource}
             saved={savedNews[item.key]}
             hasBadge={item.hasBadge}
-            showDivider={index < NEWS_ITEMS.length - 1}
+            showDivider={index < filteredNews.length - 1}
+            badgeLabel={item.hasBadge ? t('homeFeed.liveLabel') : undefined}
+            badgeTone={item.hasBadge ? 'danger' : 'primary'}
             onPressSave={() => toggleNewsSaved(item.key)}
           />
         ))}
@@ -176,6 +232,40 @@ function HomeSkeleton() {
         contentContainerStyle={styles.cardsRow}>
         <HeadlineCardSkeleton withActiveAction={false} showLiveDot />
         <HeadlineCardSkeleton withActiveAction showLiveDot={false} />
+      </ScrollView>
+
+      <View style={styles.sectionHeader}>
+        <SkeletonBlock style={styles.sectionTitleSkeleton} />
+        <SkeletonBlock style={styles.sectionLinkSkeleton} />
+      </View>
+
+      <ScrollView
+        horizontal
+        style={styles.showsScroll}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.cardsRow}>
+        {[0, 1].map((index) => (
+          <SkeletonBlock key={`show-skeleton-${index}`} style={styles.showSkeletonCard} />
+        ))}
+      </ScrollView>
+
+      <View style={styles.sectionHeader}>
+        <SkeletonBlock style={styles.sectionTitleSkeleton} />
+        <SkeletonBlock style={styles.sectionLinkSkeleton} />
+      </View>
+
+      <ScrollView
+        horizontal
+        style={styles.podcastsScroll}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.cardsRow}>
+        {[0, 1].map((index) => (
+          <View key={`podcast-skeleton-${index}`} style={[styles.podcastSkeletonCard, { gap: 10 }]}>
+            <SkeletonBlock style={{ height: 104, borderRadius: 10 }} />
+            <SkeletonBlock style={{ width: '62%', height: 10, borderRadius: 6 }} />
+            <SkeletonBlock style={{ width: '94%', height: 12, borderRadius: 6 }} />
+          </View>
+        ))}
       </ScrollView>
 
       <View style={styles.sectionHeader}>
@@ -292,6 +382,56 @@ function NewsRowSkeleton({
   );
 }
 
+function ShowCard({ title, imageSource }: { title: string; imageSource?: number }) {
+  const theme = useTheme();
+
+  return (
+    <Pressable style={({ pressed }) => [styles.showCard, pressed && styles.pressed]}>
+      <Image source={imageSource} style={styles.showImage} contentFit="cover" transition={0} />
+      <View style={[styles.showOverlay, { backgroundColor: theme.headlineMediaOverlay }]} />
+      <ThemedText numberOfLines={2} style={[styles.showTitle, { color: theme.headlineBadgeText }]}>
+        {title}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+function PodcastCard({
+  badge,
+  date,
+  title,
+  imageSource,
+}: {
+  badge: string;
+  date: string;
+  title: string;
+  imageSource?: number;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.podcastCard,
+        { backgroundColor: theme.headlineCardBackground },
+        pressed && styles.pressed,
+      ]}>
+      <View style={styles.podcastMedia}>
+        <Image source={imageSource} style={styles.podcastImage} contentFit="cover" transition={0} />
+        <View style={[styles.podcastOverlay, { backgroundColor: theme.headlineMediaOverlay }]} />
+        <View style={[styles.podcastBadge, { backgroundColor: theme.headlineBadgeBackground }]}>
+          <ThemedText style={[styles.podcastBadgeText, { color: theme.headlineBadgeText }]}>{badge}</ThemedText>
+        </View>
+      </View>
+
+      <ThemedText style={[styles.podcastDate, { color: theme.headlineDate }]}>{date}</ThemedText>
+      <ThemedText numberOfLines={2} style={[styles.podcastTitle, { color: theme.homeTitle }]}>
+        {title}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
 function SectionHeader({ title, actionLabel }: { title: string; actionLabel: string }) {
   const theme = useTheme();
 
@@ -339,17 +479,18 @@ const styles = StyleSheet.create({
   topicsRow: {
     gap: 8,
     paddingVertical: 2,
+    marginTop: 4,
   },
   topicChip: {
-    minHeight: 36,
-    borderRadius: 18,
+    minHeight: 38,
+    borderRadius: 20,
     borderWidth: 1,
     justifyContent: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   topicText: {
-    fontSize: 17 / 1.2,
-    lineHeight: 22 / 1.2,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: 500,
   },
   topicLineSkeleton: {
@@ -395,6 +536,12 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   headlinesScroll: {
+    marginHorizontal: -16,
+  },
+  showsScroll: {
+    marginHorizontal: -16,
+  },
+  podcastsScroll: {
     marginHorizontal: -16,
   },
   headlineSkeletonCard: {
@@ -477,9 +624,83 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 999,
   },
+  showCard: {
+    width: 200,
+    height: 120,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 12,
+    justifyContent: 'flex-end',
+    padding: 12,
+  },
+  showImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  showOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  showTitle: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: 800,
+  },
+  podcastCard: {
+    width: 200,
+    borderRadius: 12,
+    padding: 10,
+    marginRight: 12,
+  },
+  podcastMedia: {
+    height: 104,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  podcastImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  podcastOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  podcastBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  podcastBadgeText: {
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: 700,
+  },
+  podcastDate: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: 500,
+  },
+  podcastTitle: {
+    marginTop: 4,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: 700,
+  },
   newsList: {
     marginTop: 2,
     borderTopWidth: 1,
+  },
+  showSkeletonCard: {
+    width: 200,
+    height: 120,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  podcastSkeletonCard: {
+    width: 200,
+    borderRadius: 12,
+    padding: 10,
+    marginRight: 12,
   },
   newsSkeletonTextBlock: {
     flex: 1,

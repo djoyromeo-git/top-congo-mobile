@@ -1,7 +1,9 @@
-export const QUICK_TOPICS = [
-  { key: 'economy', emoji: '\u{1F30D}' },
-  { key: 'technology', emoji: '\u{1F4BB}' },
-  { key: 'security', emoji: '\u{1FA96}' },
+export const HOME_TOPICS = [
+  { key: 'all' },
+  { key: 'politics' },
+  { key: 'economy' },
+  { key: 'security' },
+  { key: 'technology' },
 ] as const;
 
 export const FEATURED_NEWS = [
@@ -28,10 +30,40 @@ export const FEATURED_NEWS = [
 ] as const;
 
 export const NEWS_ITEMS = [
-  { key: 'listOneTitle', imageSource: require('@/assets/images/home/concert.png'), saved: true, hasBadge: true, topicKey: 'economy' },
-  { key: 'listTwoTitle', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: true, topicKey: 'security' },
-  { key: 'listThreeTitle', imageSource: require('@/assets/images/home/concert.png'), saved: false, hasBadge: false, topicKey: 'politics' },
-  { key: 'listFourTitle', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: false, topicKey: 'technology' },
-  { key: 'listFiveTitle', imageSource: require('@/assets/images/home/concert.png'), saved: true, hasBadge: false, topicKey: 'security' },
-  { key: 'listSixTitle', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: true, topicKey: 'economy' },
+  { key: 'listOneTitle', dateKey: 'listDate', imageSource: require('@/assets/images/home/concert.png'), saved: true, hasBadge: true, topicKey: 'economy' },
+  { key: 'listTwoTitle', dateKey: 'listDate', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: true, topicKey: 'security' },
+  { key: 'listThreeTitle', dateKey: 'listDate', imageSource: require('@/assets/images/home/concert.png'), saved: false, hasBadge: false, topicKey: 'politics' },
+  { key: 'listFourTitle', dateKey: 'listDate', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: false, topicKey: 'technology' },
+  { key: 'listFiveTitle', dateKey: 'listDate', imageSource: require('@/assets/images/home/concert.png'), saved: true, hasBadge: false, topicKey: 'security' },
+  { key: 'listSixTitle', dateKey: 'listDate', imageSource: require('@/assets/images/home/emission.png'), saved: false, hasBadge: true, topicKey: 'economy' },
+] as const;
+
+export const SHOWS = [
+  { key: 'showTopPresse', titleKey: 'showTopPresse', imageSource: require('@/assets/images/home/emission.png') },
+  { key: 'showQueDitLaLoi', titleKey: 'showQueDitLaLoi', imageSource: require('@/assets/images/home/concert.png') },
+  { key: 'showMagazine', titleKey: 'showMagazine', imageSource: require('@/assets/images/home/emission.png') },
+] as const;
+
+export const PODCASTS = [
+  {
+    key: 'podcastOne',
+    badgeKey: 'podcastBadge',
+    dateKey: 'podcastDate',
+    titleKey: 'podcastTitle',
+    imageSource: require('@/assets/images/home/emission.png'),
+  },
+  {
+    key: 'podcastTwo',
+    badgeKey: 'podcastBadge',
+    dateKey: 'podcastDate',
+    titleKey: 'podcastTitleTwo',
+    imageSource: require('@/assets/images/home/concert.png'),
+  },
+  {
+    key: 'podcastThree',
+    badgeKey: 'podcastBadge',
+    dateKey: 'podcastDate',
+    titleKey: 'podcastTitleThree',
+    imageSource: require('@/assets/images/home/emission.png'),
+  },
 ] as const;
