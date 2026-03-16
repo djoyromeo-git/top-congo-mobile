@@ -42,34 +42,32 @@ export function NewsListItem({
         <View style={styles.media}>
           <Image source={imageSource} style={styles.image} contentFit="cover" transition={0} />
           {hasBadge ? (
-            <View style={styles.badge}>
-              <FontAwesome5 name="certificate" size={18} color={theme.headlineAccent} />
-              <Feather
-                name="check"
-                size={9}
-                color={theme.headlineAccentText}
-                style={styles.badgeCheck}
-              />
+            <View style={[styles.playBadge, { backgroundColor: theme.headlineAccent }]}>
+              <Feather name="play" size={11} color={theme.headlineAccentText} />
             </View>
           ) : null}
         </View>
 
-        {date ? <ThemedText style={[styles.date, { color: theme.homeSubtitle }]}>{date}</ThemedText> : null}
+        <View style={styles.textBlock}>
+          <View style={styles.metaRow}>
+            {date ? <ThemedText style={[styles.date, { color: theme.homeSubtitle }]}>{date}</ThemedText> : <View />}
 
-        <ThemedText numberOfLines={3} style={[styles.title, { color: theme.homeTitle }]}>
-          {title}
-        </ThemedText>
-      </Pressable>
+            <Pressable
+              hitSlop={8}
+              onPress={onPressSave}
+              style={({ pressed }) => [styles.save, pressed && styles.pressed]}>
+              {saved ? (
+                <FontAwesome5 name="bookmark" size={18} color={theme.primary} solid />
+              ) : (
+                <Feather name="bookmark" size={20} color={theme.homeSectionLink} />
+              )}
+            </Pressable>
+          </View>
 
-      <Pressable
-        hitSlop={8}
-        onPress={onPressSave}
-        style={({ pressed }) => [styles.save, pressed && styles.pressed]}>
-        {saved ? (
-          <FontAwesome5 name="bookmark" size={18} color={theme.primary} solid />
-        ) : (
-          <Feather name="bookmark" size={20} color={theme.homeSectionLink} />
-        )}
+          <ThemedText numberOfLines={3} style={[styles.title, { color: theme.homeTitle }]}>
+            {title}
+          </ThemedText>
+        </View>
       </Pressable>
     </View>
   );
@@ -96,23 +94,24 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 6,
   },
-  badge: {
+  playBadge: {
     position: 'absolute',
-    right: 8,
+    left: 8,
     bottom: 8,
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  badgeCheck: {
-    position: 'absolute',
+    borderRadius: 10,
   },
   date: {
     fontSize: 11,
     lineHeight: 16,
     fontWeight: 500,
-    marginBottom: 4,
+  },
+  textBlock: {
+    flex: 1,
+    gap: 6,
   },
   title: {
     flex: 1,
@@ -120,8 +119,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: 700,
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   save: {
-    width: 24,
+    width: 28,
     alignItems: 'flex-end',
   },
   pressed: {
