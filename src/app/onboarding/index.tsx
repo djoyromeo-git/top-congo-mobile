@@ -86,21 +86,6 @@ export default function OnboardingScreen({
     [sliderWidth]
   );
 
-  const handleScroll = React.useCallback(
-    (event) => {
-      const { contentOffset, layoutMeasurement } = event.nativeEvent;
-      const pageWidth = layoutMeasurement?.width || sliderWidth;
-      if (!pageWidth) {
-        return;
-      }
-      const index = Math.round(contentOffset.x / pageWidth);
-      if (index !== activeIndex) {
-        applyIndex(index);
-      }
-    },
-    [activeIndex, applyIndex, sliderWidth]
-  );
-
   React.useEffect(() => {
     const nextWidth = Math.round(windowWidth);
     if (nextWidth && nextWidth !== sliderWidth) {
@@ -201,7 +186,6 @@ export default function OnboardingScreen({
                 keyExtractor={(item) => item.key}
                 style={[styles.slider, { width: sliderWidth }]}
                 onMomentumScrollEnd={handleMomentumEnd}
-                onScroll={handleScroll}
                 onLayout={handleSliderLayout}
                 getItemLayout={getItemLayout}
                 snapToInterval={sliderWidth}
