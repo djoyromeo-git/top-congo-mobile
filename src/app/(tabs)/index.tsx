@@ -183,8 +183,6 @@ function HomeContent() {
             saved={savedNews[item.key]}
             hasBadge={item.hasBadge}
             showDivider={index < filteredNews.length - 1}
-            badgeLabel={item.hasBadge ? t('homeFeed.liveLabel') : undefined}
-            badgeTone={item.hasBadge ? 'danger' : 'primary'}
             onPressSave={() => toggleNewsSaved(item.key)}
           />
         ))}
