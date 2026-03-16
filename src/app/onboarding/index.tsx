@@ -339,6 +339,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
+    zIndex: -1,
   },
   buttonArc: {
     position: 'absolute',
@@ -350,6 +351,7 @@ const styles = StyleSheet.create({
     opacity: 0.38,
     bottom: -352,
     left: -280,
+    zIndex: -1,
   },
   secondaryButton: {
     borderColor: Palette.neutral['100'],
