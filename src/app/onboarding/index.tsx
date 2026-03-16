@@ -351,7 +351,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 24,
     fontWeight: 500,
-    marginTop: Spacing.two,
   },
   topRing: {
     position: 'absolute',
