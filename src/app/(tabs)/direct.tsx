@@ -1,10 +1,20 @@
-import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ArrowsInSimple,
+  ArrowsOutSimple,
+  CaretDown,
+  DotsThreeVertical,
+  Pause,
+  Play,
+  PlayCircle,
+  SpeakerHigh,
+  SpeakerX,
+} from 'phosphor-react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
@@ -123,7 +133,7 @@ export default function DirectScreen() {
     void toggleLiveAudio(directMetadata);
   }, [directMetadata]);
 
-  const playbackIcon: keyof typeof Feather.glyphMap = isPlaying && !isBuffering ? 'pause' : 'play';
+  const playbackIcon: RoundIcon = isPlaying && !isBuffering ? 'pause' : 'play';
 
   return (
     <TabShell>
@@ -132,17 +142,17 @@ export default function DirectScreen() {
           <StatusBar style="light" backgroundColor={Palette.red['800']} />
 
           <View style={styles.topSection}>
-            <AppTopBar
-              leftAction={{
-                icon: 'chevron-down',
-                onPress: handleBack,
-                accessibilityLabel: t('direct.back'),
-              }}
-              rightAction={{
-                icon: 'more-vertical',
-                onPress: () => router.push('/drawer'),
-                accessibilityLabel: t('direct.more'),
-              }}
+          <AppTopBar
+            leftAction={{
+              icon: <CaretDown size={22} weight="bold" color={Palette.neutral['100']} />,
+              onPress: handleBack,
+              accessibilityLabel: t('direct.back'),
+            }}
+            rightAction={{
+              icon: <DotsThreeVertical size={22} weight="bold" color={Palette.neutral['100']} />,
+              onPress: () => router.push('/drawer'),
+              accessibilityLabel: t('direct.more'),
+            }}
               style={styles.topBar}
               centerContent={<ThemedText style={styles.headerTitle}>{t('direct.title')}</ThemedText>}
             />
@@ -185,7 +195,7 @@ export default function DirectScreen() {
                     />
 
                     <RoundIconButton
-                      icon={isMuted ? 'volume-x' : 'volume-2'}
+                      icon={isMuted ? 'volume-x' : 'volume-high'}
                       accessibilityLabel={isMuted ? t('direct.unmute') : t('direct.mute')}
                       onPress={() => setIsMuted(current => !current)}
                     />
@@ -200,7 +210,7 @@ export default function DirectScreen() {
                     <View style={styles.controlsSpacer} />
 
                     <RoundIconButton
-                      icon={isExpanded ? 'minimize-2' : 'maximize-2'}
+                      icon={isExpanded ? 'collapse' : 'expand'}
                       accessibilityLabel={isExpanded ? t('direct.collapse') : t('direct.expand')}
                       onPress={() => setIsExpanded(current => !current)}
                     />
@@ -228,7 +238,7 @@ export default function DirectScreen() {
                     <View style={styles.scheduleRailColumn}>
                       {item.active ? (
                         <View style={styles.scheduleActiveMarker}>
-                          <FontAwesome5 name="play" size={9} color={Palette.blue['800']} solid />
+                          <Play size={12} weight="fill" color={Palette.blue['800']} />
                         </View>
                       ) : null}
                     </View>
@@ -276,13 +286,15 @@ function DirectModeButton({
   );
 }
 
+type RoundIcon = 'play' | 'pause' | 'volume-high' | 'volume-x' | 'expand' | 'collapse';
+
 function RoundIconButton({
   icon,
   accessibilityLabel,
   onPress,
   disabled = false,
 }: {
-  icon: keyof typeof Feather.glyphMap;
+  icon: RoundIcon;
   accessibilityLabel: string;
   onPress: () => void;
   disabled?: boolean;
@@ -298,11 +310,14 @@ function RoundIconButton({
         disabled && styles.iconButtonDisabled,
         pressed && !disabled && styles.pressed,
       ]}>
-      {icon === 'play' ? (
-        <FontAwesome5 name="play" size={16} color={Palette.neutral['100']} solid />
-      ) : (
-        <Feather name={icon} size={20} color={Palette.neutral['100']} />
-      )}
+      {{
+        play: <Play size={20} weight="fill" color={Palette.neutral['100']} />,
+        pause: <Pause size={20} weight="fill" color={Palette.neutral['100']} />,
+        'volume-high': <SpeakerHigh size={20} weight="bold" color={Palette.neutral['100']} />,
+        'volume-x': <SpeakerX size={20} weight="bold" color={Palette.neutral['100']} />,
+        expand: <ArrowsOutSimple size={20} weight="bold" color={Palette.neutral['100']} />,
+        collapse: <ArrowsInSimple size={20} weight="bold" color={Palette.neutral['100']} />,
+      }[icon]}
     </Pressable>
   );
 }

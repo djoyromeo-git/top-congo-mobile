@@ -1,6 +1,6 @@
-import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { ArrowLeft } from 'phosphor-react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 
@@ -27,7 +27,7 @@ export function BackCircleButton({ size = 42, style, ...props }: BackCircleButto
         style,
       ]}
       {...props}>
-      <Feather name="arrow-left" size={28} color={theme.primary} />
+      <ArrowLeft size={28} weight="bold" color={theme.primary} />
     </Pressable>
   );
 }

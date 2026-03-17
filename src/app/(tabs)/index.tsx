@@ -1,8 +1,8 @@
-import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { BookmarkSimple, SealCheck } from 'phosphor-react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { HeadlineCard } from '@/components/ui/headline-card';
@@ -310,15 +310,14 @@ function HeadlineCardSkeleton({
   const theme = useTheme();
 
   return (
-    <View style={[styles.headlineSkeletonCard, { backgroundColor: theme.headlineCardBackground }]}>
+      <View style={[styles.headlineSkeletonCard, { backgroundColor: theme.headlineCardBackground }]}>
       <View style={[styles.headlineSkeletonMedia, { backgroundColor: theme.homeChipBorder }]}>
         <View style={[styles.headlineSkeletonBadge, { backgroundColor: theme.headlineBadgeBackground }]}>
           {showLiveDot ? <View style={[styles.headlineSkeletonBadgeDot, { backgroundColor: theme.headlineBadgeText }]} /> : null}
           <SkeletonBlock style={styles.headlineSkeletonBadgeText} color="rgba(255,255,255,0.9)" />
         </View>
         <View style={styles.headlineSkeletonCert}>
-          <FontAwesome5 name="certificate" size={17} color={theme.headlineAccent} />
-          <Feather name="check" size={9} color={theme.headlineAccentText} style={styles.newsBadgeCheck} />
+          <SealCheck size={20} weight="fill" color={theme.headlineAccent} />
         </View>
       </View>
 
@@ -336,9 +335,9 @@ function HeadlineCardSkeleton({
           },
         ]}>
         {withActiveAction ? (
-          <FontAwesome5 name="bookmark" size={14} color={theme.primary} solid />
+          <BookmarkSimple size={16} weight="fill" color={theme.primary} />
         ) : (
-          <Feather name="bookmark" size={15} color={theme.homeChipBorder} />
+          <BookmarkSimple size={16} weight="regular" color={theme.homeChipBorder} />
         )}
         <SkeletonBlock style={styles.headlineSkeletonActionText} />
       </View>
@@ -371,8 +370,7 @@ function NewsRowSkeleton({
           <SkeletonBlock style={styles.newsImage} />
           {showBadge ? (
             <View style={styles.newsBadge}>
-              <FontAwesome5 name="certificate" size={18} color={theme.headlineAccent} />
-              <Feather name="check" size={9} color={theme.headlineAccentText} style={styles.newsBadgeCheck} />
+              <SealCheck size={18} weight="fill" color={theme.headlineAccent} />
             </View>
           ) : null}
         </View>
@@ -386,9 +384,9 @@ function NewsRowSkeleton({
 
       <View style={styles.newsSave}>
         {saved ? (
-          <FontAwesome5 name="bookmark" size={18} color={theme.primary} solid />
+          <BookmarkSimple size={18} weight="fill" color={theme.primary} />
         ) : (
-          <Feather name="bookmark" size={20} color={theme.homeChipBorder} />
+          <BookmarkSimple size={20} weight="regular" color={theme.homeChipBorder} />
         )}
       </View>
     </View>

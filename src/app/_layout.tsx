@@ -1,5 +1,4 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Entypo, Feather, FontAwesome5, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
 import Constants from 'expo-constants';
 import { useFonts } from 'expo-font';
@@ -60,12 +59,6 @@ function RootLayout() {
     'Google Sans': require('../../assets/fonts/GoogleSans-Regular.ttf'),
     'Google Sans Medium': require('../../assets/fonts/GoogleSans-Medium.ttf'),
     'Google Sans Bold': require('../../assets/fonts/GoogleSans-Bold.ttf'),
-    ...Feather.font,
-    ...Entypo.font,
-    ...Ionicons.font,
-    ...MaterialCommunityIcons.font,
-    ...MaterialIcons.font,
-    ...FontAwesome5.font,
   });
 
   React.useEffect(() => {

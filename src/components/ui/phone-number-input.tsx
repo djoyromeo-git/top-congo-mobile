@@ -1,4 +1,3 @@
-import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StatusBar, StyleSheet, TextInput, View } from 'react-native';
@@ -13,6 +12,7 @@ import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
+import { CaretDown } from 'phosphor-react-native';
 
 export const DEFAULT_PHONE_COUNTRY_CODE: CountryCode = 'CD';
 export const DEFAULT_PHONE_CALLING_CODE = '+243';
@@ -91,7 +91,7 @@ export function PhoneNumberInput({
                 ) : (
                   <ThemedText style={styles.flag}>{countryCodeToEmoji(countryCode)}</ThemedText>
                 )}
-                <Feather name="chevron-down" size={18} color={theme.text} />
+                <CaretDown size={18} weight="bold" color={theme.text} />
               </View>
             </Pressable>
           )}

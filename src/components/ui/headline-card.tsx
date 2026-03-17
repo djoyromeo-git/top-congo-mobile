@@ -1,7 +1,7 @@
-import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { BookmarkSimple, SealCheck } from 'phosphor-react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 
@@ -52,8 +52,7 @@ export function HeadlineCard({
           <ThemedText style={[styles.badgeText, { color: theme.headlineBadgeText }]}>{badge}</ThemedText>
         </View>
         <View style={styles.cornerMark}>
-          <FontAwesome5 name="certificate" size={17} color={theme.headlineAccent} />
-          <Feather name="check" size={9} color={theme.headlineAccentText} style={styles.cornerMarkCheck} />
+          <SealCheck size={20} weight="fill" color={theme.headlineAccent} />
         </View>
       </View>
 
@@ -74,9 +73,9 @@ export function HeadlineCard({
             pressed && styles.pressed,
           ]}>
           {actionActive ? (
-            <FontAwesome5 name="bookmark" size={14} color={theme.primary} solid />
+            <BookmarkSimple size={16} weight="fill" color={theme.primary} />
           ) : (
-            <Feather name="bookmark" size={15} color={theme.primary} />
+            <BookmarkSimple size={16} weight="regular" color={theme.primary} />
           )}
           <ThemedText numberOfLines={1} style={[styles.actionLabel, { color: theme.primary }]}>
             {actionLabel}

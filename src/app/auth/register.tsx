@@ -1,8 +1,8 @@
-import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { EnvelopeSimple, LockSimple } from 'phosphor-react-native';
 import type { Country, CountryCode } from 'react-native-country-picker-modal';
 
 import { ThemedText } from '@/components/themed-text';
@@ -132,21 +132,21 @@ export default function RegisterScreen() {
         />
 
         {identifierMode === 'email' ? (
-          <FormInput
-            label={t('auth.emailAddress')}
-            placeholder={t('auth.emailPlaceholder')}
-            value={email}
-            onChangeText={(value) => {
-              clearError();
-              setEmail(value);
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            textContentType="emailAddress"
-            leftAccessory={<Feather name="mail" size={17} color={Palette.neutral['500']} />}
-            errorText={submitted && !isIdentifierValid ? t('auth.errorEmailRequired') : undefined}
-          />
+        <FormInput
+          label={t('auth.emailAddress')}
+          placeholder={t('auth.emailPlaceholder')}
+          value={email}
+          onChangeText={(value) => {
+            clearError();
+            setEmail(value);
+          }}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          textContentType="emailAddress"
+          leftAccessory={<EnvelopeSimple size={18} weight="bold" color={Palette.neutral['500']} />}
+          errorText={submitted && !isIdentifierValid ? t('auth.errorEmailRequired') : undefined}
+        />
         ) : (
           <PhoneNumberInput
             label={t('auth.phoneNumber')}
@@ -173,7 +173,7 @@ export default function RegisterScreen() {
           secureTextEntry
           showPasswordToggle
           autoComplete="password-new"
-          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['500']} />}
+          leftAccessory={<LockSimple size={18} weight="bold" color={Palette.neutral['500']} />}
           errorText={submitted && !isPasswordValid ? t('auth.errorPasswordRequired') : undefined}
         />
 
@@ -188,7 +188,7 @@ export default function RegisterScreen() {
           secureTextEntry
           showPasswordToggle
           autoComplete="password-new"
-          leftAccessory={<Feather name="lock" size={17} color={Palette.neutral['500']} />}
+          leftAccessory={<LockSimple size={18} weight="bold" color={Palette.neutral['500']} />}
           errorText={
             submitted && !isConfirmPasswordValid
               ? t('auth.errorConfirmPasswordRequired')

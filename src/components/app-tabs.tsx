@@ -1,9 +1,9 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { TabList, TabListProps, Tabs, TabSlot, TabTrigger, TabTriggerSlotProps } from 'expo-router/ui';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Broadcast, House, MicrophoneStage, PlayCircle, SealCheck } from 'phosphor-react-native';
 
 import { ThemedText } from './themed-text';
 
@@ -77,7 +77,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.headline')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <Ionicons name="home" size={22} color={color} />}
+              icon={(color) => <House size={22} weight="fill" color={color} />}
             />
           </TabTrigger>
 
@@ -86,7 +86,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.podcast')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <MaterialIcons name="podcasts" size={22} color={color} />}
+              icon={(color) => <MicrophoneStage size={22} weight="bold" color={color} />}
             />
           </TabTrigger>
 
@@ -95,7 +95,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.emissions')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <MaterialIcons name="ondemand-video" size={22} color={color} />}
+              icon={(color) => <PlayCircle size={22} weight="duotone" color={color} />}
             />
           </TabTrigger>
 
@@ -104,7 +104,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.premium')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <MaterialIcons name="verified" size={22} color={color} />}
+              icon={(color) => <SealCheck size={22} weight="fill" color={color} />}
             />
           </TabTrigger>
 
@@ -113,7 +113,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.direct')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <MaterialIcons name="videocam" size={22} color={color} />}
+              icon={(color) => <Broadcast size={22} weight="fill" color={color} />}
             />
           </TabTrigger>
         </CustomTabList>

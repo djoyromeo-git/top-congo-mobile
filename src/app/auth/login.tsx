@@ -1,8 +1,8 @@
-import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { EnvelopeSimple, LockSimple } from 'phosphor-react-native';
 import type { Country, CountryCode } from 'react-native-country-picker-modal';
 
 import { ThemedText } from '@/components/themed-text';
@@ -117,7 +117,7 @@ export default function LoginScreen() {
             autoComplete="email"
             textContentType="emailAddress"
             returnKeyType="next"
-            leftAccessory={<Feather name="mail" size={17} color={theme.inputPlaceholder} />}
+            leftAccessory={<EnvelopeSimple size={18} weight="bold" color={theme.inputPlaceholder} />}
             errorText={shouldShowIdentifierError ? t('auth.errorEmailRequired') : undefined}
           />
         ) : (
@@ -139,19 +139,19 @@ export default function LoginScreen() {
           label={t('auth.password')}
           placeholder={t('auth.passwordPlaceholder')}
           value={password}
-          onChangeText={(value) => {
-            clearError();
-            setPassword(value);
-          }}
-          secureTextEntry
-          showPasswordToggle
-          autoComplete="password"
-          textContentType="password"
-          returnKeyType="done"
-          onSubmitEditing={onSubmitLogin}
-          leftAccessory={<Feather name="lock" size={17} color={theme.inputPlaceholder} />}
-          errorText={shouldShowPasswordError ? t('auth.errorPasswordRequired') : undefined}
-        />
+            onChangeText={(value) => {
+              clearError();
+              setPassword(value);
+            }}
+            secureTextEntry
+            showPasswordToggle
+            autoComplete="password"
+            textContentType="password"
+            returnKeyType="done"
+            onSubmitEditing={onSubmitLogin}
+            leftAccessory={<LockSimple size={18} weight="bold" color={theme.inputPlaceholder} />}
+            errorText={shouldShowPasswordError ? t('auth.errorPasswordRequired') : undefined}
+          />
       </View>
 
       <View style={styles.actionsSection}>

@@ -1,6 +1,6 @@
-import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
+import { Check } from 'phosphor-react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -32,7 +32,7 @@ export function TopicChip({ label, emoji, selected = false, ...props }: TopicChi
       <ThemedText style={styles.label}>{label}</ThemedText>
       {selected && (
         <View style={[styles.checkBadge, { backgroundColor: theme.secondary }]}>
-          <Feather name="check" size={14} color={theme.onPrimary} />
+          <Check size={16} weight="bold" color={theme.onPrimary} />
         </View>
       )}
     </Pressable>

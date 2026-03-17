@@ -1,4 +1,4 @@
-import { Entypo, Feather } from '@expo/vector-icons';
+import { CaretDown, DotsThreeVertical, Pause, Play, RotateCcw, RotateCw } from 'phosphor-react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -45,13 +45,13 @@ export default function LivePlayerScreen() {
       <View style={styles.content}>
         <View style={[styles.header, { paddingTop: insets.top + Spacing.two }]}>
           <Pressable onPress={() => router.back()} style={styles.headerAction}>
-            <Feather name="chevron-down" size={24} color={theme.onPrimary} />
+            <CaretDown size={24} weight="bold" color={theme.onPrimary} />
           </Pressable>
           <View style={styles.headerTitleWrap}>
             <ThemedText style={[styles.headerTitle, { color: theme.onPrimary }]}>{t('auth.liveBadge')}</ThemedText>
           </View>
           <Pressable style={styles.headerAction}>
-            <Feather name="more-vertical" size={20} color={theme.onPrimary} />
+            <DotsThreeVertical size={20} weight="bold" color={theme.onPrimary} />
           </Pressable>
         </View>
 
@@ -81,7 +81,7 @@ export default function LivePlayerScreen() {
 
         <View style={styles.controlsRow}>
           <Pressable style={styles.secondaryControl}>
-            <Feather name="rotate-ccw" size={24} color={theme.onPrimary} />
+            <RotateCcw size={24} weight="bold" color={theme.onPrimary} />
           </Pressable>
 
           <Pressable
@@ -96,17 +96,19 @@ export default function LivePlayerScreen() {
             ]}>
             {isBuffering ? (
               <ActivityIndicator size="small" color={theme.secondary} />
-            ) : (
-              <Entypo
-                name={isPlaying ? 'controller-paus' : 'controller-play'}
-                size={34}
-                color={isLiveStreamConfigured ? theme.secondary : theme.disabledText}
-                style={!isPlaying ? styles.playIcon : undefined}
-              />
-            )}
-          </Pressable>
+              ) : isPlaying ? (
+                <Pause size={34} weight="fill" color={isLiveStreamConfigured ? theme.secondary : theme.disabledText} />
+              ) : (
+                <Play
+                  size={34}
+                  weight="fill"
+                  color={isLiveStreamConfigured ? theme.secondary : theme.disabledText}
+                  style={styles.playIcon}
+                />
+              )}
+            </Pressable>
           <Pressable style={styles.secondaryControl}>
-            <Feather name="rotate-cw" size={24} color={theme.onPrimary} />
+            <RotateCw size={24} weight="bold" color={theme.onPrimary} />
           </Pressable>
         </View>
 

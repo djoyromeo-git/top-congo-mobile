@@ -1,5 +1,20 @@
 import type { Href } from 'expo-router';
-import { Entypo, Feather, FontAwesome5, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import {
+  Bell,
+  BookmarkSimple,
+  CaretDown,
+  CaretRight,
+  FileText,
+  MicrophoneStage,
+  Newspaper,
+  Pause,
+  Play,
+  ShieldCheck,
+  SignOut,
+  Star,
+  User,
+  VideoCamera,
+} from 'phosphor-react-native';
 import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -303,20 +318,17 @@ export default function DrawerScreen() {
               ]}>
               {isBuffering ? (
                 <ActivityIndicator size="small" color={Palette.red['800']} />
+              ) : isLiveActive ? (
+                <Pause size={22} weight="fill" color={Palette.red['800']} />
               ) : (
-                <Entypo
-                  name={isLiveActive ? 'controller-paus' : 'controller-play'}
-                  size={22}
-                  color={Palette.red['800']}
-                  style={!isLiveActive ? styles.playIcon : undefined}
-                />
+                <Play size={22} weight="fill" color={Palette.red['800']} style={styles.playIcon} />
               )}
             </Pressable>
           </View>
 
           <View style={[styles.menuContainer, { borderBottomColor: theme.homeChipBorder }]}>
             <DrawerMenuItem
-              icon={<MaterialIcons name="podcasts" size={22} color={theme.homeTitle} />}
+              icon={<MicrophoneStage size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.podcast')}
               expanded={expandedSections.podcast}
               onPress={() => toggleSection('podcast')}
@@ -331,19 +343,19 @@ export default function DrawerScreen() {
             ) : null}
 
             <DrawerMenuItem
-              icon={<MaterialIcons name="videocam" size={22} color={theme.homeTitle} />}
+              icon={<VideoCamera size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.direct')}
               onPress={() => handleNavigate('/direct')}
             />
 
             <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="television-play" size={22} color={theme.homeTitle} />}
+              icon={<Play size={22} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.videos')}
               onPress={() => handleNavigate('/emissions')}
             />
 
             <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="newspaper-variant-outline" size={22} color={theme.homeTitle} />}
+              icon={<Newspaper size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.news')}
               expanded={expandedSections.news}
               onPress={() => toggleSection('news')}
@@ -357,39 +369,36 @@ export default function DrawerScreen() {
               </View>
             ) : null}
 
-            <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="calendar-month-outline" size={22} color={theme.homeTitle} />}
-              label={t('drawer.programs')}
-            />
+            <DrawerMenuItem icon={<Star size={22} weight="bold" color={theme.homeTitle} />} label={t('drawer.programs')} />
 
             <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="seal" size={21} color={theme.homeTitle} />}
+              icon={<ShieldCheck size={21} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.premium')}
               onPress={() => handleNavigate('/premium')}
             />
 
             <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="bell-outline" size={22} color={theme.homeTitle} />}
+              icon={<Bell size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.notifications')}
             />
 
             <DrawerMenuItem
-              icon={<FontAwesome5 name="bookmark" size={18} color={theme.homeTitle} />}
+              icon={<BookmarkSimple size={18} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.saved')}
             />
 
             <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="file-document-outline" size={22} color={theme.homeTitle} />}
+              icon={<FileText size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.legal')}
             />
 
             <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="account-circle-outline" size={23} color={theme.homeTitle} />}
+              icon={<User size={23} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.account')}
             />
 
             <DrawerMenuItem
-              icon={<MaterialCommunityIcons name="logout-variant" size={22} color={theme.homeTitle} />}
+              icon={<SignOut size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.logout')}
               onPress={() => {
                 void (async () => {
@@ -435,9 +444,13 @@ function DrawerMenuItem({
         <ThemedText style={[styles.menuLabel, { color: theme.homeTitle }]}>{label}</ThemedText>
       </View>
 
-      {hasChevron ? (
-        <Feather name={expanded ? 'chevron-down' : 'chevron-right'} size={21} color={theme.homeTitle} />
-      ) : null}
+        {hasChevron ? (
+        {expanded ? (
+          <CaretDown size={21} weight="bold" color={theme.homeTitle} />
+        ) : (
+          <CaretRight size={21} weight="bold" color={theme.homeTitle} />
+        )}
+        ) : null}
     </Pressable>
   );
 }

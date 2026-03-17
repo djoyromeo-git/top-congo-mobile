@@ -1,8 +1,8 @@
-import { Entypo } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pause, Play } from 'phosphor-react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -118,12 +118,7 @@ export function LiveAudioCard({
           </View>
 
           <View style={styles.playButton}>
-            <Entypo
-              name="controller-play"
-              size={22}
-              color={Palette.red['800']}
-              style={styles.playIcon}
-            />
+            <Play size={22} weight="fill" color={Palette.red['800']} style={styles.playIcon} />
           </View>
         </View>
       </View>
@@ -196,13 +191,10 @@ export function LiveAudioCard({
           style={({ pressed }) => [styles.playButton, disabled && styles.disabled, pressed && styles.pressed]}>
           {isBuffering ? (
             <ActivityIndicator size="small" color={Palette.red['800']} />
+          ) : isPlaying ? (
+            <Pause size={22} weight="fill" color={Palette.red['800']} />
           ) : (
-            <Entypo
-              name={isPlaying ? 'controller-paus' : 'controller-play'}
-              size={22}
-              color={Palette.red['800']}
-              style={!isPlaying ? styles.playIcon : undefined}
-            />
+            <Play size={22} weight="fill" color={Palette.red['800']} style={styles.playIcon} />
           )}
         </Pressable>
       </View>

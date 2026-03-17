@@ -1,7 +1,7 @@
-import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { BookmarkSimple, Play } from 'phosphor-react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
@@ -43,7 +43,7 @@ export function NewsListItem({
           <Image source={imageSource} style={styles.image} contentFit="cover" transition={0} />
           {hasBadge ? (
             <View style={[styles.playBadge, { backgroundColor: theme.headlineAccent }]}>
-              <Feather name="play" size={11} color={theme.headlineAccentText} />
+              <Play size={14} weight="fill" color={theme.headlineAccentText} />
             </View>
           ) : null}
         </View>
@@ -57,9 +57,9 @@ export function NewsListItem({
               onPress={onPressSave}
               style={({ pressed }) => [styles.save, pressed && styles.pressed]}>
               {saved ? (
-                <FontAwesome5 name="bookmark" size={18} color={theme.primary} solid />
+                <BookmarkSimple size={20} weight="fill" color={theme.primary} />
               ) : (
-                <Feather name="bookmark" size={20} color={theme.homeSectionLink} />
+                <BookmarkSimple size={20} weight="regular" color={theme.homeSectionLink} />
               )}
             </Pressable>
           </View>

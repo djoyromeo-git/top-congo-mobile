@@ -1,4 +1,4 @@
-﻿import { Feather } from '@expo/vector-icons';
+import { Check } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -74,7 +74,7 @@ export default function TopicsScreen() {
               <ThemedText style={styles.chipLabel}>{t(`topics.${topic.key}`)}</ThemedText>
               {isSelected && (
                 <View style={[styles.selectedDot, { backgroundColor: theme.secondary }]}>
-                  <Feather name="check" size={16} color={theme.onPrimary} />
+                  <Check size={16} weight="bold" color={theme.onPrimary} />
                 </View>
               )}
             </Pressable>

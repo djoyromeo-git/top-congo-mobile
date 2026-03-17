@@ -1,4 +1,3 @@
-import { Feather } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
   Pressable,
@@ -10,6 +9,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { Eye, EyeSlash } from 'phosphor-react-native';
 
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -64,7 +64,11 @@ export function FormInput({
           <Pressable
             onPress={() => setPasswordVisible((value) => !value)}
             style={({ pressed }) => [styles.rightAccessory, pressed && styles.pressed]}>
-            <Feather name={hidesText ? 'eye-off' : 'eye'} size={21} color={theme.text} />
+            {hidesText ? (
+              <EyeSlash size={21} weight="bold" color={theme.text} />
+            ) : (
+              <Eye size={21} weight="bold" color={theme.text} />
+            )}
           </Pressable>
         ) : (
           !!rightAccessory && <View style={styles.rightAccessory}>{rightAccessory}</View>

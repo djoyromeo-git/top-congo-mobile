@@ -1,14 +1,14 @@
-import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft, List, MagnifyingGlass } from 'phosphor-react-native';
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 type TopBarAction = {
-  icon: keyof typeof Feather.glyphMap;
+  icon: React.ReactNode | 'menu' | 'search' | 'arrow-left';
   onPress?: () => void;
   accessibilityLabel?: string;
 };
@@ -64,7 +64,17 @@ function ActionButton({ action }: { action?: TopBarAction }) {
         { borderColor: theme.topBarActionBorder },
         pressed && styles.pressed,
       ]}>
-      <Feather name={action.icon} size={21} color={theme.onPrimary} />
+      {typeof action.icon === 'string' ? (
+        action.icon === 'menu' ? (
+          <List size={22} weight="bold" color={theme.onPrimary} />
+        ) : action.icon === 'search' ? (
+          <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />
+        ) : action.icon === 'arrow-left' ? (
+          <ArrowLeft size={22} weight="bold" color={theme.onPrimary} />
+        ) : null
+      ) : (
+        action.icon
+      )}
     </Pressable>
   );
 }

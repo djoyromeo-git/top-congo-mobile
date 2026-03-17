@@ -1,4 +1,3 @@
-import { Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { MagnifyingGlass } from 'phosphor-react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
@@ -60,7 +60,7 @@ export default function SearchScreen() {
         reserveRightSlot={false}
         centerContent={
           <View style={styles.searchInputWrap}>
-            <Feather name="search" size={18} color={Palette.neutral['100']} />
+            <MagnifyingGlass size={20} weight="bold" color={Palette.neutral['100']} />
             <View style={styles.searchDivider} />
             <TextInput
               value={query}

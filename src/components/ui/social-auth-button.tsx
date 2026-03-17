@@ -1,8 +1,8 @@
-import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { AppleLogo } from 'phosphor-react-native';
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -40,7 +40,7 @@ export function SocialAuthButton({ provider, label, loading = false, disabled, s
         {loading ? (
           <ActivityIndicator color={theme.text} size="small" />
         ) : isApple ? (
-          <FontAwesome name="apple" size={20} color={theme.text} />
+          <AppleLogo size={20} weight="fill" color={theme.text} />
         ) : (
           <Image source={require('@/assets/images/google-logo.png')} style={styles.googleLogo} contentFit="contain" />
         )}
