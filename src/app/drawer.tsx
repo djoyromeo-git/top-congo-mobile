@@ -223,7 +223,11 @@ export default function DrawerScreen() {
           { backgroundColor: theme.surfaceMuted, transform: [{ translateX }] },
         ]}>
         <AppTopBar
-          leftAction={{ icon: 'x', onPress: () => closeDrawer(), accessibilityLabel: t('drawer.close') }}
+          leftAction={{
+            icon: <X size={22} weight="bold" color={theme.onPrimary} />,
+            onPress: () => closeDrawer(),
+            accessibilityLabel: t('drawer.close'),
+          }}
           centerContent={
             <Image
               source={APP_BAR_LOGO_SOURCE}
