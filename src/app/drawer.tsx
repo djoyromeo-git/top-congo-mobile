@@ -19,7 +19,8 @@ import {
   SignOut,
   Television,
   UserCircle,
-  VideoCamera
+  VideoCamera,
+  X
 } from 'phosphor-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -116,7 +117,11 @@ export default function DrawerScreen() {
         return;
       }
 
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(tabs)');
+      }
     });
   }, [backdropOpacity, router, translateX]);
 
