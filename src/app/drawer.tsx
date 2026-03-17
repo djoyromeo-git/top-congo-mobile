@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { Asset } from 'expo-asset';
 import type { Href } from 'expo-router';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -73,6 +74,11 @@ export default function DrawerScreen() {
   const isClosingRef = React.useRef(false);
 
   const isLiveActive = isPlaying || isBuffering;
+
+  // Preload static drawer assets early (still fine to keep in layout too)
+  React.useEffect(() => {
+    void Asset.loadAsync([APP_BAR_LOGO_SOURCE, LIVE_WAVE_SOURCE, WEB_LIVE_WAVE_SOURCE]);
+  }, []);
 
   React.useEffect(() => {
     Animated.parallel([
@@ -238,6 +244,7 @@ export default function DrawerScreen() {
               source={APP_BAR_LOGO_SOURCE}
               style={styles.headerLogo}
               cachePolicy="memory-disk"
+              priority="high"
               contentFit="contain"
               transition={0}
             />
@@ -262,6 +269,7 @@ export default function DrawerScreen() {
                   source={LIVE_WAVE_SOURCE}
                   style={styles.waveImage}
                   cachePolicy="memory-disk"
+                  priority="high"
                   contentFit="cover"
                   transition={0}
                 />
@@ -269,6 +277,7 @@ export default function DrawerScreen() {
                   source={LIVE_WAVE_SOURCE}
                   style={styles.waveImage}
                   cachePolicy="memory-disk"
+                  priority="high"
                   contentFit="cover"
                   transition={0}
                 />
@@ -276,6 +285,7 @@ export default function DrawerScreen() {
                   source={LIVE_WAVE_SOURCE}
                   style={styles.waveImage}
                   cachePolicy="memory-disk"
+                  priority="high"
                   contentFit="cover"
                   transition={0}
                 />
@@ -289,9 +299,6 @@ export default function DrawerScreen() {
               }}>
               {isLiveActive ? (
                 <>
-                <View style={styles.liveListenRow}>
-
-                <View style={styles.liveDot} />
                   <ThemedText numberOfLines={1} style={styles.liveProgramTitle}>
                     {program.title}
                   </ThemedText>
@@ -300,8 +307,6 @@ export default function DrawerScreen() {
                       {program.schedule}
                     </ThemedText>
                   ) : null}
-                </View>
-
                 </>
               ) : (
                 <View style={styles.liveListenRow}>
