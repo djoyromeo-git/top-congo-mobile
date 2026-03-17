@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppTabs from '@/components/app-tabs';
+import { useDrawer } from '@/components/ui/drawer-context';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { HomeLoadingProvider } from '@/components/ui/home-loading-context';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
@@ -20,6 +21,7 @@ const HOME_SKELETON_DURATION_MS = 1400;
 export default function TabsLayout() {
   const router = useRouter();
   const pathname = usePathname();
+  const drawer = useDrawer();
   const scheme = useColorScheme();
   const normalizedScheme = scheme === 'dark' ? 'dark' : 'light';
   const localTheme = useTheme();
@@ -61,7 +63,7 @@ export default function TabsLayout() {
 
         {!usesCustomScreenHeader ? (
           <AppTopBar
-            leftAction={{ icon: 'menu', onPress: () => router.push('/drawer') }}
+            leftAction={{ icon: 'menu', onPress: drawer.open }}
             rightAction={{ icon: 'search', onPress: () => router.push('/search') }}
             centerContent={
               <Image

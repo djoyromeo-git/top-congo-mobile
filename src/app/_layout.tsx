@@ -14,6 +14,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotificationBootstrap } from '@/features/notifications/presentation/use-notification-bootstrap';
 import '@/i18n';
 import { AppQueryProvider } from '@/shared/query/query-provider';
+import { DrawerProvider, useDrawer } from '@/components/ui/drawer-context';
+import { DrawerPanel } from '@/components/ui/drawer-panel';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -89,11 +91,12 @@ function RootLayout() {
     <KeyboardProvider>
       <AppQueryProvider>
         <AuthSessionProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="drawer" options={{ presentation: 'transparentModal', animation: 'none' }} />
-            </Stack>
-          </ThemeProvider>
+          <DrawerProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />
+              <DrawerOverlay />
+            </ThemeProvider>
+          </DrawerProvider>
         </AuthSessionProvider>
       </AppQueryProvider>
     </KeyboardProvider>
@@ -101,3 +104,8 @@ function RootLayout() {
 }
 
 export default Sentry.wrap(RootLayout);
+
+function DrawerOverlay() {
+  const drawer = useDrawer();
+  return <DrawerPanel isOpen={drawer.isOpen} onClose={drawer.close} />;
+}

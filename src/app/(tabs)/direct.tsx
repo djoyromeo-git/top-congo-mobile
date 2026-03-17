@@ -18,6 +18,7 @@ import {
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
+import { useDrawer } from '@/components/ui/drawer-context';
 import { TabShell } from '@/components/ui/tab-shell';
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -50,6 +51,7 @@ function resolveDirectModeParam(value: string | string[] | undefined): DirectMod
 export default function DirectScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const drawer = useDrawer();
   const params = useLocalSearchParams<{ mode?: string | string[] }>();
   const theme = useTheme();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
@@ -150,7 +152,7 @@ export default function DirectScreen() {
             }}
             rightAction={{
               icon: <DotsThreeVertical size={22} weight="bold" color={Palette.neutral['100']} />,
-              onPress: () => router.push('/drawer'),
+              onPress: drawer.open,
               accessibilityLabel: t('direct.more'),
             }}
               style={styles.topBar}
