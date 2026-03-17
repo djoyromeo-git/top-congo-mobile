@@ -280,17 +280,19 @@ export default function DrawerScreen() {
               }}>
               {isLiveActive ? (
                 <>
-                  <View style={styles.liveActiveRow}>
-                    <View style={styles.liveDot} />
-                    <ThemedText numberOfLines={1} style={styles.liveProgramTitle}>
-                      {program.title}
-                    </ThemedText>
-                  </View>
+                <View style={styles.liveListenRow}>
+
+                <View style={styles.liveDot} />
+                  <ThemedText numberOfLines={1} style={styles.liveProgramTitle}>
+                    {program.title}
+                  </ThemedText>
                   {program.schedule ? (
                     <ThemedText numberOfLines={1} style={styles.liveProgramMeta}>
                       {program.schedule}
                     </ThemedText>
                   ) : null}
+                </View>
+
                 </>
               ) : (
                 <View style={styles.liveListenRow}>
@@ -303,17 +305,15 @@ export default function DrawerScreen() {
             <Pressable
               onPress={handleToggleLive}
               disabled={!isLiveStreamConfigured}
-              style={({ pressed }) => [
-                styles.liveButton,
-                !isLiveStreamConfigured && styles.disabled,
-                pressed && styles.pressed,
-              ]}>
+              >
               {isBuffering ? (
                 <ActivityIndicator size="small" color={Palette.red['800']} />
               ) : isLiveActive ? (
-                <Pause size={22} weight="fill" color={Palette.red['800']} />
+                <Pause size={32} weight="fill" color={Palette.neutral['100']} />
               ) : (
-                <Play size={22} weight="fill" color={Palette.red['800']} style={styles.playIcon} />
+                <View style={[styles.liveButton, !isLiveStreamConfigured && styles.disabled]}>
+                <Play size={18} weight="fill" color={Palette.red['800']} style={styles.playIcon} />
+              </View>
               )}
             </Pressable>
           </View>
@@ -560,8 +560,8 @@ const styles = StyleSheet.create({
     paddingLeft: 17,
   },
   liveButton: {
-    width: 44,
-    height: 44,
+    width: 37,
+    height: 37,
     borderRadius: 22,
     backgroundColor: Palette.neutral['100'],
     alignItems: 'center',
