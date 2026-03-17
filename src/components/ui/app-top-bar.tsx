@@ -40,6 +40,8 @@ export function AppTopBar({
             source={require('@/assets/expo.icon/Assets/logo-all-white.png')}
             style={styles.defaultLogo}
             contentFit="contain"
+            cachePolicy="memory-disk"
+            transition={0}
           />
         )}
       </View>

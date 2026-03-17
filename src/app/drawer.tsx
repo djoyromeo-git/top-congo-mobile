@@ -2,8 +2,10 @@ import type { Href } from 'expo-router';
 import {
   Bell,
   BookmarkSimple,
+  Broadcast,
   CaretDown,
   CaretRight,
+  CalendarBlank,
   FileText,
   MicrophoneStage,
   Newspaper,
@@ -327,33 +329,7 @@ export default function DrawerScreen() {
           </View>
 
           <View style={[styles.menuContainer, { borderBottomColor: theme.homeChipBorder }]}>
-            <DrawerMenuItem
-              icon={<MicrophoneStage size={22} weight="bold" color={theme.homeTitle} />}
-              label={t('drawer.podcast')}
-              expanded={expandedSections.podcast}
-              onPress={() => toggleSection('podcast')}
-            />
-            {expandedSections.podcast ? (
-              <View style={styles.submenu}>
-                <DrawerSubItem label={t('drawer.podcastPolitics')} />
-                <DrawerSubItem label={t('drawer.podcastEconomyBusiness')} />
-                <DrawerSubItem label={t('drawer.podcastSociety')} />
-                <DrawerSubItem label={t('drawer.podcastDebates')} />
-              </View>
-            ) : null}
-
-            <DrawerMenuItem
-              icon={<VideoCamera size={22} weight="bold" color={theme.homeTitle} />}
-              label={t('drawer.direct')}
-              onPress={() => handleNavigate('/direct')}
-            />
-
-            <DrawerMenuItem
-              icon={<Play size={22} weight="fill" color={theme.homeTitle} />}
-              label={t('drawer.videos')}
-              onPress={() => handleNavigate('/emissions')}
-            />
-
+            {/* Actualités */}
             <DrawerMenuItem
               icon={<Newspaper size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.news')}
@@ -369,34 +345,78 @@ export default function DrawerScreen() {
               </View>
             ) : null}
 
-            <DrawerMenuItem icon={<Star size={22} weight="bold" color={theme.homeTitle} />} label={t('drawer.programs')} />
+            {/* Podcast */}
+            <DrawerMenuItem
+              icon={<MicrophoneStage size={22} weight="bold" color={theme.homeTitle} />}
+              label={t('drawer.podcast')}
+              expanded={expandedSections.podcast}
+              onPress={() => toggleSection('podcast')}
+            />
+            {expandedSections.podcast ? (
+              <View style={styles.submenu}>
+                <DrawerSubItem label={t('drawer.podcastPolitics')} />
+                <DrawerSubItem label={t('drawer.podcastEconomyBusiness')} />
+                <DrawerSubItem label={t('drawer.podcastSociety')} />
+                <DrawerSubItem label={t('drawer.podcastDebates')} />
+              </View>
+            ) : null}
 
+            {/* Vidéos */}
+            <DrawerMenuItem
+              icon={<Play size={22} weight="fill" color={theme.homeTitle} />}
+              label={t('drawer.videos')}
+              onPress={() => handleNavigate('/emissions')}
+            />
+
+            {/* Emissions */}
+            <DrawerMenuItem
+              icon={<Play size={22} weight="duotone" color={theme.homeTitle} />}
+              label={t('tabs.emissions')}
+              onPress={() => handleNavigate('/emissions')}
+            />
+
+            {/* Direct */}
+            <DrawerMenuItem
+              icon={<VideoCamera size={22} weight="bold" color={theme.homeTitle} />}
+              label={t('drawer.direct')}
+              onPress={() => handleNavigate('/direct')}
+            />
+
+            {/* Programmes */}
+            <DrawerMenuItem
+              icon={<CalendarBlank size={22} weight="bold" color={theme.homeTitle} />}
+              label={t('drawer.programs')}
+            />
+
+            {/* Espace premium */}
             <DrawerMenuItem
               icon={<ShieldCheck size={21} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.premium')}
               onPress={() => handleNavigate('/premium')}
             />
 
+            {/* Multilive */}
             <DrawerMenuItem
-              icon={<Bell size={22} weight="bold" color={theme.homeTitle} />}
-              label={t('drawer.notifications')}
+              icon={<Broadcast size={22} weight="fill" color={theme.homeTitle} />}
+              label={t('drawer.direct')}
             />
 
+            {/* Notifications */}
+            <DrawerMenuItem icon={<Bell size={22} weight="bold" color={theme.homeTitle} />} label={t('drawer.notifications')} />
+
+            {/* Enregistré pour plus tard */}
             <DrawerMenuItem
               icon={<BookmarkSimple size={18} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.saved')}
             />
 
-            <DrawerMenuItem
-              icon={<FileText size={22} weight="bold" color={theme.homeTitle} />}
-              label={t('drawer.legal')}
-            />
+            {/* Mentions & Politiques */}
+            <DrawerMenuItem icon={<FileText size={22} weight="bold" color={theme.homeTitle} />} label={t('drawer.legal')} />
 
-            <DrawerMenuItem
-              icon={<User size={23} weight="bold" color={theme.homeTitle} />}
-              label={t('drawer.account')}
-            />
+            {/* Mon compte */}
+            <DrawerMenuItem icon={<User size={23} weight="bold" color={theme.homeTitle} />} label={t('drawer.account')} />
 
+            {/* Déconnexion */}
             <DrawerMenuItem
               icon={<SignOut size={22} weight="bold" color={theme.homeTitle} />}
               label={t('drawer.logout')}
@@ -445,11 +465,11 @@ function DrawerMenuItem({
       </View>
 
         {hasChevron ? (
-        {expanded ? (
-          <CaretDown size={21} weight="bold" color={theme.homeTitle} />
-        ) : (
-          <CaretRight size={21} weight="bold" color={theme.homeTitle} />
-        )}
+          expanded ? (
+            <CaretDown size={21} weight="bold" color={theme.homeTitle} />
+          ) : (
+            <CaretRight size={21} weight="bold" color={theme.homeTitle} />
+          )
         ) : null}
     </Pressable>
   );
