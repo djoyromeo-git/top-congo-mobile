@@ -1,25 +1,26 @@
+import { Image } from 'expo-image';
 import type { Href } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import {
-  Bell,
+  ApplePodcastsLogo,
+  BellRinging,
   BookmarkSimple,
-  Broadcast,
+  CalendarDots,
   CaretDown,
   CaretRight,
-  CalendarBlank,
   FileText,
   MicrophoneStage,
+  MonitorPlay,
   Newspaper,
   Pause,
   Play,
-  ShieldCheck,
+  SealCheck,
   SignOut,
-  Star,
-  User,
-  VideoCamera,
+  Television,
+  UserCircle,
+  VideoCamera
 } from 'phosphor-react-native';
-import { Image } from 'expo-image';
-import { Stack, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -239,17 +240,7 @@ export default function DrawerScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
           <View style={styles.liveBanner}>
-            {isWeb ? (
-              <View style={styles.webWaveWrap}>
-                <Image
-                  source={WEB_LIVE_WAVE_SOURCE}
-                  style={styles.webWaveImage}
-                  cachePolicy="memory-disk"
-                  contentFit="cover"
-                  transition={0}
-                />
-              </View>
-            ) : (
+            
               <Animated.View
                 style={[
                   styles.waveWrap,
@@ -280,7 +271,6 @@ export default function DrawerScreen() {
                   transition={0}
                 />
               </Animated.View>
-            )}
 
             <Pressable
               style={({ pressed }) => [styles.liveInfo, pressed && styles.pressed]}
@@ -329,9 +319,8 @@ export default function DrawerScreen() {
           </View>
 
           <View style={[styles.menuContainer, { borderBottomColor: theme.homeChipBorder }]}>
-            {/* Actualités */}
             <DrawerMenuItem
-              icon={<Newspaper size={22} weight="bold" color={theme.homeTitle} />}
+              icon={<Newspaper size={22} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.news')}
               expanded={expandedSections.news}
               onPress={() => toggleSection('news')}
@@ -345,9 +334,8 @@ export default function DrawerScreen() {
               </View>
             ) : null}
 
-            {/* Podcast */}
             <DrawerMenuItem
-              icon={<MicrophoneStage size={22} weight="bold" color={theme.homeTitle} />}
+              icon={<ApplePodcastsLogo size={22} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.podcast')}
               expanded={expandedSections.podcast}
               onPress={() => toggleSection('podcast')}
@@ -361,64 +349,53 @@ export default function DrawerScreen() {
               </View>
             ) : null}
 
-            {/* Vidéos */}
             <DrawerMenuItem
-              icon={<Play size={22} weight="fill" color={theme.homeTitle} />}
+              icon={<MonitorPlay size={22} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.videos')}
               onPress={() => handleNavigate('/emissions')}
             />
 
-            {/* Emissions */}
             <DrawerMenuItem
-              icon={<Play size={22} weight="duotone" color={theme.homeTitle} />}
-              label={t('tabs.emissions')}
+              icon={<Television size={22} weight="fill" color={theme.homeTitle} />}
+              label={t('drawer.videos')}
               onPress={() => handleNavigate('/emissions')}
             />
 
-            {/* Direct */}
             <DrawerMenuItem
-              icon={<VideoCamera size={22} weight="bold" color={theme.homeTitle} />}
+              icon={<VideoCamera size={22} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.direct')}
               onPress={() => handleNavigate('/direct')}
             />
 
-            {/* Programmes */}
             <DrawerMenuItem
-              icon={<CalendarBlank size={22} weight="bold" color={theme.homeTitle} />}
+              icon={<CalendarDots size={22} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.programs')}
             />
 
-            {/* Espace premium */}
             <DrawerMenuItem
-              icon={<ShieldCheck size={21} weight="fill" color={theme.homeTitle} />}
+              icon={<SealCheck size={21} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.premium')}
               onPress={() => handleNavigate('/premium')}
             />
 
-            {/* Multilive */}
             <DrawerMenuItem
-              icon={<Broadcast size={22} weight="fill" color={theme.homeTitle} />}
-              label={t('drawer.direct')}
+              icon={<MicrophoneStage size={22} weight="fill" color={theme.homeTitle} />}
+              label={t('drawer.multilive') ?? 'Multilive'}
             />
 
-            {/* Notifications */}
-            <DrawerMenuItem icon={<Bell size={22} weight="bold" color={theme.homeTitle} />} label={t('drawer.notifications')} />
+            <DrawerMenuItem icon={<BellRinging size={22} weight="fill" color={theme.homeTitle} />} label={t('drawer.notifications')} />
 
-            {/* Enregistré pour plus tard */}
             <DrawerMenuItem
-              icon={<BookmarkSimple size={18} weight="bold" color={theme.homeTitle} />}
+              icon={<BookmarkSimple size={18} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.saved')}
             />
 
-            {/* Mentions & Politiques */}
-            <DrawerMenuItem icon={<FileText size={22} weight="bold" color={theme.homeTitle} />} label={t('drawer.legal')} />
+            <DrawerMenuItem icon={<FileText size={22} weight="fill" color={theme.homeTitle} />} label={t('drawer.legal')} />
 
-            {/* Mon compte */}
-            <DrawerMenuItem icon={<User size={23} weight="bold" color={theme.homeTitle} />} label={t('drawer.account')} />
+            <DrawerMenuItem icon={<UserCircle size={23} weight="fill" color={theme.homeTitle} />} label={t('drawer.account')} />
 
-            {/* Déconnexion */}
             <DrawerMenuItem
-              icon={<SignOut size={22} weight="bold" color={theme.homeTitle} />}
+              icon={<SignOut size={22} weight="fill" color={theme.homeTitle} />}
               label={t('drawer.logout')}
               onPress={() => {
                 void (async () => {
@@ -514,7 +491,7 @@ const styles = StyleSheet.create({
     paddingBottom: 44,
   },
   liveBanner: {
-    minHeight: 62,
+    minHeight: 63,
     backgroundColor: Palette.red['800'],
     overflow: 'hidden',
     flexDirection: 'row',
