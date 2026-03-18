@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, ArrowsOutSimple, MagnifyingGlass, Play, SpeakerHigh } from 'phosphor-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
@@ -21,6 +21,7 @@ export default function EpisodeDetailScreen() {
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const [mediaMode, setMediaMode] = React.useState<'video' | 'audio'>('video');
 
   const emission = React.useMemo(() => findEmission(slug), [slug]);
   const episode = React.useMemo(() => findEpisode(slug, episodeId), [slug, episodeId]);
@@ -34,7 +35,7 @@ export default function EpisodeDetailScreen() {
   if (!emission || !episode) return null;
 
   // No bottom tab bar on this stack screen, so give the live card a larger offset.
-  const liveCardBottom = insets.bottom + 20;
+  const liveCardBottom = insets.bottom + 10;
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
@@ -50,14 +51,37 @@ export default function EpisodeDetailScreen() {
         centerContent={<ThemedText style={styles.headerTitle}>{emission.title}</ThemedText>}
       />
 
+      <View style={styles.fixedToggle}>
+        <View style={styles.playerTabs}>
+          <Pressable
+            style={[styles.modeButton, mediaMode === 'video' ? styles.modeButtonActive : styles.modeButtonInactive]}
+            onPress={() => setMediaMode('video')}>
+            <ThemedText
+              style={[
+                styles.modeButtonText,
+                mediaMode === 'video' ? styles.modeButtonTextActive : styles.modeButtonTextInactive,
+              ]}>
+              Vidéo
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            style={[styles.modeButton, mediaMode === 'audio' ? styles.modeButtonActive : styles.modeButtonInactive]}
+            onPress={() => setMediaMode('audio')}>
+            <ThemedText
+              style={[
+                styles.modeButtonText,
+                mediaMode === 'audio' ? styles.modeButtonTextActive : styles.modeButtonTextInactive,
+              ]}>
+              Audio
+            </ThemedText>
+          </Pressable>
+        </View>
+      </View>
+
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <Image source={emission.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
           <View style={styles.heroOverlay} />
-          <View style={styles.playerTabs}>
-            <ThemedText style={[styles.playerTab, styles.playerTabActive]}>Vidéo</ThemedText>
-            <ThemedText style={styles.playerTab}>Audio</ThemedText>
-          </View>
 
           <View style={styles.heroControls}>
             <View style={styles.progressTrack}>
@@ -129,36 +153,51 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   headerTitle: { color: Palette.neutral['100'], fontSize: 17, fontWeight: '700' },
   content: { paddingBottom: 40 },
+  fixedToggle: {
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.two,
+    paddingBottom: Spacing.two,
+    backgroundColor: Palette.blue['800'],
+  },
+  playerTabs: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: Palette.blue['600'],
+    borderRadius: 8,
+    padding: 6,
+  },
+  modeButton: {
+    flex: 1,
+    minHeight: 38,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  modeButtonActive: {
+    backgroundColor: Palette.neutral['100'],
+  },
+  modeButtonInactive: {
+    backgroundColor: 'transparent',
+  },
+  modeButtonText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: 700,
+  },
+  modeButtonTextActive: {
+    color: Palette.blue['800'],
+  },
+  modeButtonTextInactive: {
+    color: Palette.neutral['100'],
+  },
   hero: {
-    height: 280,
+    height: 212,
     position: 'relative',
     backgroundColor: Palette.blue['800'],
   },
   heroImage: { width: '100%', height: '100%' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(23,65,151,0.55)' },
-  playerTabs: {
-    position: 'absolute',
-    top: Spacing.three,
-    left: Spacing.three,
-    flexDirection: 'row',
-    gap: Spacing.two,
-    backgroundColor: 'rgba(0,0,0,0.08)',
-    borderRadius: 10,
-    padding: Spacing.one,
-  },
-  playerTab: {
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.one,
-    borderRadius: 8,
-    fontSize: 13,
-    lineHeight: 18,
-    color: Palette.neutral['100'],
-    fontWeight: '600',
-  },
-  playerTabActive: {
-    backgroundColor: Palette.neutral['100'],
-    color: Palette.blue['800'],
-  },
   heroControls: {
     position: 'absolute',
     bottom: Spacing.two,
@@ -200,9 +239,10 @@ const styles = StyleSheet.create({
     color: Palette.neutral['800'],
   },
   meta: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   hostCard: {
     flexDirection: 'row',
