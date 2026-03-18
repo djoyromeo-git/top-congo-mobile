@@ -121,13 +121,15 @@ export default function EmissionDetailScreen() {
         {tab === 'program' ? (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Programme de diffusion</ThemedText>
+            <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
             <View style={styles.scheduleList}>
               {emission.schedule.map((item) => (
-                <View key={item.day} style={[styles.scheduleRow, { borderColor: theme.homeChipBorder }]}>
+                <View key={item.day} style={styles.scheduleRow}>
                   <ThemedText style={styles.scheduleDay}>{item.day}</ThemedText>
-                  <View style={styles.scheduleMeta}>
-                    <ThemedText style={styles.scheduleLabel}>{item.label}</ThemedText>
-                    <ThemedText style={[styles.scheduleTime, { color: theme.homeTitle }]}>{item.time}</ThemedText>
+                  <View style={[styles.scheduleMetaBox, { backgroundColor: theme.homeChipBackground }]}>
+                    <ThemedText numberOfLines={1} style={[styles.scheduleCombined, { color: theme.homeTitle }]}>
+                      {`${item.label.toUpperCase()} • ${item.time}`}
+                    </ThemedText>
                   </View>
                 </View>
               ))}
@@ -209,7 +211,7 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     lineHeight: 22,
     fontWeight: '700',
     color: Palette.neutral['800'],
@@ -250,36 +252,46 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   scheduleList: {
-    gap: Spacing.one,
   },
   scheduleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'space-between',
-    borderWidth: 1,
     borderRadius: 10,
-    padding: Spacing.two,
+    paddingVertical: Spacing.two,
+    gap: Spacing.two,
   },
   scheduleDay: {
+    width: 90,
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',
     color: Palette.neutral['500'],
+    alignSelf: 'center',
   },
   scheduleMeta: {
     gap: 4,
     alignItems: 'flex-end',
   },
-  scheduleLabel: {
+  scheduleCombined: {
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '700',
-    color: Palette.neutral['800'],
   },
-  scheduleTime: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '500',
+  scheduleMetaBox: {
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    justifyContent: 'center',
+    minWidth: 0,
+    gap: 0,
+    flex: 1,
+    minHeight: 44,
+  },
+  sectionDivider: {
+    height: 1,
+    marginTop: Spacing.one,
+    marginBottom: Spacing.two,
   },
   liveCardFixed: {
     position: 'absolute',
