@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Broadcast, House, MicrophoneStage, PlayCircle, SealCheck } from 'phosphor-react-native';
+import { ApplePodcastsLogo, House, MicrophoneStage, SealCheck, VideoCamera } from 'phosphor-react-native';
 
 import { ThemedText } from './themed-text';
 
@@ -86,7 +86,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.podcast')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <MicrophoneStage size={22} weight="bold" color={color} />}
+              icon={(color) => <ApplePodcastsLogo size={22} weight="fill" color={color} />}
             />
           </TabTrigger>
 
@@ -95,7 +95,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.emissions')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <PlayCircle size={22} weight="duotone" color={color} />}
+              icon={(color) => <MicrophoneStage size={22} weight="fill" color={color} />}
             />
           </TabTrigger>
 
@@ -113,7 +113,7 @@ export default function AppTabs() {
               activeLabel={t('tabs.direct')}
               activeColor={theme.primary}
               inactiveColor={theme.tabInactive}
-              icon={(color) => <Broadcast size={22} weight="fill" color={color} />}
+              icon={(color) => <VideoCamera size={22} weight="fill" color={color} />}
             />
           </TabTrigger>
         </CustomTabList>
