@@ -85,7 +85,7 @@ export const Colors = {
     homeTitle: '#1A1A1A',
     homeSubtitle: '#9C9C9C',
     homeChipBorder: '#E3E3E3',
-    homeChipBackground: '#F7F7F7',
+    homeChipBackground: '#E8E8E8',
     homeChipText: '#202020',
     homeSectionTitle: '#1A1A1A',
     homeSectionLink: '#A2A2A2',

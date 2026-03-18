@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { Asset } from 'expo-asset';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
@@ -31,6 +32,7 @@ export default function OnboardingScreen({
   const [activeIndex, setActiveIndex] = React.useState(0);
   const flatListRef = React.useRef<FlatList>(null);
   const currentIndexRef = React.useRef(0);
+  const LOGO_SOURCE = React.useRef(require('@/assets/expo.icon/Assets/logo-all-white.png')).current;
 
   const slides = React.useMemo(
     () => [
@@ -93,6 +95,11 @@ export default function OnboardingScreen({
     }
   }, [windowWidth, sliderWidth]);
 
+  // Preload logo to avoid delayed display on first render
+  React.useEffect(() => {
+    void Asset.loadAsync([LOGO_SOURCE]);
+  }, [LOGO_SOURCE]);
+
   const renderSlide = React.useCallback(
     ({ item }: { item: (typeof slides)[number] }) => (
       <View style={[styles.slide, { width: sliderWidth }]}>
@@ -154,9 +161,12 @@ export default function OnboardingScreen({
         <View style={styles.content}>
           <View style={styles.heroSection}>
             <Image
-              source={require('@/assets/expo.icon/Assets/logo-all-white.png')}
+              source={LOGO_SOURCE}
               style={styles.logo}
               contentFit="contain"
+              cachePolicy="memory-disk"
+              priority="high"
+              transition={0}
             />
 
             <View style={styles.pagination}>
