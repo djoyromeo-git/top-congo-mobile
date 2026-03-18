@@ -64,7 +64,7 @@ export function NewsListItem({
             </Pressable>
           </View>
 
-          <ThemedText numberOfLines={3} style={[styles.title, { color: theme.homeTitle }]}>
+          <ThemedText numberOfLines={2} style={[styles.title, { color: theme.homeTitle }]}>
             {title}
           </ThemedText>
         </View>

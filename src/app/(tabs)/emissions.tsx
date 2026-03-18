@@ -1,22 +1,17 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
-import { AppTopBar } from '@/components/ui/app-top-bar';
 import { EmissionShowCard } from '@/components/ui/emission-show-card';
-import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { NewsListItem } from '@/components/ui/news-list-item';
 import { TopicChip } from '@/components/ui/topic-chip';
+import { Emission, EMISSION_FILTERS, EMISSIONS } from '@/constants/emissions';
 import { Palette, Spacing } from '@/constants/theme';
-import { EMISSION_FILTERS, EMISSIONS, Emission } from '@/constants/emissions';
 import { useTheme } from '@/hooks/use-theme';
-import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function EmissionsScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
 
   const [filter, setFilter] = React.useState<string>('all');
 
@@ -24,22 +19,8 @@ export default function EmissionsScreen() {
     filter === 'all' ? EMISSIONS : EMISSIONS.filter((item) => item.slug === filter);
   const activeEmission = filter === 'all' ? null : filtered[0];
 
-  const handleBack = React.useCallback(() => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(tabs)');
-    }
-  }, [router]);
-
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
-      <AppTopBar
-        leftAction={{ icon: 'arrow-left', onPress: handleBack }}
-        rightAction={{ icon: 'search', onPress: () => router.push('/search') }}
-        centerContent={<ThemedText style={styles.headerTitle}>Emissions</ThemedText>}
-      />
-
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.pageTitle}>
           <ThemedText style={styles.heading}>Retrouvez nos émissions</ThemedText>
@@ -98,19 +79,6 @@ export default function EmissionsScreen() {
             ))}
           </View>
         ) : null}
-
-        <View style={styles.liveCard}>
-          <LiveAudioCard
-            loading={false}
-            title={program.title}
-            subtitle={program.schedule || undefined}
-            onPressCard={() => router.push('/direct')}
-            onPressPlay={() => router.push('/direct')}
-            isPlaying={isPlaying}
-            isBuffering={isBuffering}
-            disabled={false}
-          />
-        </View>
       </ScrollView>
     </View>
   );
@@ -122,13 +90,14 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: Palette.neutral['100'],
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '700',
   },
   content: {
     paddingHorizontal: Spacing.three,
-    paddingBottom: 120,
-    gap: Spacing.three,
+    paddingBottom: 140,
+    paddingTop: 16,
+    gap: 14,
   },
   pageTitle: {
     paddingHorizontal: 2,
@@ -170,9 +139,5 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.one,
-  },
-  liveCard: {
-    paddingTop: Spacing.three,
-    paddingBottom: Spacing.two,
   },
 });

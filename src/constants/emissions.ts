@@ -23,7 +23,7 @@ export type Emission = {
 };
 
 const sharedImage = require('@/assets/images/home/emission.png');
-const altImage = require('@/assets/images/home/concert.png');
+const altImage = sharedImage;
 
 export const EMISSION_FILTERS = [
   { key: 'all', label: 'Toutes' },
@@ -81,7 +81,7 @@ export const EMISSIONS: Emission[] = [
     slug: 'le-debat',
     title: 'LE DEBAT',
     host: 'Panel d’invités',
-    imageSource: altImage,
+    imageSource: sharedImage,
     summary:
       'Un débat contradictoire avec des experts pour éclairer les grandes questions de société et de politique.',
     schedule: [

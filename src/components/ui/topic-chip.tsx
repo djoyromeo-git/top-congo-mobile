@@ -22,29 +22,30 @@ export function TopicChip({ label, emoji, selected = false, ...props }: TopicChi
       style={({ pressed }) => [
         styles.chip,
         {
-          borderColor: selected ? theme.primaryMuted : theme.border,
-          backgroundColor: selected ? Palette.blue['100'] : 'transparent',
+          borderColor: selected ? theme.primary : theme.homeChipBorder,
+          backgroundColor: selected ? theme.primary : theme.homeChipBackground,
         },
         pressed && styles.pressed,
       ]}
       {...props}>
       {!!emoji && <ThemedText style={styles.emoji}>{emoji}</ThemedText>}
-      <ThemedText style={styles.label}>{label}</ThemedText>
-      {selected && (
-        <View style={[styles.checkBadge, { backgroundColor: theme.secondary }]}>
-          <Check size={16} weight="bold" color={theme.onPrimary} />
-        </View>
-      )}
+      <ThemedText
+        style={[
+          styles.label,
+          { color: selected ? theme.onPrimary : theme.homeChipText },
+        ]}>
+        {label}
+      </ThemedText>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 52,
-    borderRadius: 26,
-    borderWidth: 2,
-    paddingHorizontal: Spacing.three,
+    minHeight: 37,
+    borderRadius: 36,
+    borderWidth: 1,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.one,
@@ -54,17 +55,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   label: {
-    fontSize: 18 / 1.2,
-    lineHeight: 24 / 1.2,
-    fontWeight: 600,
-  },
-  checkBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: Spacing.one,
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: 500,
   },
   pressed: {
     opacity: 0.85,
