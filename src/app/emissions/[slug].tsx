@@ -1,18 +1,19 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { NewsListItem } from '@/components/ui/news-list-item';
 import { TopicChip } from '@/components/ui/topic-chip';
+import { Emission, findEmission } from '@/constants/emissions';
 import { Palette, Spacing } from '@/constants/theme';
-import { EMISSIONS, Emission, findEmission } from '@/constants/emissions';
 import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type TabKey = 'episodes' | 'about' | 'program';
 
@@ -20,6 +21,7 @@ export default function EmissionDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
 
@@ -37,6 +39,8 @@ export default function EmissionDetailScreen() {
   }
 
   const heroEpisode = emission.episodes[0];
+  // No bottom tab bar on this stack screen, so give the live card a larger offset.
+  const liveCardBottom = insets.bottom + 20;
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
@@ -131,19 +135,21 @@ export default function EmissionDetailScreen() {
           </View>
         ) : null}
 
-        <View style={styles.liveCard}>
-          <LiveAudioCard
-            loading={false}
-            title={program.title}
-            subtitle={program.schedule || undefined}
-            onPressCard={() => router.push('/direct')}
-            onPressPlay={() => router.push('/direct')}
-            isPlaying={isPlaying}
-            isBuffering={isBuffering}
-            disabled={false}
-          />
-        </View>
+        <View style={{ height: liveCardBottom + 32 }} />
       </ScrollView>
+
+      <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
+        <LiveAudioCard
+          loading={false}
+          title={program.title}
+          subtitle={program.schedule || undefined}
+          onPressCard={() => router.push('/direct')}
+          onPressPlay={() => router.push('/direct')}
+          isPlaying={isPlaying}
+          isBuffering={isBuffering}
+          disabled={false}
+        />
+      </View>
     </View>
   );
 }
@@ -158,7 +164,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   content: {
-    paddingBottom: 120,
+    paddingBottom: 40,
   },
   hero: {
     height: 240,
@@ -178,19 +184,19 @@ const styles = StyleSheet.create({
     bottom: Spacing.three,
     left: Spacing.three,
     right: Spacing.three,
-    gap: 6,
   },
   heroTitle: {
     color: Palette.neutral['100'],
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 20,
+    lineHeight: 26,
     fontWeight: '700',
+    letterSpacing: 1,
   },
   heroSubtitle: {
-    color: Palette.neutral['100'],
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: '500',
+    color: 'rgba(255,255,255,0.88)',
+    fontSize: 11,
+    lineHeight: 17,
+    fontWeight: '400',
   },
   tabs: {
     paddingHorizontal: Spacing.three,
@@ -275,8 +281,9 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '500',
   },
-  liveCard: {
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
+  liveCardFixed: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
   },
 });
