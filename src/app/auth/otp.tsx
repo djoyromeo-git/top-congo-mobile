@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -13,6 +13,7 @@ const OTP_LENGTH = 5;
 export default function OtpVerificationScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useLocalSearchParams<{ recipient?: string | string[] }>();
   const theme = useTheme();
   const inputRefs = React.useRef<Array<TextInput | null>>([]);
 
@@ -80,6 +81,9 @@ export default function OtpVerificationScreen() {
     router.replace('/auth/register');
   }, [router]);
 
+  const recipient = getSingleParamValue(params.recipient);
+  const recipientLabel = recipient ? formatOtpRecipient(recipient) : t('auth.otpMaskedEmail');
+
   return (
     <AuthScreenLayout
       title={t('auth.otpTitle')}
@@ -88,7 +92,7 @@ export default function OtpVerificationScreen() {
       <View style={styles.otpSection}>
         <ThemedText style={styles.otpPrompt}>
           {t('auth.otpPromptPrefix')}{' '}
-          <ThemedText style={styles.otpEmail}>{t('auth.otpMaskedEmail')}</ThemedText>
+          <ThemedText style={styles.otpEmail}>{recipientLabel}</ThemedText>
         </ThemedText>
 
         <View style={styles.otpRow}>
@@ -211,3 +215,40 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
 });
+
+function getSingleParamValue(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? '';
+  }
+
+  return value ?? '';
+}
+
+function formatOtpRecipient(value: string) {
+  return value.includes('@') ? maskEmail(value) : maskPhone(value);
+}
+
+function maskEmail(email: string) {
+  const [localPart = '', domain = ''] = email.trim().split('@');
+
+  if (!localPart || !domain) {
+    return email;
+  }
+
+  const visibleCount = Math.min(4, Math.max(1, localPart.length));
+  const maskedCount = Math.max(0, localPart.length - visibleCount);
+  return `${localPart.slice(0, visibleCount)}${'*'.repeat(maskedCount)}@${domain}`;
+}
+
+function maskPhone(phone: string) {
+  const trimmed = phone.trim();
+
+  if (trimmed.length <= 4) {
+    return trimmed;
+  }
+
+  const visibleSuffix = trimmed.slice(-4);
+  const prefix = trimmed.startsWith('+') ? '+' : '';
+  const hiddenCount = Math.max(0, trimmed.replace(/^\+/, '').length - 4);
+  return `${prefix}${'*'.repeat(hiddenCount)}${visibleSuffix}`;
+}

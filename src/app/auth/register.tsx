@@ -77,7 +77,11 @@ export default function RegisterScreen() {
     });
 
     if (result?.kind === 'session' || result?.kind === 'otp_pending') {
-      router.replace('/auth/otp');
+      const recipient = identifierMode === 'email' ? normalizedEmail : normalizedPhone;
+      router.replace({
+        pathname: '/auth/otp',
+        params: recipient ? { recipient } : undefined,
+      });
     }
   }, [
     canSubmit,
