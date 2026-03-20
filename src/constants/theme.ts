@@ -51,7 +51,7 @@ export const Palette = {
   neutral: {
     '100': '#FFFFFF',
     '200': '#D6D6D6',
-    '300': '#AFAFAF',
+    '300': '#1A1A1A',
     '400': '#898989',
     '500': '#656565',
     '600': '#434343',
@@ -83,7 +83,7 @@ export const Colors = {
     shadow: '#000000',
     subtleText: '#555555',
     homeTitle: '#1A1A1A',
-    homeSubtitle: '#9C9C9C',
+    homeSubtitle: '#1A1A1A',
     homeChipBorder: '#E3E3E3',
     homeChipBackground: '#E8E8E8',
     homeChipText: '#202020',

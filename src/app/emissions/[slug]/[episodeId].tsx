@@ -1,13 +1,13 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ArrowsOutSimple, MagnifyingGlass, Play, SpeakerHigh } from 'phosphor-react-native';
+import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
-import { MediaControls } from '@/components/ui/media-controls';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
+import { MediaControls } from '@/components/ui/media-controls';
 import { NewsListItem } from '@/components/ui/news-list-item';
 import { findEmission, findEpisode } from '@/constants/emissions';
 import { Palette, Spacing } from '@/constants/theme';
@@ -96,7 +96,7 @@ export default function EpisodeDetailScreen() {
               onToggleMute={() => setIsMuted((m) => !m)}
               expanded={false}
               timeLabel="4:39:20 / 11:12:45"
-              showExpand={false}
+              showExpand={true}
             />
           </View>
         </View>
