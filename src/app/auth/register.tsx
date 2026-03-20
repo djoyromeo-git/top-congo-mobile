@@ -67,7 +67,7 @@ export default function RegisterScreen() {
       return;
     }
 
-    const isRegistered = await registerWithCredentials({
+    const result = await registerWithCredentials({
       name: derivedName,
       email: identifierMode === 'email' ? normalizedEmail : '',
       phone: identifierMode === 'phone' ? normalizedPhone : '',
@@ -76,7 +76,7 @@ export default function RegisterScreen() {
       passwordConfirmation: normalizedConfirmPassword,
     });
 
-    if (isRegistered) {
+    if (result?.kind === 'session' || result?.kind === 'otp_pending') {
       router.replace('/auth/otp');
     }
   }, [

@@ -71,11 +71,20 @@ export default function OtpVerificationScreen() {
     inputRefs.current[prevIndex]?.focus();
   };
 
+  const handleBack = React.useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/auth/register');
+  }, [router]);
+
   return (
     <AuthScreenLayout
       title={t('auth.otpTitle')}
       subtitle={t('auth.otpSubtitle')}
-      onPressBack={() => router.back()}>
+      onPressBack={handleBack}>
       <View style={styles.otpSection}>
         <ThemedText style={styles.otpPrompt}>
           {t('auth.otpPromptPrefix')}{' '}

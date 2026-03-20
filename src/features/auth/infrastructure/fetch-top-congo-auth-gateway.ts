@@ -1,6 +1,10 @@
 import { getTopCongoApiUrl } from '@/features/auth/config';
 import { CredentialsAuthError } from '@/features/auth/domain/errors';
-import type { AuthCredentialsInput, AuthRegistrationInput } from '@/features/auth/domain/models';
+import type {
+  AuthCredentialsInput,
+  AuthRegistrationInput,
+  AuthRegistrationResult,
+} from '@/features/auth/domain/models';
 import type { CredentialsAuthGateway } from '@/features/auth/domain/ports';
 import { ApiError } from '@/shared/api/api-error';
 import { createHttpClient } from '@/shared/api/http-client';
@@ -12,6 +16,7 @@ import {
 import {
   isTopCongoApiUser,
   isTopCongoAuthSuccessResponse,
+  isTopCongoValidationErrorResponse,
 } from '@/features/auth/infrastructure/top-congo-auth-contract';
 
 type RequestOptions = {
@@ -44,7 +49,7 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
   }
 
   async register(input: AuthRegistrationInput) {
-    const payload = await this.request({
+    const { payload, status } = await this.requestWithMeta({
       path: '/auth/register',
       body: {
         name: input.name,
@@ -56,11 +61,29 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
       },
     });
 
-    if (!isTopCongoAuthSuccessResponse(payload)) {
-      throw new CredentialsAuthError('unknown', 'Unexpected registration response from TopCongo API.');
+    if (status === 201 && isRecordWithRegistrationId(payload)) {
+      return {
+        kind: 'otp_pending',
+        registrationId: String(payload.registration_id),
+        message:
+          typeof payload.message === 'string'
+            ? payload.message
+            : 'Nous vous avons envoye un code OTP par e-mail.',
+      } satisfies AuthRegistrationResult;
     }
 
-    return createCredentialsSession(payload);
+    if (isTopCongoAuthSuccessResponse(payload)) {
+      return {
+        kind: 'session',
+        session: createCredentialsSession(payload),
+      } satisfies AuthRegistrationResult;
+    }
+
+    if (isTopCongoValidationErrorResponse(payload)) {
+      throw new CredentialsAuthError('validation_failed', payload.message);
+    }
+
+    throw new CredentialsAuthError('unknown', 'Unexpected registration response from TopCongo API.');
   }
 
   async logout(accessToken: string) {
@@ -85,13 +108,20 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
   }
 
   private async request({ method = 'POST', path, body, accessToken }: RequestOptions) {
+    const response = await this.requestWithMeta({ method, path, body, accessToken });
+    return response.payload;
+  }
+
+  private async requestWithMeta({ method = 'POST', path, body, accessToken }: RequestOptions) {
     try {
-      return await this.httpClient.request<unknown>({
+      const response = await this.httpClient.requestWithMeta<unknown>({
         method,
         path,
         body,
         accessToken,
       });
+
+      return { payload: response.data, status: response.status };
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.code === 'configuration') {
@@ -120,13 +150,20 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
           throw new CredentialsAuthError('invalid_credentials', 'Authentication failed.');
         }
 
-        throw new CredentialsAuthError(
-          'unknown',
-          error.message || 'Authentication request failed.'
-        );
+        throw new CredentialsAuthError('unknown', error.message || 'Authentication request failed.');
       }
 
       throw error;
     }
   }
+}
+
+function isRecordWithRegistrationId(value: unknown): value is { message?: unknown; registration_id?: unknown } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'registration_id' in value &&
+    (typeof (value as { registration_id?: unknown }).registration_id === 'string' ||
+      typeof (value as { registration_id?: unknown }).registration_id === 'number')
+  );
 }

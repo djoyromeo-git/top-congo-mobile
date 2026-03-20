@@ -6,6 +6,7 @@ import type {
 } from '@/features/auth/domain/ports';
 import type {
   AuthCredentialsInput,
+  AuthRegistrationResult,
   AuthRegistrationInput,
   AuthSession,
   AuthState,
@@ -170,7 +171,74 @@ export class AuthSessionService {
   }
 
   async registerWithCredentials(input: AuthRegistrationInput) {
-    return this.authenticateWithCredentials('auth.credentials_register', () => this.credentialsGateway.register(input));
+    if (this.state.isSigningIn) {
+      return null;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const result = await this.credentialsGateway.register(input);
+
+      if (result.kind === 'otp_pending') {
+        this.logger.info('auth.credentials_register_otp_pending', {
+          provider: 'credentials',
+          registrationId: result.registrationId,
+        });
+
+        this.setState({
+          ...this.state,
+          isSigningIn: false,
+          activeProvider: null,
+          error: null,
+        });
+
+        return result;
+      }
+
+      const mergedSession = mergeSessionWithExisting(this.state.session, result.session);
+      await this.store.set(mergedSession);
+      this.logSessionPersisted('auth.credentials_register', mergedSession);
+
+      this.logger.info('auth.credentials_register_succeeded', {
+        provider: mergedSession.provider,
+        userId: mergedSession.user.id,
+      });
+
+      this.setState({
+        ...this.state,
+        session: mergedSession,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return {
+        kind: 'session',
+        session: mergedSession,
+      } satisfies AuthRegistrationResult;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_register_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return null;
+    }
   }
 
   async signOut() {

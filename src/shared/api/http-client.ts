@@ -67,7 +67,7 @@ export function createHttpClient({
   defaultTimeoutMs = 15000,
 }: HttpClientOptions) {
   return {
-    async request<TResponse>({ method = 'GET', path, body, headers, accessToken, timeoutMs, signal }: RequestOptions) {
+    async requestWithMeta<TResponse>({ method = 'GET', path, body, headers, accessToken, timeoutMs, signal }: RequestOptions) {
       const url = buildUrl(baseUrl, path);
 
       const controller = new AbortController();
@@ -125,7 +125,16 @@ export function createHttpClient({
         });
       }
 
-      return responseBody as TResponse;
+      return {
+        data: responseBody as TResponse,
+        status: response.status,
+        headers: response.headers,
+      };
+    },
+
+    async request<TResponse>(options: RequestOptions) {
+      const response = await this.requestWithMeta<TResponse>(options);
+      return response.data;
     },
 
     get<TResponse>(path: string, options?: Omit<RequestOptions, 'method' | 'path' | 'body'>) {

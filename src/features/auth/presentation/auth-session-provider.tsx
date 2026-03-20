@@ -1,7 +1,13 @@
 import React from 'react';
 
 import { AuthSessionService } from '@/features/auth/application/auth-session-service';
-import type { AuthCredentialsInput, AuthRegistrationInput, AuthState, SocialAuthProvider } from '@/features/auth/domain/models';
+import type {
+  AuthCredentialsInput,
+  AuthRegistrationInput,
+  AuthRegistrationResult,
+  AuthState,
+  SocialAuthProvider,
+} from '@/features/auth/domain/models';
 import { SentryAuthLogger } from '@/features/auth/infrastructure/auth-logger';
 import { ExpoAppleAuthProvider } from '@/features/auth/infrastructure/expo-apple-auth-provider';
 import { ExpoGoogleAuthProvider } from '@/features/auth/infrastructure/expo-google-auth-provider';
@@ -12,7 +18,7 @@ type AuthSessionContextValue = {
   state: AuthState;
   signIn: (provider: SocialAuthProvider) => Promise<boolean>;
   signInWithCredentials: (input: AuthCredentialsInput) => Promise<boolean>;
-  registerWithCredentials: (input: AuthRegistrationInput) => Promise<boolean>;
+  registerWithCredentials: (input: AuthRegistrationInput) => Promise<AuthRegistrationResult | null>;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
@@ -80,11 +86,10 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
       },
       async registerWithCredentials(input) {
         if (!service) {
-          return false;
+          return null;
         }
 
-        const session = await service.registerWithCredentials(input);
-        return Boolean(session);
+        return service.registerWithCredentials(input);
       },
       async signOut() {
         if (!service) {

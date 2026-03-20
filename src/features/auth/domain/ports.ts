@@ -1,5 +1,6 @@
 import type {
   AuthCredentialsInput,
+  AuthRegistrationResult,
   AuthRegistrationInput,
   AuthSession,
   AuthUserProfile,
@@ -16,7 +17,7 @@ export interface SocialAuthProviderPort {
 
 export interface CredentialsAuthGateway {
   signInWithCredentials(input: AuthCredentialsInput): Promise<AuthSession>;
-  register(input: AuthRegistrationInput): Promise<AuthSession>;
+  register(input: AuthRegistrationInput): Promise<AuthRegistrationResult>;
   fetchProfile(accessToken: string): Promise<AuthUserProfile>;
   logout(accessToken: string): Promise<void>;
 }

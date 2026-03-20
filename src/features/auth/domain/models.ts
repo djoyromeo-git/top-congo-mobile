@@ -43,6 +43,17 @@ export type AuthSession = {
   lastAuthenticatedAt: string;
 };
 
+export type AuthRegistrationResult =
+  | {
+      kind: 'session';
+      session: AuthSession;
+    }
+  | {
+      kind: 'otp_pending';
+      registrationId: string;
+      message: string;
+    };
+
 export type AuthState = {
   isHydrated: boolean;
   session: AuthSession | null;
@@ -63,6 +74,7 @@ export type AuthErrorCode =
   | 'profile_fetch_failed'
   | 'invalid_credentials'
   | 'validation_failed'
+  | 'otp_pending'
   | 'network'
   | 'configuration'
   | 'unknown';
