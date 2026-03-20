@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
+import { MediaControls } from '@/components/ui/media-controls';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { NewsListItem } from '@/components/ui/news-list-item';
 import { findEmission, findEpisode } from '@/constants/emissions';
@@ -22,6 +23,7 @@ export default function EpisodeDetailScreen() {
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
   const [mediaMode, setMediaMode] = React.useState<'video' | 'audio'>('video');
+  const [isMuted, setIsMuted] = React.useState(false);
 
   const emission = React.useMemo(() => findEmission(slug), [slug]);
   const episode = React.useMemo(() => findEpisode(slug, episodeId), [slug, episodeId]);
@@ -87,13 +89,15 @@ export default function EpisodeDetailScreen() {
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: '48%' }]} />
             </View>
-            <View style={styles.controlsRow}>
-              <Play size={20} weight="fill" color={Palette.neutral['100']} />
-              <ThemedText style={styles.timer}>4:39:20 / 11:12:45</ThemedText>
-              <ArrowsOutSimple size={20} weight="bold" color={Palette.neutral['100']} />
-              <View style={{ width: Spacing.two }} />
-              <SpeakerHigh size={20} weight="bold" color={Palette.neutral['100']} />
-            </View>
+            <MediaControls
+              playing={isPlaying}
+              muted={isMuted}
+              onTogglePlay={() => {}}
+              onToggleMute={() => setIsMuted((m) => !m)}
+              expanded={false}
+              timeLabel="4:39:20 / 11:12:45"
+              showExpand={false}
+            />
           </View>
         </View>
 
@@ -214,18 +218,6 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: Palette.red['800'],
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  timer: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
-    color: Palette.neutral['100'],
-    flex: 1,
   },
   body: {
     paddingHorizontal: Spacing.three,
