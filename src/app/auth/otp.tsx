@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
+import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
 import { useTheme } from '@/hooks/use-theme';
 import { AuthScreenLayout } from './_layout';
 
@@ -13,15 +14,17 @@ const OTP_LENGTH = 5;
 export default function OtpVerificationScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const params = useLocalSearchParams<{ recipient?: string | string[] }>();
+  const params = useLocalSearchParams<{ recipient?: string | string[]; registrationId?: string | string[] }>();
   const theme = useTheme();
+  const { clearError, error, isSubmitting, verifyRegistrationOtp } = useCredentialsAuth();
   const inputRefs = React.useRef<Array<TextInput | null>>([]);
 
   const [digits, setDigits] = React.useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [focusedIndex, setFocusedIndex] = React.useState(0);
 
   const filledCount = digits.join('').length;
-  const isVerifyEnabled = filledCount > 0;
+  const registrationId = getSingleParamValue(params.registrationId);
+  const isVerifyEnabled = filledCount === OTP_LENGTH && registrationId.length > 0 && !isSubmitting;
 
   const updateDigits = (next: string[]) => {
     setDigits(next);
@@ -72,6 +75,21 @@ export default function OtpVerificationScreen() {
     inputRefs.current[prevIndex]?.focus();
   };
 
+  const handleVerify = React.useCallback(async () => {
+    if (!registrationId || filledCount !== OTP_LENGTH) {
+      return;
+    }
+
+    const isVerified = await verifyRegistrationOtp({
+      registrationId,
+      otp: digits.join(''),
+    });
+
+    if (isVerified) {
+      router.replace('/auth/username');
+    }
+  }, [digits, filledCount, registrationId, router, verifyRegistrationOtp]);
+
   const handleBack = React.useCallback(() => {
     if (router.canGoBack()) {
       router.back();
@@ -89,6 +107,12 @@ export default function OtpVerificationScreen() {
       title={t('auth.otpTitle')}
       subtitle={t('auth.otpSubtitle')}
       onPressBack={handleBack}>
+      {error?.provider === 'credentials' ? (
+        <View style={styles.screenErrorWrap}>
+          <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
+        </View>
+      ) : null}
+
       <View style={styles.otpSection}>
         <ThemedText style={styles.otpPrompt}>
           {t('auth.otpPromptPrefix')}{' '}
@@ -107,7 +131,10 @@ export default function OtpVerificationScreen() {
                 }}
                 value={digit}
                 onChangeText={(value) => handleChange(index, value)}
-                onFocus={() => setFocusedIndex(index)}
+                onFocus={() => {
+                  clearError();
+                  setFocusedIndex(index);
+                }}
                 onKeyPress={({ nativeEvent }) => {
                   if (nativeEvent.key === 'Backspace') {
                     handleBackspace(index);
@@ -140,7 +167,10 @@ export default function OtpVerificationScreen() {
       <AppButton
         label={t('auth.verifyCode')}
         disabled={!isVerifyEnabled}
-        onPress={() => router.push('/auth/username')}
+        onPress={() => {
+          void handleVerify();
+        }}
+        rightAccessory={isSubmitting ? <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
         style={[
           styles.verifyButton,
           !isVerifyEnabled && styles.verifyButtonDisabled,
@@ -156,9 +186,21 @@ export default function OtpVerificationScreen() {
 }
 
 const styles = StyleSheet.create({
+  screenErrorWrap: {
+    marginBottom: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#FDECEC',
+  },
   otpSection: {
-    marginTop: 58,
+    marginTop: 40,
     gap: 16,
+  },
+  errorText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: 600,
   },
   otpPrompt: {
     fontSize: 14,

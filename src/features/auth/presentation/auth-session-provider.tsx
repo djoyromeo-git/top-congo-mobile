@@ -3,6 +3,7 @@ import React from 'react';
 import { AuthSessionService } from '@/features/auth/application/auth-session-service';
 import type {
   AuthCredentialsInput,
+  AuthOtpVerificationInput,
   AuthRegistrationInput,
   AuthRegistrationResult,
   AuthState,
@@ -19,6 +20,7 @@ type AuthSessionContextValue = {
   signIn: (provider: SocialAuthProvider) => Promise<boolean>;
   signInWithCredentials: (input: AuthCredentialsInput) => Promise<boolean>;
   registerWithCredentials: (input: AuthRegistrationInput) => Promise<AuthRegistrationResult | null>;
+  verifyRegistrationOtp: (input: AuthOtpVerificationInput) => Promise<boolean>;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
@@ -90,6 +92,14 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
         }
 
         return service.registerWithCredentials(input);
+      },
+      async verifyRegistrationOtp(input) {
+        if (!service) {
+          return false;
+        }
+
+        const session = await service.verifyRegistrationOtp(input);
+        return Boolean(session);
       },
       async signOut() {
         if (!service) {

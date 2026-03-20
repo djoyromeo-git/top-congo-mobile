@@ -6,6 +6,7 @@ import type {
 } from '@/features/auth/domain/ports';
 import type {
   AuthCredentialsInput,
+  AuthOtpVerificationInput,
   AuthRegistrationResult,
   AuthRegistrationInput,
   AuthSession,
@@ -239,6 +240,12 @@ export class AuthSessionService {
 
       return null;
     }
+  }
+
+  async verifyRegistrationOtp(input: AuthOtpVerificationInput) {
+    return this.authenticateWithCredentials('auth.credentials_verify_otp', () =>
+      this.credentialsGateway.verifyRegistrationOtp(input)
+    );
   }
 
   async signOut() {

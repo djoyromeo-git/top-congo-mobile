@@ -3,6 +3,7 @@ import React from 'react';
 import type {
   AuthCredentialsInput,
   AuthErrorDescriptor,
+  AuthOtpVerificationInput,
   AuthRegistrationInput,
   SocialAuthProvider,
 } from '@/features/auth/domain/models';
@@ -64,7 +65,14 @@ export function useSocialAuth() {
 }
 
 export function useCredentialsAuth() {
-  const { state, clearError, registerWithCredentials, signInWithCredentials, signOut } = useAuthSessionContext();
+  const {
+    state,
+    clearError,
+    registerWithCredentials,
+    signInWithCredentials,
+    signOut,
+    verifyRegistrationOtp,
+  } = useAuthSessionContext();
 
   return {
     session: state.session,
@@ -86,6 +94,13 @@ export function useCredentialsAuth() {
         return registerWithCredentials(input);
       },
       [clearError, registerWithCredentials]
+    ),
+    verifyRegistrationOtp: React.useCallback(
+      async (input: AuthOtpVerificationInput) => {
+        clearError();
+        return verifyRegistrationOtp(input);
+      },
+      [clearError, verifyRegistrationOtp]
     ),
   };
 }

@@ -76,11 +76,20 @@ export default function RegisterScreen() {
       passwordConfirmation: normalizedConfirmPassword,
     });
 
-    if (result?.kind === 'session' || result?.kind === 'otp_pending') {
-      const recipient = identifierMode === 'email' ? normalizedEmail : normalizedPhone;
+    const recipient = identifierMode === 'email' ? normalizedEmail : normalizedPhone;
+
+    if (result?.kind === 'session') {
+      router.replace('/auth/username');
+      return;
+    }
+
+    if (result?.kind === 'otp_pending') {
       router.replace({
         pathname: '/auth/otp',
-        params: recipient ? { recipient } : undefined,
+        params: {
+          ...(recipient ? { recipient } : {}),
+          registrationId: result.registrationId,
+        },
       });
     }
   }, [
