@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -33,6 +34,7 @@ export default function HomeFeedScreen() {
 
 function HomeContent() {
   const { t } = useTranslation();
+  const router = useRouter();
   const theme = useTheme();
   const { session } = useAuthSession();
   const [featuredSaved, setFeaturedSaved] = React.useState<Record<string, boolean>>(() =>
@@ -191,7 +193,11 @@ function HomeContent() {
         })}
       </ScrollView>
 
-      <SectionHeader title={t('homeFeed.newsFeedSection')} actionLabel={t('homeFeed.seeMore')} />
+      <SectionHeader
+        title={t('homeFeed.newsFeedSection')}
+        actionLabel={t('homeFeed.seeMore')}
+        onPress={() => router.push('/actualites' as never)}
+      />
 
       <View style={[styles.newsList, { borderTopColor: theme.homeChipBorder }]}>
         {filteredNews.map((item, index) => (
@@ -407,14 +413,22 @@ function ShowCard({ title, imageSource }: { title: string; imageSource?: number 
   );
 }
 
-function SectionHeader({ title, actionLabel }: { title: string; actionLabel: string }) {
+function SectionHeader({
+  title,
+  actionLabel,
+  onPress,
+}: {
+  title: string;
+  actionLabel: string;
+  onPress?: () => void;
+}) {
   const theme = useTheme();
 
   return (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionHeaderTop}>
         <ThemedText style={[styles.sectionTitle, { color: theme.homeSectionTitle }]}>{title}</ThemedText>
-        <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
+        <Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
           <ThemedText style={[styles.seeMore, { color: theme.primary }]}>{actionLabel}</ThemedText>
         </Pressable>
       </View>
