@@ -1,11 +1,3 @@
-export const HOME_TOPICS = [
-  { key: 'all' },
-  { key: 'politics' },
-  { key: 'economy' },
-  { key: 'security' },
-  { key: 'technology' },
-] as const;
-
 export const FEATURED_NEWS = [
   {
     key: 'featuredOne',

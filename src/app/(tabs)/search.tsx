@@ -14,7 +14,8 @@ import { MagnifyingGlass } from 'phosphor-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { NewsListItem } from '@/components/ui/news-list-item';
-import { NEWS_ITEMS, QUICK_TOPICS } from '@/constants/home-feed';
+import { NEWS_ITEMS } from '@/constants/home-feed';
+import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -32,18 +33,29 @@ export default function SearchScreen() {
       return acc;
     }, {})
   );
+  const topicsQuery = useTopicsOptions();
 
   const normalizedQuery = query.trim().toLowerCase();
+  const topicChips = React.useMemo(() => {
+    return selectTopicChipOptions(topicsQuery.data ?? [])
+      .filter((item) => item.topicKey !== null)
+      .map((item) => ({
+        key: `api:${item.id}`,
+        label: item.label,
+        topicKey: item.topicKey,
+      }));
+  }, [topicsQuery.data]);
 
   const filteredItems = React.useMemo(() => {
     return NEWS_ITEMS.filter((item) => {
-      const matchesTopic = selectedTopic === ALL_TOPICS_KEY || item.topicKey === selectedTopic;
+      const selected = topicChips.find((topic) => topic.key === selectedTopic);
+      const matchesTopic = selectedTopic === ALL_TOPICS_KEY || (selected ? item.topicKey === selected.topicKey : false);
       const title = t(`homeFeed.${item.key}`).toLowerCase();
       const matchesQuery = normalizedQuery.length === 0 || title.includes(normalizedQuery);
 
       return matchesTopic && matchesQuery;
     });
-  }, [normalizedQuery, selectedTopic, t]);
+  }, [normalizedQuery, selectedTopic, t, topicChips]);
 
   const toggleSaved = React.useCallback((key: string) => {
     setSavedNews((current) => ({ ...current, [key]: !current[key] }));
@@ -118,10 +130,10 @@ export default function SearchScreen() {
                 selected={selectedTopic === ALL_TOPICS_KEY}
                 onPress={() => setSelectedTopic(ALL_TOPICS_KEY)}
               />
-              {QUICK_TOPICS.map((topic) => (
+              {topicChips.map((topic) => (
                 <TopicChip
                   key={topic.key}
-                  label={`${topic.emoji} ${t(`topics.${topic.key}`)}`}
+                  label={topic.label}
                   selected={selectedTopic === topic.key}
                   onPress={() => setSelectedTopic(topic.key)}
                 />

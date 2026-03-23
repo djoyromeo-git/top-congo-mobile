@@ -6,45 +6,23 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
+import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { AuthScreenLayout } from './_layout';
-
-const TOPIC_ITEMS = [
-  { key: 'economy', emoji: '\u{1F30D}' },
-  { key: 'technology', emoji: '\u{1F4BB}' },
-  { key: 'security', emoji: '\u{1FA96}' },
-  { key: 'politics', emoji: '\u{1F3A4}' },
-  { key: 'society', emoji: '\u{1F9D1}\u200D\u{1F91D}\u200D\u{1F9D1}' },
-  { key: 'environment', emoji: '\u{1F331}' },
-  { key: 'transport', emoji: '\u{1F6EB}' },
-  { key: 'health', emoji: '\u{1FA7A}' },
-  { key: 'industries', emoji: '\u{1F6E0}\uFE0F' },
-  { key: 'culture', emoji: '\u{1F3AD}' },
-  { key: 'media', emoji: '\u{1F3A5}' },
-  { key: 'sport', emoji: '\u{26BD}' },
-  { key: 'education', emoji: '\u{1F4DA}' },
-  { key: 'business', emoji: '\u{1F4BC}' },
-  { key: 'justice', emoji: '\u{2696}\uFE0F' },
-  { key: 'climate', emoji: '\u{1F327}\uFE0F' },
-  { key: 'international', emoji: '\u{1F310}' },
-  { key: 'science', emoji: '\u{1F52C}' },
-  { key: 'entertainment', emoji: '\u{1F3AC}' },
-  { key: 'opinion', emoji: '\u{1F4AC}' },
-] as const;
 
 export default function TopicsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
   const [selected, setSelected] = React.useState<string[]>([]);
+  const topicsQuery = useTopicsOptions();
 
+  const topics = React.useMemo(() => selectTopicChipOptions(topicsQuery.data ?? []), [topicsQuery.data]);
   const hasSelection = selected.length > 0;
 
-  const toggleTopic = (key: string) => {
-    setSelected((current) =>
-      current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
-    );
+  const toggleTopic = (id: string) => {
+    setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   };
 
   return (
@@ -55,32 +33,40 @@ export default function TopicsScreen() {
       headerAlign="center"
       bodyStyle={styles.body}
       contentContainerStyle={styles.content}>
-      <View style={styles.chipsGrid}>
-        {TOPIC_ITEMS.map((topic) => {
-          const isSelected = selected.includes(topic.key);
-          return (
-            <Pressable
-              key={topic.key}
-              onPress={() => toggleTopic(topic.key)}
-              style={({ pressed }) => [
-                styles.chip,
-                {
-                  borderColor: isSelected ? theme.authTopicSelectedBorder : theme.authTopicBorder,
-                  backgroundColor: isSelected ? theme.authTopicSelectedBackground : 'transparent',
-                },
-                pressed && styles.pressed,
-              ]}>
-              <ThemedText style={styles.chipEmoji}>{topic.emoji}</ThemedText>
-              <ThemedText style={styles.chipLabel}>{t(`topics.${topic.key}`)}</ThemedText>
-              {isSelected && (
-                <View style={[styles.selectedDot, { backgroundColor: theme.secondary }]}>
-                  <Check size={16} weight="bold" color={theme.onPrimary} />
-                </View>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+      {topics.length > 0 ? (
+        <View style={styles.chipsGrid}>
+          {topics.map((topic) => {
+            const isSelected = selected.includes(topic.id);
+            return (
+              <Pressable
+                key={topic.id}
+                onPress={() => toggleTopic(topic.id)}
+                style={({ pressed }) => [
+                  styles.chip,
+                  {
+                    borderColor: isSelected ? theme.authTopicSelectedBorder : theme.authTopicBorder,
+                    backgroundColor: isSelected ? theme.authTopicSelectedBackground : 'transparent',
+                  },
+                  pressed && styles.pressed,
+                ]}>
+                {topic.emoji ? <ThemedText style={styles.chipEmoji}>{topic.emoji}</ThemedText> : null}
+                <ThemedText style={styles.chipLabel}>{topic.label}</ThemedText>
+                {isSelected ? (
+                  <View style={[styles.selectedDot, { backgroundColor: theme.secondary }]}>
+                    <Check size={16} weight="bold" color={theme.onPrimary} />
+                  </View>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : (
+        <View style={styles.emptyState}>
+          <ThemedText style={[styles.emptyText, { color: theme.subtleText }]}>
+            {topicsQuery.isLoading ? 'Chargement des topics...' : 'Aucun topic disponible.'}
+          </ThemedText>
+        </View>
+      )}
 
       <View style={styles.bottomActions}>
         <AppButton
@@ -145,6 +131,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 2,
+  },
+  emptyState: {
+    minHeight: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: 500,
+    textAlign: 'center',
   },
   bottomActions: {
     marginTop: 'auto',

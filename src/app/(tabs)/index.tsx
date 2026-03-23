@@ -11,8 +11,9 @@ import { useHomeLoading } from '@/components/ui/home-loading-context';
 import { NewsListItem } from '@/components/ui/news-list-item';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
-import { FEATURED_NEWS, HOME_TOPICS, NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
+import { FEATURED_NEWS, NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
 import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
+import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function HomeFeedScreen() {
@@ -56,13 +57,27 @@ function HomeContent() {
     }, {})
   );
   const [selectedTopic, setSelectedTopic] = React.useState<string>('all');
+  const topicsQuery = useTopicsOptions();
+
+  const topicChips = React.useMemo(() => {
+    return selectTopicChipOptions(topicsQuery.data ?? [])
+      .filter((item) => item.topicKey !== null)
+      .map((item) => ({
+        key: `api:${item.id}`,
+        label: item.label,
+        topicKey: item.topicKey,
+      }));
+  }, [topicsQuery.data]);
 
   const filteredNews = React.useMemo(
     () =>
       selectedTopic === 'all'
         ? NEWS_ITEMS
-        : NEWS_ITEMS.filter((item) => item.topicKey === selectedTopic),
-    [selectedTopic]
+        : NEWS_ITEMS.filter((item) => {
+            const selected = topicChips.find((topic) => topic.key === selectedTopic);
+            return selected ? item.topicKey === selected.topicKey : false;
+          }),
+    [selectedTopic, topicChips]
   );
 
   const toggleFeaturedSaved = React.useCallback((key: string) => {
@@ -97,7 +112,22 @@ function HomeContent() {
       ) : null}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicsRow}>
-        {HOME_TOPICS.map((topic) => {
+        <Pressable
+          onPress={() => setSelectedTopic('all')}
+          style={({ pressed }) => [
+            styles.topicChip,
+            {
+              borderColor: selectedTopic === 'all' ? theme.primary : theme.homeChipBorder,
+              backgroundColor: selectedTopic === 'all' ? `${theme.primary}` : theme.homeChipBackground,
+            },
+            pressed && styles.pressed,
+          ]}>
+          <ThemedText style={[styles.topicText, { color: selectedTopic === 'all' ? theme.onPrimary : theme.homeChipText }]}>
+            {t('homeFeed.topicAll')}
+          </ThemedText>
+        </Pressable>
+
+        {topicChips.map((topic) => {
           const isSelected = topic.key === selectedTopic;
 
           return (
@@ -112,12 +142,8 @@ function HomeContent() {
                 },
                 pressed && styles.pressed,
               ]}>
-              <ThemedText
-                style={[
-                  styles.topicText,
-                  { color: isSelected ? theme.onPrimary : theme.homeChipText },
-                ]}>
-                {topic.key === 'all' ? t('homeFeed.topicAll') : t(`topics.${topic.key}`)}
+              <ThemedText style={[styles.topicText, { color: isSelected ? theme.onPrimary : theme.homeChipText }]}>
+                {topic.label}
               </ThemedText>
             </Pressable>
           );
@@ -665,6 +691,36 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     marginRight: 12,
+  },
+  newsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 14,
+  },
+  newsMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  newsMedia: {
+    position: 'relative',
+  },
+  newsImage: {
+    width: 124,
+    height: 70,
+    borderRadius: 6,
+  },
+  newsBadge: {
+    position: 'absolute',
+    right: 4,
+    bottom: 4,
+  },
+  newsSave: {
+    width: 28,
+    alignItems: 'flex-end',
   },
   newsSkeletonTextBlock: {
     flex: 1,

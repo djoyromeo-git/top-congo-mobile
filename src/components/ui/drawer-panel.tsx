@@ -20,6 +20,7 @@ import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { Palette, Spacing } from '@/constants/theme';
 import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
+import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { useTheme } from '@/hooks/use-theme';
 import { requestDirectMode } from '@/services/direct-mode-intent';
 import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
@@ -66,6 +67,7 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
   const isWeb = Platform.OS === 'web';
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const topicsQuery = useTopicsOptions();
   const [expandedSections, setExpandedSections] = React.useState<Record<ExpandableSectionKey, boolean>>({
     podcast: false,
     news: false,
@@ -77,6 +79,10 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
   const waveOpacity = React.useRef(new Animated.Value(0.26)).current;
 
   const isLiveActive = isPlaying || isBuffering;
+  const topicLabels = React.useMemo(
+    () => selectTopicChipOptions(topicsQuery.data ?? []).map((item) => item.label),
+    [topicsQuery.data]
+  );
 
   React.useEffect(() => {
     void Asset.loadAsync([APP_BAR_LOGO_SOURCE, LIVE_WAVE_SOURCE, WEB_LIVE_WAVE_SOURCE]);
@@ -271,10 +277,9 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
             />
             {expandedSections.news ? (
               <View style={styles.submenu}>
-                <DrawerSubItem label={t('drawer.newsEconomy')} />
-                <DrawerSubItem label={t('drawer.newsTechnology')} />
-                <DrawerSubItem label={t('drawer.newsSecurity')} />
-                <DrawerSubItem label={t('drawer.newsPolitics')} />
+                {topicLabels.map((label) => (
+                  <DrawerSubItem key={`news-${label}`} label={label} />
+                ))}
               </View>
             ) : null}
 
@@ -286,10 +291,9 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
             />
             {expandedSections.podcast ? (
               <View style={styles.submenu}>
-                <DrawerSubItem label={t('drawer.podcastPolitics')} />
-                <DrawerSubItem label={t('drawer.podcastEconomyBusiness')} />
-                <DrawerSubItem label={t('drawer.podcastSociety')} />
-                <DrawerSubItem label={t('drawer.podcastDebates')} />
+                {topicLabels.map((label) => (
+                  <DrawerSubItem key={`podcast-${label}`} label={label} />
+                ))}
               </View>
             ) : null}
 
