@@ -4,6 +4,7 @@ import type {
   AuthCredentialsInput,
   AuthErrorDescriptor,
   AuthOtpVerificationInput,
+  AuthRegistrationCompletionInput,
   AuthRegistrationInput,
   SocialAuthProvider,
 } from '@/features/auth/domain/models';
@@ -68,6 +69,7 @@ export function useCredentialsAuth() {
   const {
     state,
     clearError,
+    completeRegistration,
     registerWithCredentials,
     resendRegistrationOtp,
     signInWithCredentials,
@@ -109,6 +111,13 @@ export function useCredentialsAuth() {
         return resendRegistrationOtp(registrationId);
       },
       [clearError, resendRegistrationOtp]
+    ),
+    completeRegistration: React.useCallback(
+      async (input: AuthRegistrationCompletionInput) => {
+        clearError();
+        return completeRegistration(input);
+      },
+      [clearError, completeRegistration]
     ),
   };
 }

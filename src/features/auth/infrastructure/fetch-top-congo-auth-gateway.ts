@@ -2,6 +2,7 @@ import { getTopCongoApiUrl } from '@/features/auth/config';
 import { CredentialsAuthError } from '@/features/auth/domain/errors';
 import type {
   AuthCredentialsInput,
+  AuthRegistrationCompletionInput,
   AuthOtpVerificationInput,
   AuthRegistrationInput,
   AuthRegistrationResult,
@@ -117,6 +118,22 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
     }
 
     throw new CredentialsAuthError('unknown', 'Unexpected OTP resend response from TopCongo API.');
+  }
+
+  async completeRegistration(input: AuthRegistrationCompletionInput) {
+    const payload = await this.request({
+      path: '/auth/register/complete',
+      body: {
+        registration_id: input.registrationId,
+        name: input.name,
+      },
+    });
+
+    if (isTopCongoAuthSuccessResponse(payload) || isTopCongoOtpVerificationSuccessResponse(payload)) {
+      return true;
+    }
+
+    throw new CredentialsAuthError('unknown', 'Unexpected registration completion response from TopCongo API.');
   }
 
   async logout(accessToken: string) {

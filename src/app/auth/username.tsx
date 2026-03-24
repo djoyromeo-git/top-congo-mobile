@@ -1,14 +1,16 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
+import { FormInput } from '@/components/ui/form-input';
+import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
 import { Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
@@ -21,9 +23,32 @@ export default function UsernameSetupScreen() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const params = useLocalSearchParams<{ registrationId?: string | string[] }>();
+  const { clearError, completeRegistration, error, isSubmitting } = useCredentialsAuth();
   const [username, setUsername] = React.useState('');
+  const registrationId = getSingleParamValue(params.registrationId);
 
   const isContinueEnabled = username.trim().length > 0;
+  const handleContinue = React.useCallback(async () => {
+    const normalizedUsername = username.trim();
+
+    if (!normalizedUsername) {
+      return;
+    }
+
+    if (registrationId) {
+      const isCompleted = await completeRegistration({
+        registrationId,
+        name: normalizedUsername,
+      });
+
+      if (!isCompleted) {
+        return;
+      }
+    }
+
+    router.push('/auth/topics');
+  }, [completeRegistration, registrationId, router, username]);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -61,27 +86,31 @@ export default function UsernameSetupScreen() {
           <ThemedText style={styles.subtitle}>{t('auth.usernameSubtitle')}</ThemedText>
         </View>
 
+        {error?.provider === 'credentials' ? (
+          <View style={styles.screenErrorWrap}>
+            <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
+          </View>
+        ) : null}
+
         <View style={styles.formBlock}>
-          <TextInput
+          <FormInput
             value={username}
-            onChangeText={setUsername}
+            onChangeText={(value) => {
+              clearError();
+              setUsername(value);
+            }}
             placeholder={t('auth.usernamePlaceholder')}
-            placeholderTextColor={theme.inputPlaceholder}
             autoCapitalize="none"
             autoCorrect={false}
-            style={[
-              styles.input,
-              {
-                borderColor: theme.inputBorder,
-                color: theme.text,
-              },
-            ]}
           />
 
           <AppButton
             label={t('common.continue')}
-            disabled={!isContinueEnabled}
-            onPress={() => router.push('/auth/topics')}
+            disabled={!isContinueEnabled || isSubmitting}
+            onPress={() => {
+              void handleContinue();
+            }}
+            rightAccessory={isSubmitting ? <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
             style={[
               styles.continueButton,
               isContinueEnabled ? styles.continueButtonEnabled : styles.continueButtonDisabled,
@@ -145,13 +174,17 @@ const styles = StyleSheet.create({
     marginTop: 52,
     gap: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: Spacing.three,
-    fontSize: 14,
-    lineHeight: 24,
-    fontWeight: 400,
+  screenErrorWrap: {
+    marginTop: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#FDECEC',
+  },
+  errorText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: 600,
   },
   continueButton: {
     marginTop: 2,
@@ -163,3 +196,11 @@ const styles = StyleSheet.create({
   },
   continueButtonLabelDisabled: {},
 });
+
+function getSingleParamValue(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? '';
+  }
+
+  return value ?? '';
+}

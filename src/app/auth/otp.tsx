@@ -89,7 +89,12 @@ export default function OtpVerificationScreen() {
     });
 
     if (isVerified) {
-      router.replace('/auth/username');
+      router.replace({
+        pathname: '/auth/username',
+        params: {
+          registrationId,
+        },
+      });
     }
   }, [digits, filledCount, registrationId, router, verifyRegistrationOtp]);
 

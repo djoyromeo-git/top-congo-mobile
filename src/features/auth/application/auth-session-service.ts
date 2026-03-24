@@ -6,6 +6,7 @@ import type {
 } from '@/features/auth/domain/ports';
 import type {
   AuthCredentialsInput,
+  AuthRegistrationCompletionInput,
   AuthOtpVerificationInput,
   AuthRegistrationResult,
   AuthRegistrationInput,
@@ -333,6 +334,53 @@ export class AuthSessionService {
       });
 
       return null;
+    }
+  }
+
+  async completeRegistration(input: AuthRegistrationCompletionInput) {
+    if (this.state.isSigningIn) {
+      return false;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const isCompleted = await this.credentialsGateway.completeRegistration(input);
+
+      this.logger.info('auth.credentials_complete_registration_succeeded', {
+        provider: 'credentials',
+        registrationId: input.registrationId,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return isCompleted;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_complete_registration_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return false;
     }
   }
 

@@ -23,6 +23,11 @@ export type AuthOtpVerificationInput = {
   otp: string;
 };
 
+export type AuthRegistrationCompletionInput = {
+  registrationId: string;
+  name: string;
+};
+
 export type AuthUserProfile = {
   id: string;
   email: string | null;

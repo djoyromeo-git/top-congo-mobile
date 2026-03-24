@@ -1,5 +1,6 @@
 import type {
   AuthCredentialsInput,
+  AuthRegistrationCompletionInput,
   AuthOtpVerificationInput,
   AuthRegistrationResult,
   AuthRegistrationInput,
@@ -21,6 +22,7 @@ export interface CredentialsAuthGateway {
   register(input: AuthRegistrationInput): Promise<AuthRegistrationResult>;
   verifyRegistrationOtp(input: AuthOtpVerificationInput): Promise<boolean>;
   resendRegistrationOtp(registrationId: string): Promise<string>;
+  completeRegistration(input: AuthRegistrationCompletionInput): Promise<boolean>;
   fetchProfile(accessToken: string): Promise<AuthUserProfile>;
   logout(accessToken: string): Promise<void>;
 }
