@@ -74,6 +74,7 @@ export function useCredentialsAuth() {
     resendRegistrationOtp,
     signInWithCredentials,
     signOut,
+    updatePreferences,
     verifyRegistrationOtp,
   } = useAuthSessionContext();
 
@@ -118,6 +119,13 @@ export function useCredentialsAuth() {
         return completeRegistration(input);
       },
       [clearError, completeRegistration]
+    ),
+    updatePreferences: React.useCallback(
+      async (categoryIds: string[]) => {
+        clearError();
+        return updatePreferences(categoryIds);
+      },
+      [clearError, updatePreferences]
     ),
   };
 }

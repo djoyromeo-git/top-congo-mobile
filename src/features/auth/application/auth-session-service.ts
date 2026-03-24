@@ -407,6 +407,72 @@ export class AuthSessionService {
     }
   }
 
+  async updatePreferences(categoryIds: string[]) {
+    if (this.state.isSigningIn) {
+      return false;
+    }
+
+    const session = this.state.session;
+
+    if (!session || session.provider !== 'credentials' || !session.accessToken) {
+      const error = new CredentialsAuthError('invalid_credentials', 'Authentication required.');
+
+      this.logger.error('auth.credentials_update_preferences_failed', error, {
+        provider: 'credentials',
+        code: error.code,
+      });
+
+      this.setState({
+        ...this.state,
+        error: error.toDescriptor(),
+      });
+
+      return false;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      await this.credentialsGateway.updatePreferences(categoryIds, session.accessToken);
+
+      this.logger.info('auth.credentials_update_preferences_succeeded', {
+        provider: session.provider,
+        userId: session.user.id,
+        categoriesCount: categoryIds.length,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return true;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_update_preferences_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return false;
+    }
+  }
+
   async signOut() {
     const currentSession = this.state.session;
 

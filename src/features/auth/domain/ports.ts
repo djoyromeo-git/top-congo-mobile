@@ -24,6 +24,7 @@ export interface CredentialsAuthGateway {
   verifyRegistrationOtp(input: AuthOtpVerificationInput): Promise<boolean>;
   resendRegistrationOtp(registrationId: string): Promise<string>;
   completeRegistration(input: AuthRegistrationCompletionInput): Promise<AuthRegistrationCompletionResult>;
+  updatePreferences(categoryIds: string[], accessToken: string): Promise<void>;
   fetchProfile(accessToken: string): Promise<AuthUserProfile>;
   logout(accessToken: string): Promise<void>;
 }

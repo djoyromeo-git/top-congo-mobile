@@ -24,7 +24,7 @@ import {
 } from '@/features/auth/infrastructure/top-congo-auth-contract';
 
 type RequestOptions = {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PATCH';
   path: string;
   body?: Record<string, unknown>;
   accessToken?: string;
@@ -144,6 +144,20 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
     }
 
     throw new CredentialsAuthError('unknown', 'Unexpected registration completion response from TopCongo API.');
+  }
+
+  async updatePreferences(categoryIds: string[], accessToken: string) {
+    await this.request({
+      method: 'PATCH',
+      path: '/auth/preferences',
+      accessToken,
+      body: {
+        categories: categoryIds.map((id) => {
+          const numericId = Number(id);
+          return Number.isInteger(numericId) && String(numericId) === String(id).trim() ? numericId : id;
+        }),
+      },
+    });
   }
 
   async logout(accessToken: string) {

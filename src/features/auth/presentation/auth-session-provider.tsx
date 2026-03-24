@@ -24,6 +24,7 @@ type AuthSessionContextValue = {
   verifyRegistrationOtp: (input: AuthOtpVerificationInput) => Promise<boolean>;
   resendRegistrationOtp: (registrationId: string) => Promise<string | null>;
   completeRegistration: (input: AuthRegistrationCompletionInput) => Promise<boolean>;
+  updatePreferences: (categoryIds: string[]) => Promise<boolean>;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
@@ -117,6 +118,13 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
         }
 
         return service.completeRegistration(input);
+      },
+      async updatePreferences(categoryIds) {
+        if (!service) {
+          return false;
+        }
+
+        return service.updatePreferences(categoryIds);
       },
       async signOut() {
         if (!service) {

@@ -2,10 +2,11 @@ import { Check } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
+import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
 import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,6 +16,7 @@ export default function TopicsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
+  const { clearError, error, isSubmitting, updatePreferences } = useCredentialsAuth();
   const [selected, setSelected] = React.useState<string[]>([]);
   const topicsQuery = useTopicsOptions();
 
@@ -22,8 +24,22 @@ export default function TopicsScreen() {
   const hasSelection = selected.length > 0;
 
   const toggleTopic = (id: string) => {
+    clearError();
     setSelected((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   };
+
+  const handleContinue = React.useCallback(async () => {
+    if (!hasSelection) {
+      return;
+    }
+
+    const isSaved = await updatePreferences(selected);
+    if (!isSaved) {
+      return;
+    }
+
+    router.replace('/(tabs)');
+  }, [hasSelection, router, selected, updatePreferences]);
 
   return (
     <AuthScreenLayout
@@ -33,6 +49,12 @@ export default function TopicsScreen() {
       headerAlign="center"
       bodyStyle={styles.body}
       contentContainerStyle={styles.content}>
+      {error?.provider === 'credentials' ? (
+        <View style={styles.screenErrorWrap}>
+          <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
+        </View>
+      ) : null}
+
       {topics.length > 0 ? (
         <View style={styles.chipsGrid}>
           {topics.map((topic) => {
@@ -71,8 +93,10 @@ export default function TopicsScreen() {
       <View style={styles.bottomActions}>
         <AppButton
           label={t('common.continue')}
-          disabled={!hasSelection}
-          onPress={() => router.replace('/(tabs)')}
+          disabled={!hasSelection || isSubmitting}
+          onPress={() => {
+            void handleContinue();
+          }}
           style={[
             hasSelection ? styles.continueEnabled : styles.continueDisabled,
             styles.continueButton,
@@ -82,6 +106,7 @@ export default function TopicsScreen() {
               : { backgroundColor: theme.disabledBackground, borderColor: theme.disabledBackground },
           ]}
           labelStyle={!hasSelection ? [styles.continueLabelDisabled, { color: theme.disabledText }] : undefined}
+          rightAccessory={isSubmitting ? <ActivityIndicator size="small" color={theme.onPrimary} /> : undefined}
         />
 
         <Pressable onPress={() => router.replace('/(tabs)')} style={({ pressed }) => pressed && styles.pressed}>
@@ -99,6 +124,18 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     marginTop: 32,
+  },
+  screenErrorWrap: {
+    marginBottom: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#FDECEC',
+  },
+  errorText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: 600,
   },
   chipsGrid: {
     flexDirection: 'row',
