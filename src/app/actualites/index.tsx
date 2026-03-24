@@ -7,79 +7,55 @@ import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
-import { TopicChip } from '@/components/ui/topic-chip';
-import { ACTUALITES_ITEMS, type ActualiteCategoryKey } from '@/constants/actualites';
-import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { Palette } from '@/constants/theme';
+import { useActualitesPosts } from '@/features/actualites/infrastructure/fetch-actualites-posts';
 import { useTheme } from '@/hooks/use-theme';
-
-type ChipSelectionKey = `api:${string}`;
-
-type ResolvedChip = {
-  key: ChipSelectionKey;
-  label: string;
-  filterKey: ActualiteCategoryKey | null;
-};
 
 export default function ActualitesScreen() {
   const router = useRouter();
   const theme = useTheme();
   const [query, setQuery] = React.useState('');
   const [searchOpen, setSearchOpen] = React.useState(false);
-  const [category, setCategory] = React.useState<ChipSelectionKey | null>(null);
-  const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>(() =>
-    ACTUALITES_ITEMS.reduce<Record<string, boolean>>((acc, item) => {
-      acc[item.slug] = item.saved;
-      return acc;
-    }, {})
+  const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
+  const postsQuery = useActualitesPosts();
+  const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
+
+  const normalizedQuery = React.useMemo(
+    () =>
+      query
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim(),
+    [query]
   );
-  const topicsQuery = useTopicsOptions();
-
-  const normalizedQuery = query.trim().toLowerCase();
-
-  const chips = React.useMemo<ResolvedChip[]>(() => {
-    return selectTopicChipOptions(topicsQuery.data ?? [])
-      .map((item) => ({
-        key: `api:${item.id}` as const,
-        label: item.label,
-        filterKey:
-          item.topicKey === 'politics' || item.topicKey === 'economy' || item.topicKey === 'security' || item.topicKey === 'sport'
-            ? item.topicKey
-            : null,
-      }))
-      .filter((item) => item.filterKey !== null);
-  }, [topicsQuery.data]);
 
   React.useEffect(() => {
-    if (chips.length === 0) {
-      if (category !== null) {
-        setCategory(null);
-      }
+    if (posts.length === 0) {
       return;
     }
 
-    const selectedStillExists = category ? chips.some((item) => item.key === category) : false;
-    if (!selectedStillExists) {
-      setCategory(chips[0].key);
-    }
-  }, [category, chips]);
+    setSavedMap((current) => {
+      const next = { ...current };
 
-  const activeChip = React.useMemo<ResolvedChip | null>(() => {
-    if (!category) {
-      return null;
-    }
+      for (const post of posts) {
+        if (!(post.slug in next)) {
+          next[post.slug] = false;
+        }
+      }
 
-    return chips.find((item) => item.key === category) ?? null;
-  }, [category, chips]);
+      return next;
+    });
+  }, [posts]);
 
   const filteredItems = React.useMemo(() => {
-    return ACTUALITES_ITEMS.filter((item) => {
-      const matchesCategory =
-        activeChip === null ? true : activeChip.filterKey === null ? false : item.category === activeChip.filterKey;
-      const matchesQuery = normalizedQuery.length === 0 || item.title.toLowerCase().includes(normalizedQuery);
-      return matchesCategory && matchesQuery;
-    });
-  }, [activeChip, normalizedQuery]);
+    if (normalizedQuery.length === 0) {
+      return posts;
+    }
+
+    return posts.filter((item) => item.searchText.includes(normalizedQuery));
+  }, [normalizedQuery, posts]);
 
   const toggleSaved = React.useCallback((slug: string) => {
     setSavedMap((current) => ({ ...current, [slug]: !current[slug] }));
@@ -87,12 +63,12 @@ export default function ActualitesScreen() {
 
   const openItem = React.useCallback(
     (slug: string) => {
-      const item = ACTUALITES_ITEMS.find((entry) => entry.slug === slug);
+      const item = posts.find((entry) => entry.slug === slug);
       if (!item) return;
 
       router.push((item.kind === 'media' ? `/actualites/media/${slug}` : `/actualites/${slug}`) as never);
     },
-    [router]
+    [posts, router]
   );
 
   return (
@@ -129,43 +105,28 @@ export default function ActualitesScreen() {
       ) : null}
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {chips.length > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-            {chips.map((item) => (
-              <TopicChip
-                key={item.key}
-                label={item.label}
-                selected={category === item.key}
-                onPress={() => setCategory(item.key)}
-              />
-            ))}
-          </ScrollView>
-        ) : topicsQuery.isLoading ? (
-          <View style={styles.emptyState}>
-            <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-              Chargement des categories...
-            </ThemedText>
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-              Aucune categorie disponible.
-            </ThemedText>
-          </View>
-        )}
-
         <View style={[styles.list, { borderTopColor: theme.homeChipBorder }]}>
-          {filteredItems.length > 0 ? (
+          {postsQuery.isLoading ? (
+            <View style={styles.emptyState}>
+              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>Chargement des actualites...</ThemedText>
+            </View>
+          ) : postsQuery.isError ? (
+            <View style={styles.emptyState}>
+              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                Impossible de charger les actualites.
+              </ThemedText>
+            </View>
+          ) : filteredItems.length > 0 ? (
             filteredItems.map((item, index) => (
               <ActualiteListItem
                 key={item.slug}
                 title={item.title}
                 imageSource={item.imageSource}
-                date={item.date}
-                saved={savedMap[item.slug]}
-                duration={item.duration}
+                date={item.publishedAtLabel}
+                saved={savedMap[item.slug] ?? false}
+                duration={item.kind === 'media' ? item.readingTimeLabel ?? undefined : undefined}
                 showPlayBadge={item.kind === 'media'}
-                showVerifiedBadge={item.verified}
+                showVerifiedBadge={item.isFeatured}
                 showDivider={index < filteredItems.length - 1}
                 onPress={() => openItem(item.slug)}
                 onPressSave={() => toggleSaved(item.slug)}
@@ -174,7 +135,7 @@ export default function ActualitesScreen() {
           ) : (
             <View style={styles.emptyState}>
               <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                {activeChip ? 'Aucune actualite pour ce theme.' : 'Aucune actualite disponible.'}
+                {normalizedQuery.length > 0 ? 'Aucune actualite ne correspond a votre recherche.' : 'Aucune actualite disponible.'}
               </ThemedText>
             </View>
           )}
@@ -219,10 +180,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 110,
-  },
-  chipsRow: {
-    gap: 8,
-    paddingBottom: 18,
   },
   list: {
     borderTopWidth: 1,

@@ -10,8 +10,12 @@ import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { MediaControls } from '@/components/ui/media-controls';
-import { ACTUALITES_ITEMS, findActualite, getRelatedActualites } from '@/constants/actualites';
 import { Palette, Spacing } from '@/constants/theme';
+import {
+  findActualitePost,
+  selectRelatedActualites,
+  useActualitesPosts,
+} from '@/features/actualites/infrastructure/fetch-actualites-posts';
 import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
@@ -22,23 +26,51 @@ export default function ActualiteMediaScreen() {
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
-  const item = React.useMemo(() => findActualite(slug), [slug]);
-  const relatedItems = React.useMemo(() => (item ? getRelatedActualites(item.relatedSlugs) : []), [item]);
+  const postsQuery = useActualitesPosts();
+  const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
+  const item = React.useMemo(() => findActualitePost(posts, slug), [posts, slug]);
+  const relatedItems = React.useMemo(
+    () => (item ? selectRelatedActualites(posts, item.slug) : []),
+    [item, posts]
+  );
   const [mediaMode, setMediaMode] = React.useState<'video' | 'audio'>('video');
   const [muted, setMuted] = React.useState(false);
   const [playing, setPlaying] = React.useState(false);
-  const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>(() =>
-    ACTUALITES_ITEMS.reduce<Record<string, boolean>>((acc, entry) => {
-      acc[entry.slug] = entry.saved;
-      return acc;
-    }, {})
-  );
+  const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
-    if (!item || item.kind !== 'media') {
+    if (posts.length === 0) {
+      return;
+    }
+
+    setSavedMap((current) => {
+      const next = { ...current };
+
+      for (const post of posts) {
+        if (!(post.slug in next)) {
+          next[post.slug] = false;
+        }
+      }
+
+      return next;
+    });
+  }, [posts]);
+
+  React.useEffect(() => {
+    if (!postsQuery.isSuccess || !item) {
+      return;
+    }
+
+    if (item.kind !== 'media') {
+      router.replace(`/actualites/${item.slug}` as never);
+    }
+  }, [item, postsQuery.isSuccess, router]);
+
+  React.useEffect(() => {
+    if (postsQuery.isSuccess && !item) {
       router.replace('/actualites' as never);
     }
-  }, [item, router]);
+  }, [item, postsQuery.isSuccess, router]);
 
   const toggleSaved = React.useCallback((entrySlug: string) => {
     setSavedMap((current) => ({ ...current, [entrySlug]: !current[entrySlug] }));
@@ -46,17 +78,15 @@ export default function ActualiteMediaScreen() {
 
   const openItem = React.useCallback(
     (entrySlug: string) => {
-      const entry = ACTUALITES_ITEMS.find((candidate) => candidate.slug === entrySlug);
-      if (!entry) return;
+      const entry = posts.find((candidate) => candidate.slug === entrySlug);
+      if (!entry) {
+        return;
+      }
 
       router.push((entry.kind === 'media' ? `/actualites/media/${entrySlug}` : `/actualites/${entrySlug}`) as never);
     },
-    [router]
+    [posts, router]
   );
-
-  if (!item || item.kind !== 'media') {
-    return null;
-  }
 
   const liveCardBottom = insets.bottom + 10;
 
@@ -71,7 +101,7 @@ export default function ActualiteMediaScreen() {
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
           onPress: () => router.push('/actualites' as never),
         }}
-        centerContent={<ThemedText style={styles.headerTitle}>Actualités</ThemedText>}
+        centerContent={<ThemedText style={styles.headerTitle}>Actualites</ThemedText>}
       />
 
       <View style={styles.toggleWrap}>
@@ -84,7 +114,7 @@ export default function ActualiteMediaScreen() {
               pressed && styles.pressed,
             ]}>
             <ThemedText style={[styles.modeText, mediaMode === 'video' ? styles.modeTextActive : styles.modeTextInactive]}>
-              Vidéo
+              Video
             </ThemedText>
           </Pressable>
 
@@ -103,69 +133,80 @@ export default function ActualiteMediaScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
-          <Image source={item.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
-          <View style={styles.heroOverlay} />
+        {postsQuery.isLoading ? (
+          <ScreenMessage message="Chargement du media..." />
+        ) : postsQuery.isError ? (
+          <ScreenMessage message="Impossible de charger ce media." />
+        ) : !item || item.kind !== 'media' ? null : (
+          <>
+            <View style={styles.hero}>
+              <Image source={item.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
+              <View style={styles.heroOverlay} />
 
-          <View style={styles.heroControls}>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: mediaMode === 'video' ? '48%' : '42%' }]} />
+              <View style={styles.heroControls}>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: mediaMode === 'video' ? '48%' : '42%' }]} />
+                </View>
+
+                <MediaControls
+                  playing={playing}
+                  muted={muted}
+                  onTogglePlay={() => setPlaying((current) => !current)}
+                  onToggleMute={() => setMuted((current) => !current)}
+                  expanded={false}
+                  timeLabel={item.readingTimeLabel ?? '00:00'}
+                  showExpand
+                />
+              </View>
             </View>
 
-            <MediaControls
-              playing={playing}
-              muted={muted}
-              onTogglePlay={() => setPlaying((current) => !current)}
-              onToggleMute={() => setMuted((current) => !current)}
-              expanded={false}
-              timeLabel={item.duration || '04:39:20'}
-              showExpand
-            />
-          </View>
-        </View>
+            <View style={styles.body}>
+              <ThemedText style={styles.title}>{item.title}</ThemedText>
+              <ThemedText style={[styles.meta, { color: theme.homeSubtitle }]}>
+                {[item.sectionLabel.toUpperCase(), item.publishedAtLabel.toUpperCase()].filter(Boolean).join(' • ')}
+              </ThemedText>
 
-        <View style={styles.body}>
-          <ThemedText style={styles.title}>{item.title}</ThemedText>
-          <ThemedText style={[styles.meta, { color: theme.homeSubtitle }]}>
-            {`${item.sectionLabel.toUpperCase()} • ${item.date.toUpperCase()}`}
-          </ThemedText>
+              <View style={styles.authorCard}>
+                <Image source={item.imageSource} style={styles.authorAvatar} contentFit="cover" transition={0} />
+                <View style={styles.authorTextWrap}>
+                  <ThemedText style={styles.authorName}>{item.source.toUpperCase()}</ThemedText>
+                  <ThemedText style={styles.authorRole}>
+                    {item.readingTimeLabel ? `Duree ${item.readingTimeLabel}` : 'Source'}
+                  </ThemedText>
+                </View>
+              </View>
 
-          <View style={styles.authorCard}>
-            <Image source={item.imageSource} style={styles.authorAvatar} contentFit="cover" transition={0} />
-            <View style={styles.authorTextWrap}>
-              <ThemedText style={styles.authorName}>{item.authorName.toUpperCase()}</ThemedText>
-              <ThemedText style={styles.authorRole}>{item.authorRole}</ThemedText>
+              {item.contentBlocks.map((paragraph, index) => (
+                <ThemedText key={`${item.slug}-paragraph-${index}`} style={[styles.paragraph, { color: theme.homeSubtitle }]}>
+                  {paragraph}
+                </ThemedText>
+              ))}
             </View>
-          </View>
 
-          <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>{item.summary}</ThemedText>
-          {item.paragraphs.map((paragraph) => (
-            <ThemedText key={paragraph} style={[styles.paragraph, { color: theme.homeSubtitle }]}>
-              {paragraph}
-            </ThemedText>
-          ))}
-        </View>
+            {relatedItems.length > 0 ? (
+              <View style={styles.relatedSection}>
+                <ThemedText style={styles.relatedTitle}>A decouvrir aussi</ThemedText>
+                <View style={[styles.divider, { backgroundColor: theme.homeChipBorder }]} />
 
-        <View style={styles.relatedSection}>
-          <ThemedText style={styles.relatedTitle}>À découvrir aussi</ThemedText>
-          <View style={[styles.divider, { backgroundColor: theme.homeChipBorder }]} />
-
-          {relatedItems.map((related, index) => (
-            <ActualiteListItem
-              key={related.slug}
-              title={related.title}
-              imageSource={related.imageSource}
-              date={related.date}
-              saved={savedMap[related.slug]}
-              duration={related.duration}
-              showPlayBadge={related.kind === 'media'}
-              showVerifiedBadge={related.verified}
-              showDivider={index < relatedItems.length - 1}
-              onPress={() => openItem(related.slug)}
-              onPressSave={() => toggleSaved(related.slug)}
-            />
-          ))}
-        </View>
+                {relatedItems.map((related, index) => (
+                  <ActualiteListItem
+                    key={related.slug}
+                    title={related.title}
+                    imageSource={related.imageSource}
+                    date={related.publishedAtLabel}
+                    saved={savedMap[related.slug] ?? false}
+                    duration={related.kind === 'media' ? related.readingTimeLabel ?? undefined : undefined}
+                    showPlayBadge={related.kind === 'media'}
+                    showVerifiedBadge={related.isFeatured}
+                    showDivider={index < relatedItems.length - 1}
+                    onPress={() => openItem(related.slug)}
+                    onPressSave={() => toggleSaved(related.slug)}
+                  />
+                ))}
+              </View>
+            ) : null}
+          </>
+        )}
 
         <View style={{ height: liveCardBottom + 88 }} />
       </ScrollView>
@@ -182,6 +223,14 @@ export default function ActualiteMediaScreen() {
           disabled={false}
         />
       </View>
+    </View>
+  );
+}
+
+function ScreenMessage({ message }: { message: string }) {
+  return (
+    <View style={styles.messageWrap}>
+      <ThemedText style={styles.messageText}>{message}</ThemedText>
     </View>
   );
 }
@@ -236,6 +285,18 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 40,
+  },
+  messageWrap: {
+    minHeight: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.three,
+  },
+  messageText: {
+    color: Palette.neutral['700'],
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
   },
   hero: {
     height: 212,

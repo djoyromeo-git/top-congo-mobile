@@ -12,6 +12,7 @@ import { NewsListItem } from '@/components/ui/news-list-item';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
 import { FEATURED_NEWS, NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
+import { useActualitesPosts } from '@/features/actualites/infrastructure/fetch-actualites-posts';
 import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
 import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { useTheme } from '@/hooks/use-theme';
@@ -44,12 +45,7 @@ function HomeContent() {
       return acc;
     }, {})
   );
-  const [savedNews, setSavedNews] = React.useState<Record<string, boolean>>(() =>
-    NEWS_ITEMS.reduce<Record<string, boolean>>((acc, item) => {
-      acc[item.key] = item.saved;
-      return acc;
-    }, {})
-  );
+  const [savedNews, setSavedNews] = React.useState<Record<string, boolean>>({});
   const [savedPodcasts, setSavedPodcasts] = React.useState<Record<string, boolean>>(() =>
     PODCASTS.reduce<Record<string, boolean>>((acc, item) => {
       acc[item.key] = item.saved;
@@ -58,6 +54,8 @@ function HomeContent() {
   );
   const [selectedTopic, setSelectedTopic] = React.useState<string>('all');
   const topicsQuery = useTopicsOptions();
+  const postsQuery = useActualitesPosts();
+  const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
 
   const topicChips = React.useMemo(() => {
     return selectTopicChipOptions(topicsQuery.data ?? [])
@@ -69,15 +67,33 @@ function HomeContent() {
       }));
   }, [topicsQuery.data]);
 
+  React.useEffect(() => {
+    if (posts.length === 0) {
+      return;
+    }
+
+    setSavedNews((current) => {
+      const next = { ...current };
+
+      for (const post of posts) {
+        if (!(post.slug in next)) {
+          next[post.slug] = false;
+        }
+      }
+
+      return next;
+    });
+  }, [posts]);
+
   const filteredNews = React.useMemo(
     () =>
       selectedTopic === 'all'
-        ? NEWS_ITEMS
-        : NEWS_ITEMS.filter((item) => {
+        ? posts
+        : posts.filter((item) => {
             const selected = topicChips.find((topic) => topic.key === selectedTopic);
             return selected ? item.topicKey === selected.topicKey : false;
           }),
-    [selectedTopic, topicChips]
+    [posts, selectedTopic, topicChips]
   );
 
   const toggleFeaturedSaved = React.useCallback((key: string) => {
@@ -226,18 +242,36 @@ function HomeContent() {
       />
 
       <View style={[styles.newsList, { borderTopColor: theme.homeChipBorder }]}>
-        {filteredNews.map((item, index) => (
-          <NewsListItem
-            key={item.key}
-            title={t(`homeFeed.${item.key}`)}
-            date={t(`homeFeed.${item.dateKey}`)}
-            imageSource={item.imageSource}
-            saved={savedNews[item.key]}
-            hasBadge={item.hasBadge}
-            showDivider={index < filteredNews.length - 1}
-            onPressSave={() => toggleNewsSaved(item.key)}
-          />
-        ))}
+        {postsQuery.isLoading ? (
+          NEWS_ITEMS.map((item, index) => (
+            <NewsRowSkeleton
+              key={`news-loading-${item.key}`}
+              showBadge={item.hasBadge}
+              saved={item.saved}
+              showDivider={index < NEWS_ITEMS.length - 1}
+            />
+          ))
+        ) : filteredNews.length > 0 ? (
+          filteredNews.map((item, index) => (
+            <NewsListItem
+              key={item.slug}
+              title={item.title}
+              date={item.publishedAtLabel}
+              imageSource={item.imageSource}
+              saved={savedNews[item.slug] ?? false}
+              hasBadge={item.kind === 'media'}
+              showDivider={index < filteredNews.length - 1}
+              onPress={() => router.push((item.kind === 'media' ? `/actualites/media/${item.slug}` : `/actualites/${item.slug}`) as never)}
+              onPressSave={() => toggleNewsSaved(item.slug)}
+            />
+          ))
+        ) : (
+          <View style={styles.emptyNewsState}>
+            <ThemedText style={[styles.emptyNewsText, { color: theme.homeSubtitle }]}>
+              {selectedTopic === 'all' ? 'Aucune actualite disponible.' : 'Aucune actualite pour ce theme.'}
+            </ThemedText>
+          </View>
+        )}
       </View>
     </>
   );
@@ -679,6 +713,16 @@ const styles = StyleSheet.create({
   newsList: {
     marginTop: 2,
     borderTopWidth: 1,
+  },
+  emptyNewsState: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  emptyNewsText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: 500,
+    textAlign: 'center',
   },
   showSkeletonCard: {
     width: 200,

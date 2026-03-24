@@ -9,8 +9,12 @@ import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
-import { ACTUALITES_ITEMS, findActualite, getRelatedActualites } from '@/constants/actualites';
 import { Palette, Spacing } from '@/constants/theme';
+import {
+  findActualitePost,
+  selectRelatedActualites,
+  useActualitesPosts,
+} from '@/features/actualites/infrastructure/fetch-actualites-posts';
 import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
@@ -21,20 +25,38 @@ export default function ActualiteDetailScreen() {
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
-  const item = React.useMemo(() => findActualite(slug), [slug]);
-  const relatedItems = React.useMemo(() => (item ? getRelatedActualites(item.relatedSlugs) : []), [item]);
-  const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>(() =>
-    ACTUALITES_ITEMS.reduce<Record<string, boolean>>((acc, entry) => {
-      acc[entry.slug] = entry.saved;
-      return acc;
-    }, {})
+  const postsQuery = useActualitesPosts();
+  const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
+  const item = React.useMemo(() => findActualitePost(posts, slug), [posts, slug]);
+  const relatedItems = React.useMemo(
+    () => (item ? selectRelatedActualites(posts, item.slug) : []),
+    [item, posts]
   );
+  const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
-    if (!item) {
+    if (posts.length === 0) {
+      return;
+    }
+
+    setSavedMap((current) => {
+      const next = { ...current };
+
+      for (const post of posts) {
+        if (!(post.slug in next)) {
+          next[post.slug] = false;
+        }
+      }
+
+      return next;
+    });
+  }, [posts]);
+
+  React.useEffect(() => {
+    if (postsQuery.isSuccess && !item) {
       router.replace('/actualites' as never);
     }
-  }, [item, router]);
+  }, [item, postsQuery.isSuccess, router]);
 
   const toggleSaved = React.useCallback((entrySlug: string) => {
     setSavedMap((current) => ({ ...current, [entrySlug]: !current[entrySlug] }));
@@ -42,19 +64,15 @@ export default function ActualiteDetailScreen() {
 
   const openItem = React.useCallback(
     (entrySlug: string) => {
-      const entry = ACTUALITES_ITEMS.find((candidate) => candidate.slug === entrySlug);
-      if (!entry) return;
+      const entry = posts.find((candidate) => candidate.slug === entrySlug);
+      if (!entry) {
+        return;
+      }
 
-      router.replace(
-        (entry.kind === 'media' ? `/actualites/media/${entrySlug}` : `/actualites/${entrySlug}`) as never
-      );
+      router.replace((entry.kind === 'media' ? `/actualites/media/${entrySlug}` : `/actualites/${entrySlug}`) as never);
     },
-    [router]
+    [posts, router]
   );
-
-  if (!item) {
-    return null;
-  }
 
   const liveCardBottom = insets.bottom + 10;
 
@@ -69,60 +87,71 @@ export default function ActualiteDetailScreen() {
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
           onPress: () => router.push('/actualites' as never),
         }}
-        centerContent={<ThemedText style={styles.headerTitle}>Actualités</ThemedText>}
+        centerContent={<ThemedText style={styles.headerTitle}>Actualites</ThemedText>}
       />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Image source={item.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
+        {postsQuery.isLoading ? (
+          <ScreenMessage message="Chargement de l'article..." />
+        ) : postsQuery.isError ? (
+          <ScreenMessage message="Impossible de charger l'article." />
+        ) : !item ? null : (
+          <>
+            <Image source={item.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
 
-        <View style={styles.body}>
-          <ThemedText style={styles.title}>{item.title}</ThemedText>
-          <ThemedText style={[styles.meta, { color: theme.homeSubtitle }]}>
-            {`${item.sectionLabel.toUpperCase()} • ${item.date.toUpperCase()}`}
-          </ThemedText>
+            <View style={styles.body}>
+              <ThemedText style={styles.title}>{item.title}</ThemedText>
+              <ThemedText style={[styles.meta, { color: theme.homeSubtitle }]}>
+                {[item.sectionLabel.toUpperCase(), item.publishedAtLabel.toUpperCase()].filter(Boolean).join(' • ')}
+              </ThemedText>
 
-          <View style={styles.authorCard}>
-            <Image source={item.imageSource} style={styles.authorAvatar} contentFit="cover" transition={0} />
-            <View style={styles.authorTextWrap}>
-              <ThemedText style={styles.authorName}>{item.authorName.toUpperCase()}</ThemedText>
-              <ThemedText style={styles.authorRole}>{item.authorRole}</ThemedText>
+              <View style={styles.authorCard}>
+                <Image source={item.imageSource} style={styles.authorAvatar} contentFit="cover" transition={0} />
+                <View style={styles.authorTextWrap}>
+                  <ThemedText style={styles.authorName}>{item.source.toUpperCase()}</ThemedText>
+                  <ThemedText style={styles.authorRole}>
+                    {item.readingTimeLabel ? `Lecture ${item.readingTimeLabel}` : 'Source'}
+                  </ThemedText>
+                </View>
+              </View>
+
+              {item.contentBlocks.length > 0 ? (
+                item.contentBlocks.map((paragraph, index) => (
+                  <ThemedText key={`${item.slug}-paragraph-${index}`} style={[styles.paragraph, { color: theme.homeSubtitle }]}>
+                    {paragraph}
+                  </ThemedText>
+                ))
+              ) : item.summary ? (
+                <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>{item.summary}</ThemedText>
+              ) : null}
+
+              <PromoBanner />
             </View>
-          </View>
 
-          <ThemedText style={styles.leadTitle}>{item.leadTitle}</ThemedText>
-          <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>{item.summary}</ThemedText>
+            {relatedItems.length > 0 ? (
+              <View style={styles.relatedSection}>
+                <ThemedText style={styles.relatedTitle}>A decouvrir aussi</ThemedText>
+                <View style={[styles.divider, { backgroundColor: theme.homeChipBorder }]} />
 
-          {item.paragraphs.map((paragraph) => (
-            <ThemedText key={paragraph} style={[styles.paragraph, { color: theme.homeSubtitle }]}>
-              {paragraph}
-            </ThemedText>
-          ))}
-
-          <PromoBanner />
-
-          {item.quote ? <QuoteBlock quote={item.quote} /> : null}
-        </View>
-
-        <View style={styles.relatedSection}>
-          <ThemedText style={styles.relatedTitle}>À découvrir aussi</ThemedText>
-          <View style={[styles.divider, { backgroundColor: theme.homeChipBorder }]} />
-
-          {relatedItems.map((related, index) => (
-            <ActualiteListItem
-              key={related.slug}
-              title={related.title}
-              imageSource={related.imageSource}
-              date={related.date}
-              saved={savedMap[related.slug]}
-              duration={related.duration}
-              showPlayBadge={related.kind === 'media'}
-              showVerifiedBadge={related.verified}
-              showDivider={index < relatedItems.length - 1}
-              onPress={() => openItem(related.slug)}
-              onPressSave={() => toggleSaved(related.slug)}
-            />
-          ))}
-        </View>
+                {relatedItems.map((related, index) => (
+                  <ActualiteListItem
+                    key={related.slug}
+                    title={related.title}
+                    imageSource={related.imageSource}
+                    date={related.publishedAtLabel}
+                    saved={savedMap[related.slug] ?? false}
+                    duration={related.kind === 'media' ? related.readingTimeLabel ?? undefined : undefined}
+                    showPlayBadge={related.kind === 'media'}
+                    showVerifiedBadge={related.isFeatured}
+                    showDivider={index < relatedItems.length - 1}
+                    onPress={() => openItem(related.slug)}
+                    onPressSave={() => toggleSaved(related.slug)}
+                  />
+                ))}
+              </View>
+            ) : null}
+          </>
+        )}
 
         <View style={{ height: liveCardBottom + 88 }} />
       </ScrollView>
@@ -139,6 +168,14 @@ export default function ActualiteDetailScreen() {
           disabled={false}
         />
       </View>
+    </View>
+  );
+}
+
+function ScreenMessage({ message }: { message: string }) {
+  return (
+    <View style={styles.messageWrap}>
+      <ThemedText style={styles.messageText}>{message}</ThemedText>
     </View>
   );
 }
@@ -160,14 +197,6 @@ function PromoBanner() {
   );
 }
 
-function QuoteBlock({ quote }: { quote: string }) {
-  return (
-    <View style={styles.quoteBlock}>
-      <ThemedText style={styles.quoteText}>{`«${quote}»`}</ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -180,6 +209,18 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 40,
+  },
+  messageWrap: {
+    minHeight: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.three,
+  },
+  messageText: {
+    color: Palette.neutral['700'],
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
   },
   heroImage: {
     width: '100%',
@@ -228,12 +269,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: 500,
-  },
-  leadTitle: {
-    fontSize: 18,
-    lineHeight: 25,
-    fontWeight: 700,
-    color: Palette.neutral['800'],
   },
   paragraph: {
     fontSize: 14,
@@ -291,15 +326,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#DCE7F0',
     transform: [{ rotate: '-18deg' }],
-  },
-  quoteBlock: {
-    paddingTop: 4,
-  },
-  quoteText: {
-    color: Palette.neutral['800'],
-    fontSize: 15,
-    lineHeight: 26,
-    fontWeight: 700,
   },
   relatedSection: {
     paddingHorizontal: Spacing.three,

@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 type NewsListItemProps = {
   title: string;
-  imageSource: number;
+  imageSource: string | number;
   saved: boolean;
   hasBadge?: boolean;
   showDivider?: boolean;

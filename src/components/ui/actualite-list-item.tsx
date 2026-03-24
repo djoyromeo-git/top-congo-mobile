@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 type ActualiteListItemProps = {
   title: string;
-  imageSource: number;
+  imageSource: string | number;
   date?: string;
   saved: boolean;
   showDivider?: boolean;
