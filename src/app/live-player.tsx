@@ -1,4 +1,4 @@
-import { Entypo, Feather } from '@expo/vector-icons';
+import { CaretDown, DotsThreeVertical, Pause, Play, RotateCcw, RotateCw } from 'phosphor-react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -15,6 +15,7 @@ import {
   useLiveAudioStatus,
   useLiveMetadata,
   useLiveProgramInfo,
+  useLiveReconnectState,
 } from '@/services/live-audio';
 
 export default function LivePlayerScreen() {
@@ -23,6 +24,7 @@ export default function LivePlayerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const reconnectState = useLiveReconnectState();
   const program = useLiveProgramInfo();
   const metadata = useLiveMetadata();
 
@@ -43,13 +45,13 @@ export default function LivePlayerScreen() {
       <View style={styles.content}>
         <View style={[styles.header, { paddingTop: insets.top + Spacing.two }]}>
           <Pressable onPress={() => router.back()} style={styles.headerAction}>
-            <Feather name="chevron-down" size={24} color={theme.onPrimary} />
+            <CaretDown size={24} weight="bold" color={theme.onPrimary} />
           </Pressable>
           <View style={styles.headerTitleWrap}>
             <ThemedText style={[styles.headerTitle, { color: theme.onPrimary }]}>{t('auth.liveBadge')}</ThemedText>
           </View>
           <Pressable style={styles.headerAction}>
-            <Feather name="more-vertical" size={20} color={theme.onPrimary} />
+            <DotsThreeVertical size={20} weight="bold" color={theme.onPrimary} />
           </Pressable>
         </View>
 
@@ -63,8 +65,12 @@ export default function LivePlayerScreen() {
 
         <View style={styles.infoWrap}>
           <ThemedText style={[styles.programTitle, { color: theme.onPrimary }]}>{program.title}</ThemedText>
-          <ThemedText style={[styles.programHost, { color: theme.onPrimary }]}>{program.host}</ThemedText>
-          <ThemedText style={[styles.programSchedule, { color: theme.onPrimary }]}>{program.schedule}</ThemedText>
+          {program.host ? (
+            <ThemedText style={[styles.programHost, { color: theme.onPrimary }]}>{program.host}</ThemedText>
+          ) : null}
+          {program.schedule ? (
+            <ThemedText style={[styles.programSchedule, { color: theme.onPrimary }]}>{program.schedule}</ThemedText>
+          ) : null}
         </View>
 
         <View style={styles.sliderWrap}>
@@ -75,7 +81,7 @@ export default function LivePlayerScreen() {
 
         <View style={styles.controlsRow}>
           <Pressable style={styles.secondaryControl}>
-            <Feather name="rotate-ccw" size={24} color={theme.onPrimary} />
+            <RotateCcw size={24} weight="bold" color={theme.onPrimary} />
           </Pressable>
 
           <Pressable
@@ -90,29 +96,42 @@ export default function LivePlayerScreen() {
             ]}>
             {isBuffering ? (
               <ActivityIndicator size="small" color={theme.secondary} />
-            ) : (
-              <Entypo
-                name={isPlaying ? 'controller-paus' : 'controller-play'}
-                size={34}
-                color={isLiveStreamConfigured ? theme.secondary : theme.disabledText}
-                style={!isPlaying ? styles.playIcon : undefined}
-              />
-            )}
-          </Pressable>
+              ) : isPlaying ? (
+                <Pause size={34} weight="fill" color={isLiveStreamConfigured ? theme.secondary : theme.disabledText} />
+              ) : (
+                <Play
+                  size={34}
+                  weight="fill"
+                  color={isLiveStreamConfigured ? theme.secondary : theme.disabledText}
+                  style={styles.playIcon}
+                />
+              )}
+            </Pressable>
           <Pressable style={styles.secondaryControl}>
-            <Feather name="rotate-cw" size={24} color={theme.onPrimary} />
+            <RotateCw size={24} weight="bold" color={theme.onPrimary} />
           </Pressable>
         </View>
 
         <View style={styles.stateWrap}>
+          {reconnectState.isReconnecting ? (
+            <View style={styles.reconnectInline}>
+              <ActivityIndicator size="small" color={theme.onPrimary} />
+              <ThemedText style={[styles.stateText, { color: theme.onPrimary }]}>
+                {`Reconnexion... (tentative ${reconnectState.attempt})`}
+              </ThemedText>
+            </View>
+          ) : null}
+
           <ThemedText style={[styles.stateText, { color: theme.onPrimary }]}>
             {!isLiveStreamConfigured
               ? 'Stream indisponible'
-              : isBuffering
-                ? 'Chargement...'
-                : isPlaying
-                  ? 'En direct'
-                  : 'Prêt à lancer'}
+              : reconnectState.isReconnecting
+                ? 'Reconnexion en cours'
+                : isBuffering
+                  ? 'Chargement...'
+                  : isPlaying
+                    ? 'En direct'
+                    : 'Pret a lancer'}
           </ThemedText>
         </View>
       </View>
@@ -237,6 +256,12 @@ const styles = StyleSheet.create({
   stateWrap: {
     alignItems: 'center',
     marginTop: 4,
+    gap: 8,
+  },
+  reconnectInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   stateText: {
     fontSize: 13,

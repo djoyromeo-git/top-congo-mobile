@@ -10,8 +10,12 @@
     "ios": {
       "icon": "./assets/images/icon-red-white.png",
       "bundleIdentifier": "app.topcongo.live",
+      "usesAppleSignIn": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -27,7 +31,8 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "androidStatusBar": {
@@ -44,8 +49,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#174197",
-          "image": "./assets/expo.icon/Assets/logo-all-white.png",
-          "imageWidth": 200
+          "image": "./assets/images/splash-logo-padded.png",
+          "imageWidth": 260
         }
       ],
       "expo-localization",
@@ -54,7 +59,24 @@
         {
           "enableBackgroundPlayback": true
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "general",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      "expo-apple-authentication",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "archi-tech",
+          "project": "top-congo-mobile"
+        }
+      ],
+      "expo-asset",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

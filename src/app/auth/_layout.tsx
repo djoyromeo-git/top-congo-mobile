@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import React from 'react';
 import { StatusBar, type StatusBarStyle } from 'expo-status-bar';
 import {
+  Platform,
   StyleSheet,
   View,
   type StyleProp,
@@ -31,6 +32,7 @@ type AuthScreenLayoutProps = {
   children: React.ReactNode;
   contentContainerStyle?: StyleProp<ViewStyle>;
   bodyStyle?: StyleProp<ViewStyle>;
+  scrollRef?: React.RefObject<any>;
 };
 
 export function AuthScreenLayout({
@@ -44,10 +46,12 @@ export function AuthScreenLayout({
   children,
   contentContainerStyle,
   bodyStyle,
+  scrollRef,
 }: AuthScreenLayoutProps) {
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const topSpacing = Platform.OS === 'web' ? Spacing.three : 0;
   const resolvedStatusBarStyle: StatusBarStyle =
     statusBarStyle ?? (colorScheme === 'dark' ? 'light' : 'dark');
 
@@ -56,10 +60,12 @@ export function AuthScreenLayout({
       <StatusBar style={resolvedStatusBarStyle} backgroundColor={theme.background} translucent={false} />
 
       <KeyboardAwareScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
           {
+            paddingTop: topSpacing,
             paddingBottom: insets.bottom + Spacing.three,
           },
           contentContainerStyle,

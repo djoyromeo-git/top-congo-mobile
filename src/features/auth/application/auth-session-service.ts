@@ -1,0 +1,617 @@
+import type {
+  AuthLogger,
+  AuthSessionStore,
+  CredentialsAuthGateway,
+  SocialAuthProviderPort,
+} from '@/features/auth/domain/ports';
+import type {
+  AuthCredentialsInput,
+  AuthRegistrationCompletionResult,
+  AuthRegistrationCompletionInput,
+  AuthOtpVerificationInput,
+  AuthRegistrationResult,
+  AuthRegistrationInput,
+  AuthSession,
+  AuthState,
+  SocialAuthProvider,
+} from '@/features/auth/domain/models';
+import { normalizeCredentialsAuthError, normalizeSocialAuthError } from '@/features/auth/domain/errors';
+
+type AuthStateListener = (state: AuthState) => void;
+
+const INITIAL_AUTH_STATE: AuthState = {
+  isHydrated: false,
+  session: null,
+  isSigningIn: false,
+  activeProvider: null,
+  error: null,
+  capabilities: {
+    apple: false,
+    google: false,
+  },
+};
+
+function mergeSessionWithExisting(existing: AuthSession | null, next: AuthSession) {
+  if (!existing || existing.provider !== next.provider || existing.user.id !== next.user.id) {
+    return next;
+  }
+
+  return {
+    ...next,
+    user: {
+      ...next.user,
+      email: next.user.email ?? existing.user.email,
+      fullName: next.user.fullName ?? existing.user.fullName,
+      givenName: next.user.givenName ?? existing.user.givenName,
+      familyName: next.user.familyName ?? existing.user.familyName,
+      avatarUrl: next.user.avatarUrl ?? existing.user.avatarUrl,
+      emailVerified: next.user.emailVerified ?? existing.user.emailVerified,
+      phone: next.user.phone ?? existing.user.phone,
+      gender: next.user.gender ?? existing.user.gender,
+      role: next.user.role ?? existing.user.role,
+      createdAt: next.user.createdAt ?? existing.user.createdAt,
+    },
+    idToken: next.idToken ?? existing.idToken,
+    accessToken: next.accessToken ?? existing.accessToken,
+    authorizationCode: next.authorizationCode ?? existing.authorizationCode,
+    refreshToken: next.refreshToken ?? existing.refreshToken,
+  };
+}
+
+export class AuthSessionService {
+  private started = false;
+  private state: AuthState = INITIAL_AUTH_STATE;
+  private readonly listeners = new Set<AuthStateListener>();
+
+  constructor(
+    private readonly store: AuthSessionStore,
+    private readonly providers: Record<SocialAuthProvider, SocialAuthProviderPort>,
+    private readonly credentialsGateway: CredentialsAuthGateway,
+    private readonly logger: AuthLogger
+  ) {}
+
+  getState() {
+    return this.state;
+  }
+
+  subscribe(listener: AuthStateListener) {
+    this.listeners.add(listener);
+    listener(this.state);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  async start() {
+    if (this.started) {
+      return;
+    }
+
+    this.started = true;
+    const [storedSession, appleAvailable, googleAvailable] = await Promise.all([
+      this.store.get(),
+      this.providers.apple.isAvailableAsync(),
+      this.providers.google.isAvailableAsync(),
+    ]);
+
+    const session = await this.hydrateStoredSession(storedSession);
+
+    this.setState({
+      ...this.state,
+      isHydrated: true,
+      session,
+      capabilities: {
+        apple: appleAvailable,
+        google: googleAvailable,
+      },
+    });
+  }
+
+  async signIn(provider: SocialAuthProvider) {
+    const authProvider = this.providers[provider];
+
+    if (!authProvider || this.state.isSigningIn) {
+      return null;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: provider,
+      error: null,
+    });
+
+    try {
+      const nextSession = await authProvider.signInAsync();
+      const mergedSession = mergeSessionWithExisting(this.state.session, nextSession);
+      await this.store.set(mergedSession);
+      this.logSessionPersisted('social_sign_in', mergedSession);
+
+      this.logger.info('auth.sign_in_succeeded', {
+        provider,
+        userId: mergedSession.user.id,
+      });
+
+      this.setState({
+        ...this.state,
+        session: mergedSession,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return mergedSession;
+    } catch (error) {
+      const normalizedError = normalizeSocialAuthError(error, provider);
+
+      if (normalizedError.code !== 'cancelled') {
+        this.logger.error('auth.sign_in_failed', normalizedError, {
+          provider,
+          code: normalizedError.code,
+        });
+      } else {
+        this.logger.debug('auth.sign_in_cancelled', {
+          provider,
+        });
+      }
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.code === 'cancelled' ? null : normalizedError.toDescriptor(),
+      });
+
+      return null;
+    }
+  }
+
+  async signInWithCredentials(input: AuthCredentialsInput) {
+    return this.authenticateWithCredentials('auth.credentials_sign_in', () =>
+      this.credentialsGateway.signInWithCredentials(input)
+    );
+  }
+
+  async registerWithCredentials(input: AuthRegistrationInput) {
+    if (this.state.isSigningIn) {
+      return null;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const result = await this.credentialsGateway.register(input);
+
+      if (result.kind === 'otp_pending') {
+        this.logger.info('auth.credentials_register_otp_pending', {
+          provider: 'credentials',
+          registrationId: result.registrationId,
+        });
+
+        this.setState({
+          ...this.state,
+          isSigningIn: false,
+          activeProvider: null,
+          error: null,
+        });
+
+        return result;
+      }
+
+      const mergedSession = mergeSessionWithExisting(this.state.session, result.session);
+      await this.store.set(mergedSession);
+      this.logSessionPersisted('auth.credentials_register', mergedSession);
+
+      this.logger.info('auth.credentials_register_succeeded', {
+        provider: mergedSession.provider,
+        userId: mergedSession.user.id,
+      });
+
+      this.setState({
+        ...this.state,
+        session: mergedSession,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return {
+        kind: 'session',
+        session: mergedSession,
+      } satisfies AuthRegistrationResult;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_register_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return null;
+    }
+  }
+
+  async verifyRegistrationOtp(input: AuthOtpVerificationInput) {
+    if (this.state.isSigningIn) {
+      return false;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const isVerified = await this.credentialsGateway.verifyRegistrationOtp(input);
+
+      this.logger.info('auth.credentials_verify_otp_succeeded', {
+        provider: 'credentials',
+        registrationId: input.registrationId,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return isVerified;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_verify_otp_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return false;
+    }
+  }
+
+  async resendRegistrationOtp(registrationId: string) {
+    if (this.state.isSigningIn) {
+      return null;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const message = await this.credentialsGateway.resendRegistrationOtp(registrationId);
+
+      this.logger.info('auth.credentials_resend_otp_succeeded', {
+        provider: 'credentials',
+        registrationId,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return message;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_resend_otp_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return null;
+    }
+  }
+
+  async completeRegistration(input: AuthRegistrationCompletionInput) {
+    if (this.state.isSigningIn) {
+      return false;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const result = await this.credentialsGateway.completeRegistration(input);
+
+      if (result.kind === 'session') {
+        const mergedSession = mergeSessionWithExisting(this.state.session, result.session);
+        await this.store.set(mergedSession);
+        this.logSessionPersisted('auth.credentials_complete_registration', mergedSession);
+
+        this.logger.info('auth.credentials_complete_registration_succeeded', {
+          provider: mergedSession.provider,
+          registrationId: input.registrationId,
+          userId: mergedSession.user.id,
+        });
+
+        this.setState({
+          ...this.state,
+          session: mergedSession,
+          isSigningIn: false,
+          activeProvider: null,
+          error: null,
+        });
+
+        return true;
+      }
+
+      this.logger.info('auth.credentials_complete_registration_succeeded', {
+        provider: 'credentials',
+        registrationId: input.registrationId,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return isCompletionSuccessful(result);
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_complete_registration_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return false;
+    }
+  }
+
+  async updatePreferences(categoryIds: string[]) {
+    if (this.state.isSigningIn) {
+      return false;
+    }
+
+    const session = this.state.session;
+
+    if (!session || session.provider !== 'credentials' || !session.accessToken) {
+      const error = new CredentialsAuthError('invalid_credentials', 'Authentication required.');
+
+      this.logger.error('auth.credentials_update_preferences_failed', error, {
+        provider: 'credentials',
+        code: error.code,
+      });
+
+      this.setState({
+        ...this.state,
+        error: error.toDescriptor(),
+      });
+
+      return false;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      await this.credentialsGateway.updatePreferences(categoryIds, session.accessToken);
+
+      this.logger.info('auth.credentials_update_preferences_succeeded', {
+        provider: session.provider,
+        userId: session.user.id,
+        categoriesCount: categoryIds.length,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return true;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_update_preferences_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return false;
+    }
+  }
+
+  async signOut() {
+    const currentSession = this.state.session;
+
+    if (currentSession?.provider === 'credentials' && currentSession.accessToken) {
+      try {
+        await this.credentialsGateway.logout(currentSession.accessToken);
+      } catch (error) {
+        this.logger.warn('auth.sign_out_remote_failed', {
+          provider: currentSession.provider,
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    await this.store.clear();
+
+    this.setState({
+      ...this.state,
+      session: null,
+      error: null,
+    });
+  }
+
+  clearError() {
+    if (!this.state.error) {
+      return;
+    }
+
+    this.setState({
+      ...this.state,
+      error: null,
+    });
+  }
+
+  private setState(nextState: AuthState) {
+    this.state = nextState;
+
+    for (const listener of this.listeners) {
+      listener(this.state);
+    }
+  }
+
+  private async hydrateStoredSession(session: AuthSession | null) {
+    if (!session || session.provider !== 'credentials' || !session.accessToken) {
+      return session;
+    }
+
+    try {
+      const profile = await this.credentialsGateway.fetchProfile(session.accessToken);
+      const nextSession = mergeSessionWithExisting(session, {
+        ...session,
+        user: profile,
+      });
+
+      await this.store.set(nextSession);
+      this.logSessionPersisted('session_hydration', nextSession);
+
+      return nextSession;
+    } catch (error) {
+      this.logger.warn('auth.session_hydration_profile_failed', {
+        provider: session.provider,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      return session;
+    }
+  }
+
+  private async authenticateWithCredentials(action: string, operation: () => Promise<AuthSession>) {
+    if (this.state.isSigningIn) {
+      return null;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const nextSession = await operation();
+      const mergedSession = mergeSessionWithExisting(this.state.session, nextSession);
+      await this.store.set(mergedSession);
+      this.logSessionPersisted(action, mergedSession);
+
+      this.logger.info(`${action}_succeeded`, {
+        provider: mergedSession.provider,
+        userId: mergedSession.user.id,
+      });
+
+      this.setState({
+        ...this.state,
+        session: mergedSession,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return mergedSession;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error(`${action}_failed`, normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return null;
+    }
+  }
+
+  private logSessionPersisted(reason: string, session: AuthSession) {
+    const context = {
+      reason,
+      provider: session.provider,
+      userId: session.user.id,
+      fullName: session.user.fullName,
+      email: session.user.email,
+      hasAccessToken: Boolean(session.accessToken),
+      issuedAt: session.issuedAt,
+      lastAuthenticatedAt: session.lastAuthenticatedAt,
+    };
+
+    this.logger.debug('auth.session_saved', context);
+
+    if (__DEV__) {
+      console.info('[auth] session saved', context);
+    }
+  }
+}
+
+function isCompletionSuccessful(result: AuthRegistrationCompletionResult) {
+  return result.kind === 'completed' || result.kind === 'session';
+}

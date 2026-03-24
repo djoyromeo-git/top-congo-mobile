@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
 export const Palette = {
   blue: {
     '100': '#FFFFFF',
-    '200': '#E1E1F0',
+    '200': '#F5F5F7',
     '300': '#C4C4E1',
     '400': '#A6A8D3',
     '500': '#888CC4',
@@ -51,7 +51,7 @@ export const Palette = {
   neutral: {
     '100': '#FFFFFF',
     '200': '#D6D6D6',
-    '300': '#AFAFAF',
+    '300': '#1A1A1A',
     '400': '#898989',
     '500': '#656565',
     '600': '#434343',
@@ -83,9 +83,9 @@ export const Colors = {
     shadow: '#000000',
     subtleText: '#555555',
     homeTitle: '#1A1A1A',
-    homeSubtitle: '#9C9C9C',
+    homeSubtitle: '#1A1A1A',
     homeChipBorder: '#E3E3E3',
-    homeChipBackground: '#F7F7F7',
+    homeChipBackground: '#E8E8E8',
     homeChipText: '#202020',
     homeSectionTitle: '#1A1A1A',
     homeSectionLink: '#A2A2A2',

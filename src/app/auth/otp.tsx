@@ -1,10 +1,11 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
+import { useCredentialsAuth } from '@/features/auth/presentation/use-auth-session';
 import { useTheme } from '@/hooks/use-theme';
 import { AuthScreenLayout } from './_layout';
 
@@ -13,14 +14,18 @@ const OTP_LENGTH = 5;
 export default function OtpVerificationScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useLocalSearchParams<{ recipient?: string | string[]; registrationId?: string | string[] }>();
   const theme = useTheme();
-  const inputRefs = React.useRef<Array<TextInput | null>>([]);
+  const { clearError, error, isSubmitting, resendRegistrationOtp, verifyRegistrationOtp } = useCredentialsAuth();
+  const inputRefs = React.useRef<(TextInput | null)[]>([]);
 
   const [digits, setDigits] = React.useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [focusedIndex, setFocusedIndex] = React.useState(0);
+  const [resendMessage, setResendMessage] = React.useState<string | null>(null);
 
   const filledCount = digits.join('').length;
-  const isVerifyEnabled = filledCount > 0;
+  const registrationId = getSingleParamValue(params.registrationId);
+  const isVerifyEnabled = filledCount === OTP_LENGTH && registrationId.length > 0 && !isSubmitting;
 
   const updateDigits = (next: string[]) => {
     setDigits(next);
@@ -71,15 +76,72 @@ export default function OtpVerificationScreen() {
     inputRefs.current[prevIndex]?.focus();
   };
 
+  const handleVerify = React.useCallback(async () => {
+    if (!registrationId || filledCount !== OTP_LENGTH) {
+      return;
+    }
+
+    setResendMessage(null);
+
+    const isVerified = await verifyRegistrationOtp({
+      registrationId,
+      otp: digits.join(''),
+    });
+
+    if (isVerified) {
+      router.replace({
+        pathname: '/auth/username',
+        params: {
+          registrationId,
+        },
+      });
+    }
+  }, [digits, filledCount, registrationId, router, verifyRegistrationOtp]);
+
+  const handleBack = React.useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/auth/register');
+  }, [router]);
+
+  const handleResendOtp = React.useCallback(async () => {
+    if (!registrationId) {
+      return;
+    }
+
+    const message = await resendRegistrationOtp(registrationId);
+    if (message) {
+      setResendMessage(message);
+    }
+  }, [registrationId, resendRegistrationOtp]);
+
+  const recipient = getSingleParamValue(params.recipient);
+  const recipientLabel = recipient ? formatOtpRecipient(recipient) : t('auth.otpMaskedEmail');
+
   return (
     <AuthScreenLayout
       title={t('auth.otpTitle')}
       subtitle={t('auth.otpSubtitle')}
-      onPressBack={() => router.back()}>
+      onPressBack={handleBack}>
+      {error?.provider === 'credentials' ? (
+        <View style={styles.screenErrorWrap}>
+          <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
+        </View>
+      ) : null}
+
+      {resendMessage ? (
+        <View style={[styles.screenMessageWrap, { backgroundColor: '#EAF7EC' }]}>
+          <ThemedText style={[styles.messageText, { color: '#1A7F37' }]}>{resendMessage}</ThemedText>
+        </View>
+      ) : null}
+
       <View style={styles.otpSection}>
         <ThemedText style={styles.otpPrompt}>
           {t('auth.otpPromptPrefix')}{' '}
-          <ThemedText style={styles.otpEmail}>{t('auth.otpMaskedEmail')}</ThemedText>
+          <ThemedText style={styles.otpEmail}>{recipientLabel}</ThemedText>
         </ThemedText>
 
         <View style={styles.otpRow}>
@@ -94,7 +156,10 @@ export default function OtpVerificationScreen() {
                 }}
                 value={digit}
                 onChangeText={(value) => handleChange(index, value)}
-                onFocus={() => setFocusedIndex(index)}
+                onFocus={() => {
+                  clearError();
+                  setFocusedIndex(index);
+                }}
                 onKeyPress={({ nativeEvent }) => {
                   if (nativeEvent.key === 'Backspace') {
                     handleBackspace(index);
@@ -118,7 +183,12 @@ export default function OtpVerificationScreen() {
 
         <View style={styles.timerRow}>
           <ThemedText style={styles.timerText}>{t('auth.otpTimer')}</ThemedText>
-          <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
+          <Pressable
+            disabled={registrationId.length === 0 || isSubmitting}
+            onPress={() => {
+              void handleResendOtp();
+            }}
+            style={({ pressed }) => [pressed && styles.pressed, registrationId.length === 0 || isSubmitting ? styles.disabledPressable : null]}>
             <ThemedText style={[styles.resendText, { color: theme.secondary }]}> {t('auth.otpResend')}</ThemedText>
           </Pressable>
         </View>
@@ -127,7 +197,10 @@ export default function OtpVerificationScreen() {
       <AppButton
         label={t('auth.verifyCode')}
         disabled={!isVerifyEnabled}
-        onPress={() => router.push('/auth/username')}
+        onPress={() => {
+          void handleVerify();
+        }}
+        rightAccessory={isSubmitting ? <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
         style={[
           styles.verifyButton,
           !isVerifyEnabled && styles.verifyButtonDisabled,
@@ -143,9 +216,32 @@ export default function OtpVerificationScreen() {
 }
 
 const styles = StyleSheet.create({
+  screenErrorWrap: {
+    marginBottom: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#FDECEC',
+  },
+  screenMessageWrap: {
+    marginBottom: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
   otpSection: {
-    marginTop: 58,
+    marginTop: 40,
     gap: 16,
+  },
+  errorText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: 600,
+  },
+  messageText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: 600,
   },
   otpPrompt: {
     fontSize: 14,
@@ -201,4 +297,44 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.75,
   },
+  disabledPressable: {
+    opacity: 0.45,
+  },
 });
+
+function getSingleParamValue(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? '';
+  }
+
+  return value ?? '';
+}
+
+function formatOtpRecipient(value: string) {
+  return value.includes('@') ? maskEmail(value) : maskPhone(value);
+}
+
+function maskEmail(email: string) {
+  const [localPart = '', domain = ''] = email.trim().split('@');
+
+  if (!localPart || !domain) {
+    return email;
+  }
+
+  const visibleCount = Math.min(4, Math.max(1, localPart.length));
+  const maskedCount = Math.max(0, localPart.length - visibleCount);
+  return `${localPart.slice(0, visibleCount)}${'*'.repeat(maskedCount)}@${domain}`;
+}
+
+function maskPhone(phone: string) {
+  const trimmed = phone.trim();
+
+  if (trimmed.length <= 4) {
+    return trimmed;
+  }
+
+  const visibleSuffix = trimmed.slice(-4);
+  const prefix = trimmed.startsWith('+') ? '+' : '';
+  const hiddenCount = Math.max(0, trimmed.replace(/^\+/, '').length - 4);
+  return `${prefix}${'*'.repeat(hiddenCount)}${visibleSuffix}`;
+}

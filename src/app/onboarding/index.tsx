@@ -1,28 +1,166 @@
 import { Image } from 'expo-image';
+import { Asset } from 'expo-asset';
+import { Redirect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Dimensions, FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
 import { Palette, Spacing } from '@/constants/theme';
+import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
 
 type OnboardingScreenProps = {
   onPressCreateAccount?: () => void;
+  onPressContinueWithoutAccount?: () => void;
   onPressTryPremium?: () => void;
 };
 
 export default function OnboardingScreen({
   onPressCreateAccount,
+  onPressContinueWithoutAccount,
   onPressTryPremium,
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { isHydrated, session } = useAuthSession();
+  const { width: windowWidth } = useWindowDimensions();
+  const [sliderWidth, setSliderWidth] = React.useState(() => {
+    const deviceWidth = Dimensions.get('window')?.width || windowWidth || 0;
+    return Math.max(1, Math.round(deviceWidth));
+  });
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const flatListRef = React.useRef<FlatList>(null);
+  const currentIndexRef = React.useRef(0);
+  const LOGO_SOURCE = React.useRef(require('@/assets/expo.icon/Assets/logo-all-white.png')).current;
+
+  const slides = React.useMemo(
+    () => [
+      {
+        key: 'news',
+        title: t('onboarding.firstTitle'),
+        subtitle: t('onboarding.firstSubtitle'),
+      },
+      {
+        key: 'live',
+        title: t('onboarding.secondTitle'),
+        subtitle: t('onboarding.secondSubtitle'),
+      },
+      {
+        key: 'premium',
+        title: t('onboarding.thirdTitle'),
+        subtitle: t('onboarding.thirdSubtitle'),
+      },
+    ],
+    [t]
+  );
+
   const handleCreateAccount = onPressCreateAccount ?? (() => router.replace('/auth/register'));
-  const handleTryPremium = onPressTryPremium ?? (() => router.replace('/(tabs)'));
+  const handleContinueWithoutAccount =
+    onPressContinueWithoutAccount ?? (() => router.replace('/(tabs)'));
+  const handleTryPremium = onPressTryPremium ?? (() => router.replace('/premium'));
+
+  const applyIndex = React.useCallback((index: number) => {
+    setActiveIndex(index);
+    currentIndexRef.current = index;
+  }, []);
+
+  const handleMomentumEnd = React.useCallback(
+    (event) => {
+      const { contentOffset, layoutMeasurement } = event.nativeEvent;
+      const pageWidth = layoutMeasurement?.width || sliderWidth;
+      if (!pageWidth) {
+        return;
+      }
+      const index = Math.round(contentOffset.x / pageWidth);
+      applyIndex(index);
+    },
+    [applyIndex, sliderWidth]
+  );
+
+  const handleSliderLayout = React.useCallback(
+    (event) => {
+      const measuredWidth = Math.round(event.nativeEvent.layout.width);
+      if (measuredWidth && measuredWidth !== sliderWidth) {
+        setSliderWidth(measuredWidth);
+      }
+    },
+    [sliderWidth]
+  );
+
+  React.useEffect(() => {
+    const nextWidth = Math.round(windowWidth);
+    if (nextWidth && nextWidth !== sliderWidth) {
+      setSliderWidth(nextWidth);
+    }
+  }, [windowWidth, sliderWidth]);
+
+  // Preload logo to avoid delayed display on first render
+  React.useEffect(() => {
+    void Asset.loadAsync([LOGO_SOURCE]);
+  }, [LOGO_SOURCE]);
+
+  const renderSlide = React.useCallback(
+    ({ item }: { item: (typeof slides)[number] }) => (
+      <View style={[styles.slide, { width: sliderWidth }]}>
+        <ThemedText style={styles.title}>{item.title}</ThemedText>
+        <ThemedText style={styles.subtitle}>{item.subtitle}</ThemedText>
+      </View>
+    ),
+    [sliderWidth]
+  );
+
+  const scrollToIndex = React.useCallback(
+    (index: number) => {
+      if (!flatListRef.current || !sliderWidth) {
+        return false;
+      }
+      try {
+        flatListRef.current.scrollToIndex({ index, animated: true });
+        applyIndex(index);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [applyIndex, sliderWidth]
+  );
+
+  const getItemLayout = React.useCallback(
+    (_: unknown, index: number) => ({
+      length: sliderWidth,
+      offset: sliderWidth * index,
+      index,
+    }),
+    [sliderWidth]
+  );
+
+  React.useEffect(() => {
+    if (!sliderWidth || slides.length === 0) {
+      return;
+    }
+    const interval = setInterval(() => {
+      const nextIndex = (currentIndexRef.current + 1) % slides.length;
+      const ok = scrollToIndex(nextIndex);
+      if (!ok) {
+        const offset = nextIndex * sliderWidth;
+        flatListRef.current?.scrollToOffset({ offset, animated: true });
+        applyIndex(nextIndex);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [applyIndex, scrollToIndex, sliderWidth, slides.length]);
+
+  if (!isHydrated) {
+    return null;
+  }
+
+  if (session) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <View style={styles.screen}>
@@ -33,19 +171,48 @@ export default function OnboardingScreen({
         <View style={styles.content}>
           <View style={styles.heroSection}>
             <Image
-              source={require('@/assets/expo.icon/Assets/logo-all-white.png')}
+              source={LOGO_SOURCE}
               style={styles.logo}
               contentFit="contain"
+              cachePolicy="memory-disk"
+              priority="high"
+              transition={0}
             />
 
             <View style={styles.pagination}>
-              <View style={styles.paginationActive} />
-              <View style={styles.paginationDot} />
-              <View style={styles.paginationDot} />
+              {slides.map((slide, index) => (
+                <View
+                  key={slide.key}
+                  style={[styles.paginationDot, index === activeIndex && styles.paginationDotActive]}
+                />
+              ))}
             </View>
 
-            <ThemedText style={styles.title}>{t('onboarding.firstTitle')}</ThemedText>
-            <ThemedText style={styles.subtitle}>{t('onboarding.firstSubtitle')}</ThemedText>
+            <View style={styles.sliderContainer}>
+              <FlatList
+                ref={flatListRef}
+                data={slides}
+                horizontal
+                pagingEnabled
+                scrollEnabled={false}
+                snapToAlignment="center"
+                decelerationRate="fast"
+                showsHorizontalScrollIndicator={false}
+                scrollEventThrottle={16}
+                extraData={sliderWidth}
+                onScrollToIndexFailed={({ index }) => {
+                  const offset = index * sliderWidth;
+                  flatListRef.current?.scrollToOffset({ offset, animated: true });
+                }}
+                keyExtractor={(item) => item.key}
+                style={[styles.slider, { width: sliderWidth }]}
+                onMomentumScrollEnd={handleMomentumEnd}
+                onLayout={handleSliderLayout}
+                getItemLayout={getItemLayout}
+                snapToInterval={sliderWidth}
+                renderItem={renderSlide}
+              />
+            </View>
           </View>
 
           <View style={styles.actions}>
@@ -54,10 +221,22 @@ export default function OnboardingScreen({
             </View>
 
             <AppButton
+              testID="onboarding-create-account"
               label={t('onboarding.createAccount')}
               onPress={handleCreateAccount}
             />
-            <Pressable onPress={handleTryPremium} style={({ pressed }) => pressed && styles.pressed}>
+            <AppButton
+              testID="onboarding-continue-without-account"
+              label={t('onboarding.continueWithoutAccount')}
+              variant="ghost"
+              onPress={handleContinueWithoutAccount}
+              style={styles.secondaryButton}
+              labelStyle={styles.secondaryButtonLabel}
+            />
+            <Pressable
+              testID="onboarding-try-premium"
+              onPress={handleTryPremium}
+              style={({ pressed }) => pressed && styles.pressed}>
               <ThemedText
                 style={styles.secondaryAction}
                 numberOfLines={1}
@@ -105,19 +284,32 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
     marginTop: Spacing.three,
   },
-  paginationActive: {
-    width: 60,
-    height: 6,
-    borderRadius: 999,
-    marginBottom: Spacing.two,
-    backgroundColor: Palette.neutral['100'],
-  },
   paginationDot: {
-    width: 6,
-    height: 6,
+    width: 8,
+    height: 8,
     marginBottom: Spacing.two,
     borderRadius: 5,
-    backgroundColor: Palette.blue['300'],
+    backgroundColor: Palette.blue['400'],
+    opacity: 0.65,
+  },
+  paginationDotActive: {
+    width: 52,
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: Palette.neutral['100'],
+    opacity: 1,
+  },
+  sliderContainer: {
+    marginTop: Spacing.two,
+    marginHorizontal: -20,
+  },
+  slider: {
+    flexGrow: 0,
+    width: '100%',
+  },
+  slide: {
+    paddingHorizontal: 20,
+    alignItems: 'center',
   },
   title: {
     color: Palette.neutral['100'],
@@ -140,7 +332,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     position: 'relative',
-    gap: 16,
+    zIndex: -1,
+
+    gap: 12,
     paddingBottom: Spacing.one,
   },
   buttonArcMask: {
@@ -163,18 +357,14 @@ const styles = StyleSheet.create({
     opacity: 0.38,
     bottom: -352,
     left: -280,
+    zIndex: -1,
   },
-  primaryButton: {
-    backgroundColor: Palette.blue['800'],
-    borderColor: Palette.blue['800'],
-    borderRadius: 14,
-    minHeight: 58,
+  secondaryButton: {
+    borderColor: Palette.neutral['100'],
+    backgroundColor: 'transparent',
   },
-  primaryButtonLabel: {
+  secondaryButtonLabel: {
     color: Palette.neutral['100'],
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: 600,
   },
   secondaryAction: {
     color: Palette.neutral['100'],

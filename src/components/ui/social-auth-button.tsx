@@ -1,8 +1,8 @@
-import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { AppleLogo } from 'phosphor-react-native';
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -14,9 +14,11 @@ type SocialProvider = 'apple' | 'google';
 type SocialAuthButtonProps = Omit<PressableProps, 'style'> & {
   provider: SocialProvider;
   label?: string;
+  loading?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function SocialAuthButton({ provider, label, ...props }: SocialAuthButtonProps) {
+export function SocialAuthButton({ provider, label, loading = false, disabled, style, ...props }: SocialAuthButtonProps) {
   const theme = useTheme();
   const { t } = useTranslation();
   const isApple = provider === 'apple';
@@ -25,15 +27,20 @@ export function SocialAuthButton({ provider, label, ...props }: SocialAuthButton
 
   return (
     <Pressable
+      disabled={disabled}
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundElement },
+        style,
+        disabled && styles.disabled,
         pressed && styles.pressed,
       ]}
       {...props}>
       <View style={styles.content}>
-        {isApple ? (
-          <FontAwesome name="apple" size={20} color={theme.text} />
+        {loading ? (
+          <ActivityIndicator color={theme.text} size="small" />
+        ) : isApple ? (
+          <AppleLogo size={20} weight="fill" color={theme.text} />
         ) : (
           <Image source={require('@/assets/images/google-logo.png')} style={styles.googleLogo} contentFit="contain" />
         )}
@@ -69,5 +76,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
+  },
+  disabled: {
+    opacity: 0.55,
   },
 });
