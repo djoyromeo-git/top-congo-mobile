@@ -5,8 +5,8 @@ import { getTopCongoApiUrl } from '@/features/auth/config';
 import { ApiError } from '@/shared/api/api-error';
 import { createHttpClient } from '@/shared/api/http-client';
 
-export type ActualiteKind = 'article' | 'media';
-export type ActualiteImageSource = string | number;
+export type PostKind = 'article' | 'media';
+export type PostImageSource = string | number;
 
 type PostApiItem = {
   id?: unknown;
@@ -27,12 +27,12 @@ type PostsApiResponse = {
   data?: unknown;
 };
 
-export type ActualitePost = {
+export type Post = {
   id: string;
   slug: string;
   title: string;
-  kind: ActualiteKind;
-  imageSource: ActualiteImageSource;
+  kind: PostKind;
+  imageSource: PostImageSource;
   publishedAtLabel: string;
   publishedAtIso: string | null;
   readingTimeMinutes: number | null;
@@ -46,7 +46,7 @@ export type ActualitePost = {
   searchText: string;
 };
 
-const fallbackActualiteImage = require('@/assets/images/home/emission.png');
+const fallbackPostImage = require('@/assets/images/home/emission.png');
 
 const postsHttpClient = createHttpClient({
   baseUrl: getTopCongoApiUrl(),
@@ -141,7 +141,7 @@ function parseTimestamp(value: string | null) {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
-function mapPostItem(item: PostApiItem): ActualitePost | null {
+function mapPostItem(item: PostApiItem): Post | null {
   if ((typeof item.id !== 'number' && typeof item.id !== 'string') || typeof item.slug !== 'string') {
     return null;
   }
@@ -159,7 +159,7 @@ function mapPostItem(item: PostApiItem): ActualitePost | null {
     return null;
   }
 
-  const kind: ActualiteKind =
+  const kind: PostKind =
     typeof item.type === 'string' && item.type.trim().toLowerCase() === 'media' ? 'media' : 'article';
   const contentHtml = typeof item.content === 'string' ? item.content : '';
   const contentBlocks = stripHtmlToBlocks(contentHtml);
@@ -181,7 +181,7 @@ function mapPostItem(item: PostApiItem): ActualitePost | null {
     slug: item.slug.trim(),
     title: item.title.trim(),
     kind,
-    imageSource: typeof item.image === 'string' && item.image.trim().length > 0 ? item.image.trim() : fallbackActualiteImage,
+    imageSource: typeof item.image === 'string' && item.image.trim().length > 0 ? item.image.trim() : fallbackPostImage,
     publishedAtLabel: formatPublishedDate(publishedAtIso),
     publishedAtIso,
     readingTimeMinutes,
@@ -196,33 +196,33 @@ function mapPostItem(item: PostApiItem): ActualitePost | null {
   };
 }
 
-function comparePostsByDate(left: ActualitePost, right: ActualitePost) {
+function comparePostsByDate(left: Post, right: Post) {
   return parseTimestamp(right.publishedAtIso) - parseTimestamp(left.publishedAtIso);
 }
 
-export async function fetchActualitesPosts() {
+export async function fetchPosts() {
   const response = await postsHttpClient.get<PostsApiResponse>('/posts');
   const items = Array.isArray(response?.data) ? response.data : [];
 
   return items
     .filter(isPostApiItem)
     .map(mapPostItem)
-    .filter((item): item is ActualitePost => item !== null)
+    .filter((item): item is Post => item !== null)
     .sort(comparePostsByDate);
 }
 
-export function findActualitePost(posts: ActualitePost[], slug: string | undefined) {
+export function findPost(posts: Post[], slug: string | undefined) {
   return posts.find((item) => item.slug === slug);
 }
 
-export function selectRelatedActualites(posts: ActualitePost[], slug: string, limit = 3) {
+export function selectRelatedPosts(posts: Post[], slug: string, limit = 3) {
   return posts.filter((item) => item.slug !== slug).slice(0, limit);
 }
 
-export function useActualitesPosts() {
+export function usePosts() {
   return useQuery({
-    queryKey: ['actualites', 'posts'],
-    queryFn: fetchActualitesPosts,
+    queryKey: ['posts'],
+    queryFn: fetchPosts,
     staleTime: 1000 * 60 * 5,
     retry(failureCount, error) {
       if (error instanceof ApiError && error.code === 'configuration') {

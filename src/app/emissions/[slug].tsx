@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
@@ -35,6 +35,9 @@ export default function EmissionDetailScreen() {
   }, [emission, router, showsQuery.isSuccess]);
 
   const liveCardBottom = insets.bottom + 20;
+  const handleRefresh = React.useCallback(() => {
+    void showsQuery.refetch();
+  }, [showsQuery]);
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
@@ -50,7 +53,12 @@ export default function EmissionDetailScreen() {
         centerContent={<ThemedText style={styles.headerTitle}>{emission?.title ?? 'Emission'}</ThemedText>}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={showsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
+        }>
         {showsQuery.isLoading ? (
           <ScreenMessage message="Chargement de l'emission..." />
         ) : showsQuery.isError ? (

@@ -2,19 +2,19 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
+import { AppTopBar } from '@/components/ui/app-top-bar';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { Palette, Spacing } from '@/constants/theme';
 import {
-  findActualitePost,
-  selectRelatedActualites,
-  useActualitesPosts,
-} from '@/features/actualites/infrastructure/fetch-actualites-posts';
+  findPost,
+  selectRelatedPosts,
+  usePosts,
+} from '@/features/content/infrastructure/fetch-posts';
 import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
@@ -25,11 +25,11 @@ export default function ActualiteDetailScreen() {
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
-  const postsQuery = useActualitesPosts();
+  const postsQuery = usePosts();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
-  const item = React.useMemo(() => findActualitePost(posts, slug), [posts, slug]);
+  const item = React.useMemo(() => findPost(posts, slug), [posts, slug]);
   const relatedItems = React.useMemo(
-    () => (item ? selectRelatedActualites(posts, item.slug) : []),
+    () => (item ? selectRelatedPosts(posts, item.slug) : []),
     [item, posts]
   );
   const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
@@ -74,6 +74,10 @@ export default function ActualiteDetailScreen() {
     [posts, router]
   );
 
+  const handleRefresh = React.useCallback(() => {
+    void postsQuery.refetch();
+  }, [postsQuery]);
+
   const liveCardBottom = insets.bottom + 10;
 
   return (
@@ -90,7 +94,12 @@ export default function ActualiteDetailScreen() {
         centerContent={<ThemedText style={styles.headerTitle}>Actualites</ThemedText>}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={postsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
+        }>
         {postsQuery.isLoading ? (
           <ScreenMessage message="Chargement de l'article..." />
         ) : postsQuery.isError ? (
@@ -125,7 +134,7 @@ export default function ActualiteDetailScreen() {
                 <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>{item.summary}</ThemedText>
               ) : null}
 
-              <PromoBanner />
+              {/* <PromoBanner /> */}
             </View>
 
             {relatedItems.length > 0 ? (

@@ -6,7 +6,7 @@ import { useEmissionShows } from '@/features/emissions/infrastructure/fetch-emis
 import { useTheme } from '@/hooks/use-theme';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function EmissionsScreen() {
   const router = useRouter();
@@ -32,9 +32,18 @@ export default function EmissionsScreen() {
   );
   const activeEmission = filter === 'all' ? null : filtered[0] ?? null;
 
+  const handleRefresh = React.useCallback(() => {
+    void showsQuery.refetch();
+  }, [showsQuery]);
+
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={showsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
+        }>
         <View style={styles.pageTitle}>
           <ThemedText style={styles.heading}>Retrouvez nos emissions</ThemedText>
           <ThemedText style={[styles.subheading, { color: theme.homeSubtitle }]}>En direct ou en replay</ThemedText>

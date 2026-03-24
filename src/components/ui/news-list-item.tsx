@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
+import { BookmarkSimple, Play } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { BookmarkSimple, Play } from 'phosphor-react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';

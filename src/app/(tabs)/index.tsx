@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { BookmarkSimple, SealCheck } from 'phosphor-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { BookmarkSimple, SealCheck } from 'phosphor-react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { HeadlineCard } from '@/components/ui/headline-card';
@@ -12,14 +12,22 @@ import { NewsListItem } from '@/components/ui/news-list-item';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
 import { FEATURED_NEWS, NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
-import { useActualitesPosts } from '@/features/actualites/infrastructure/fetch-actualites-posts';
-import { useEmissionShows } from '@/features/emissions/infrastructure/fetch-emission-shows';
 import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
+import { usePosts } from '@/features/content/infrastructure/fetch-posts';
+import { useEmissionShows } from '@/features/emissions/infrastructure/fetch-emission-shows';
 import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function HomeFeedScreen() {
   const isHomeLoading = useHomeLoading();
+  const theme = useTheme();
+  const postsQuery = usePosts();
+  const showsQuery = useEmissionShows();
+  const topicsQuery = useTopicsOptions();
+
+  const handleRefresh = React.useCallback(() => {
+    void Promise.all([postsQuery.refetch(), showsQuery.refetch(), topicsQuery.refetch()]);
+  }, [postsQuery, showsQuery, topicsQuery]);
 
   return (
     <TabShell>
@@ -27,7 +35,14 @@ export default function HomeFeedScreen() {
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={[styles.content, { paddingBottom: liveCardBottom + 90 }]}
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={postsQuery.isRefetching || showsQuery.isRefetching || topicsQuery.isRefetching}
+              onRefresh={handleRefresh}
+              tintColor={theme.primary}
+            />
+          }>
           {isHomeLoading ? <HomeSkeleton /> : <HomeContent />}
         </ScrollView>
       )}
@@ -55,7 +70,7 @@ function HomeContent() {
   );
   const [selectedTopic, setSelectedTopic] = React.useState<string>('all');
   const topicsQuery = useTopicsOptions();
-  const postsQuery = useActualitesPosts();
+  const postsQuery = usePosts();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
   const showsQuery = useEmissionShows();
   const shows = React.useMemo(() => showsQuery.data ?? [], [showsQuery.data]);

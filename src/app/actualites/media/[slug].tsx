@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -12,10 +12,10 @@ import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { MediaControls } from '@/components/ui/media-controls';
 import { Palette, Spacing } from '@/constants/theme';
 import {
-  findActualitePost,
-  selectRelatedActualites,
-  useActualitesPosts,
-} from '@/features/actualites/infrastructure/fetch-actualites-posts';
+  findPost,
+  selectRelatedPosts,
+  usePosts,
+} from '@/features/content/infrastructure/fetch-posts';
 import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
@@ -26,11 +26,11 @@ export default function ActualiteMediaScreen() {
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
-  const postsQuery = useActualitesPosts();
+  const postsQuery = usePosts();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
-  const item = React.useMemo(() => findActualitePost(posts, slug), [posts, slug]);
+  const item = React.useMemo(() => findPost(posts, slug), [posts, slug]);
   const relatedItems = React.useMemo(
-    () => (item ? selectRelatedActualites(posts, item.slug) : []),
+    () => (item ? selectRelatedPosts(posts, item.slug) : []),
     [item, posts]
   );
   const [mediaMode, setMediaMode] = React.useState<'video' | 'audio'>('video');
@@ -88,6 +88,10 @@ export default function ActualiteMediaScreen() {
     [posts, router]
   );
 
+  const handleRefresh = React.useCallback(() => {
+    void postsQuery.refetch();
+  }, [postsQuery]);
+
   const liveCardBottom = insets.bottom + 10;
 
   return (
@@ -132,7 +136,12 @@ export default function ActualiteMediaScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={postsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
+        }>
         {postsQuery.isLoading ? (
           <ScreenMessage message="Chargement du media..." />
         ) : postsQuery.isError ? (

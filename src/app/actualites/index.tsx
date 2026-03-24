@@ -2,13 +2,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
 import { Palette } from '@/constants/theme';
-import { useActualitesPosts } from '@/features/actualites/infrastructure/fetch-actualites-posts';
+import { usePosts } from '@/features/content/infrastructure/fetch-posts';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function ActualitesScreen() {
@@ -17,7 +17,7 @@ export default function ActualitesScreen() {
   const [query, setQuery] = React.useState('');
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
-  const postsQuery = useActualitesPosts();
+  const postsQuery = usePosts();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
 
   const normalizedQuery = React.useMemo(
@@ -71,6 +71,10 @@ export default function ActualitesScreen() {
     [posts, router]
   );
 
+  const handleRefresh = React.useCallback(() => {
+    void postsQuery.refetch();
+  }, [postsQuery]);
+
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
       <StatusBar style="light" backgroundColor={Palette.blue['800']} />
@@ -104,7 +108,12 @@ export default function ActualitesScreen() {
         </View>
       ) : null}
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={postsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
+        }>
         <View style={[styles.list, { borderTopColor: theme.homeChipBorder }]}>
           {postsQuery.isLoading ? (
             <View style={styles.emptyState}>
