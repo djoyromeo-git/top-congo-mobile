@@ -19,7 +19,8 @@ export interface SocialAuthProviderPort {
 export interface CredentialsAuthGateway {
   signInWithCredentials(input: AuthCredentialsInput): Promise<AuthSession>;
   register(input: AuthRegistrationInput): Promise<AuthRegistrationResult>;
-  verifyRegistrationOtp(input: AuthOtpVerificationInput): Promise<AuthSession>;
+  verifyRegistrationOtp(input: AuthOtpVerificationInput): Promise<boolean>;
+  resendRegistrationOtp(registrationId: string): Promise<string>;
   fetchProfile(accessToken: string): Promise<AuthUserProfile>;
   logout(accessToken: string): Promise<void>;
 }

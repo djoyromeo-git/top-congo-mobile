@@ -69,6 +69,7 @@ export function useCredentialsAuth() {
     state,
     clearError,
     registerWithCredentials,
+    resendRegistrationOtp,
     signInWithCredentials,
     signOut,
     verifyRegistrationOtp,
@@ -101,6 +102,13 @@ export function useCredentialsAuth() {
         return verifyRegistrationOtp(input);
       },
       [clearError, verifyRegistrationOtp]
+    ),
+    resendRegistrationOtp: React.useCallback(
+      async (registrationId: string) => {
+        clearError();
+        return resendRegistrationOtp(registrationId);
+      },
+      [clearError, resendRegistrationOtp]
     ),
   };
 }

@@ -243,9 +243,97 @@ export class AuthSessionService {
   }
 
   async verifyRegistrationOtp(input: AuthOtpVerificationInput) {
-    return this.authenticateWithCredentials('auth.credentials_verify_otp', () =>
-      this.credentialsGateway.verifyRegistrationOtp(input)
-    );
+    if (this.state.isSigningIn) {
+      return false;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const isVerified = await this.credentialsGateway.verifyRegistrationOtp(input);
+
+      this.logger.info('auth.credentials_verify_otp_succeeded', {
+        provider: 'credentials',
+        registrationId: input.registrationId,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return isVerified;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_verify_otp_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return false;
+    }
+  }
+
+  async resendRegistrationOtp(registrationId: string) {
+    if (this.state.isSigningIn) {
+      return null;
+    }
+
+    this.setState({
+      ...this.state,
+      isSigningIn: true,
+      activeProvider: 'credentials',
+      error: null,
+    });
+
+    try {
+      const message = await this.credentialsGateway.resendRegistrationOtp(registrationId);
+
+      this.logger.info('auth.credentials_resend_otp_succeeded', {
+        provider: 'credentials',
+        registrationId,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: null,
+      });
+
+      return message;
+    } catch (error) {
+      const normalizedError = normalizeCredentialsAuthError(error);
+
+      this.logger.error('auth.credentials_resend_otp_failed', normalizedError, {
+        provider: normalizedError.provider,
+        code: normalizedError.code,
+      });
+
+      this.setState({
+        ...this.state,
+        isSigningIn: false,
+        activeProvider: null,
+        error: normalizedError.toDescriptor(),
+      });
+
+      return null;
+    }
   }
 
   async signOut() {

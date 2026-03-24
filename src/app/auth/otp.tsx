@@ -16,11 +16,12 @@ export default function OtpVerificationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ recipient?: string | string[]; registrationId?: string | string[] }>();
   const theme = useTheme();
-  const { clearError, error, isSubmitting, verifyRegistrationOtp } = useCredentialsAuth();
-  const inputRefs = React.useRef<Array<TextInput | null>>([]);
+  const { clearError, error, isSubmitting, resendRegistrationOtp, verifyRegistrationOtp } = useCredentialsAuth();
+  const inputRefs = React.useRef<(TextInput | null)[]>([]);
 
   const [digits, setDigits] = React.useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [focusedIndex, setFocusedIndex] = React.useState(0);
+  const [resendMessage, setResendMessage] = React.useState<string | null>(null);
 
   const filledCount = digits.join('').length;
   const registrationId = getSingleParamValue(params.registrationId);
@@ -80,6 +81,8 @@ export default function OtpVerificationScreen() {
       return;
     }
 
+    setResendMessage(null);
+
     const isVerified = await verifyRegistrationOtp({
       registrationId,
       otp: digits.join(''),
@@ -99,6 +102,17 @@ export default function OtpVerificationScreen() {
     router.replace('/auth/register');
   }, [router]);
 
+  const handleResendOtp = React.useCallback(async () => {
+    if (!registrationId) {
+      return;
+    }
+
+    const message = await resendRegistrationOtp(registrationId);
+    if (message) {
+      setResendMessage(message);
+    }
+  }, [registrationId, resendRegistrationOtp]);
+
   const recipient = getSingleParamValue(params.recipient);
   const recipientLabel = recipient ? formatOtpRecipient(recipient) : t('auth.otpMaskedEmail');
 
@@ -110,6 +124,12 @@ export default function OtpVerificationScreen() {
       {error?.provider === 'credentials' ? (
         <View style={styles.screenErrorWrap}>
           <ThemedText style={[styles.errorText, { color: theme.danger }]}>{error.message}</ThemedText>
+        </View>
+      ) : null}
+
+      {resendMessage ? (
+        <View style={[styles.screenMessageWrap, { backgroundColor: '#EAF7EC' }]}>
+          <ThemedText style={[styles.messageText, { color: '#1A7F37' }]}>{resendMessage}</ThemedText>
         </View>
       ) : null}
 
@@ -158,7 +178,12 @@ export default function OtpVerificationScreen() {
 
         <View style={styles.timerRow}>
           <ThemedText style={styles.timerText}>{t('auth.otpTimer')}</ThemedText>
-          <Pressable onPress={() => {}} style={({ pressed }) => pressed && styles.pressed}>
+          <Pressable
+            disabled={registrationId.length === 0 || isSubmitting}
+            onPress={() => {
+              void handleResendOtp();
+            }}
+            style={({ pressed }) => [pressed && styles.pressed, registrationId.length === 0 || isSubmitting ? styles.disabledPressable : null]}>
             <ThemedText style={[styles.resendText, { color: theme.secondary }]}> {t('auth.otpResend')}</ThemedText>
           </Pressable>
         </View>
@@ -193,11 +218,22 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#FDECEC',
   },
+  screenMessageWrap: {
+    marginBottom: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
   otpSection: {
     marginTop: 40,
     gap: 16,
   },
   errorText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: 600,
+  },
+  messageText: {
     fontSize: 13,
     lineHeight: 18,
     fontWeight: 600,
@@ -255,6 +291,9 @@ const styles = StyleSheet.create({
   verifyLabelDisabled: {},
   pressed: {
     opacity: 0.75,
+  },
+  disabledPressable: {
+    opacity: 0.45,
   },
 });
 

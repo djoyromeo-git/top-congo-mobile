@@ -20,6 +20,10 @@ export type TopCongoValidationErrorResponse = {
   errors?: Record<string, string[]>;
 };
 
+export type TopCongoOtpVerificationSuccessResponse = {
+  message: string;
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -42,5 +46,9 @@ export function isTopCongoAuthSuccessResponse(value: unknown): value is TopCongo
 }
 
 export function isTopCongoValidationErrorResponse(value: unknown): value is TopCongoValidationErrorResponse {
+  return isRecord(value) && typeof value.message === 'string';
+}
+
+export function isTopCongoOtpVerificationSuccessResponse(value: unknown): value is TopCongoOtpVerificationSuccessResponse {
   return isRecord(value) && typeof value.message === 'string';
 }

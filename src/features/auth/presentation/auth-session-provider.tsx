@@ -21,6 +21,7 @@ type AuthSessionContextValue = {
   signInWithCredentials: (input: AuthCredentialsInput) => Promise<boolean>;
   registerWithCredentials: (input: AuthRegistrationInput) => Promise<AuthRegistrationResult | null>;
   verifyRegistrationOtp: (input: AuthOtpVerificationInput) => Promise<boolean>;
+  resendRegistrationOtp: (registrationId: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   clearError: () => void;
 };
@@ -100,6 +101,13 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
 
         const session = await service.verifyRegistrationOtp(input);
         return Boolean(session);
+      },
+      async resendRegistrationOtp(registrationId) {
+        if (!service) {
+          return null;
+        }
+
+        return service.resendRegistrationOtp(registrationId);
       },
       async signOut() {
         if (!service) {

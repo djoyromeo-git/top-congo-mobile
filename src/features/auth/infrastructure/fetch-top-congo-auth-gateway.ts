@@ -17,6 +17,7 @@ import {
 import {
   isTopCongoApiUser,
   isTopCongoAuthSuccessResponse,
+  isTopCongoOtpVerificationSuccessResponse,
   isTopCongoValidationErrorResponse,
 } from '@/features/auth/infrastructure/top-congo-auth-contract';
 
@@ -96,11 +97,26 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
       },
     });
 
-    if (!isTopCongoAuthSuccessResponse(payload)) {
-      throw new CredentialsAuthError('unknown', 'Unexpected OTP verification response from TopCongo API.');
+    if (isTopCongoAuthSuccessResponse(payload) || isTopCongoOtpVerificationSuccessResponse(payload)) {
+      return true;
     }
 
-    return createCredentialsSession(payload);
+    throw new CredentialsAuthError('unknown', 'Unexpected OTP verification response from TopCongo API.');
+  }
+
+  async resendRegistrationOtp(registrationId: string) {
+    const payload = await this.request({
+      path: '/auth/register/resend-otp',
+      body: {
+        registration_id: registrationId,
+      },
+    });
+
+    if (isTopCongoOtpVerificationSuccessResponse(payload)) {
+      return payload.message;
+    }
+
+    throw new CredentialsAuthError('unknown', 'Unexpected OTP resend response from TopCongo API.');
   }
 
   async logout(accessToken: string) {
