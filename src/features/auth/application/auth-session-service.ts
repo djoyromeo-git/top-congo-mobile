@@ -6,6 +6,7 @@ import type {
 } from '@/features/auth/domain/ports';
 import type {
   AuthCredentialsInput,
+  AuthRegistrationCompletionResult,
   AuthRegistrationCompletionInput,
   AuthOtpVerificationInput,
   AuthRegistrationResult,
@@ -350,7 +351,29 @@ export class AuthSessionService {
     });
 
     try {
-      const isCompleted = await this.credentialsGateway.completeRegistration(input);
+      const result = await this.credentialsGateway.completeRegistration(input);
+
+      if (result.kind === 'session') {
+        const mergedSession = mergeSessionWithExisting(this.state.session, result.session);
+        await this.store.set(mergedSession);
+        this.logSessionPersisted('auth.credentials_complete_registration', mergedSession);
+
+        this.logger.info('auth.credentials_complete_registration_succeeded', {
+          provider: mergedSession.provider,
+          registrationId: input.registrationId,
+          userId: mergedSession.user.id,
+        });
+
+        this.setState({
+          ...this.state,
+          session: mergedSession,
+          isSigningIn: false,
+          activeProvider: null,
+          error: null,
+        });
+
+        return true;
+      }
 
       this.logger.info('auth.credentials_complete_registration_succeeded', {
         provider: 'credentials',
@@ -364,7 +387,7 @@ export class AuthSessionService {
         error: null,
       });
 
-      return isCompleted;
+      return isCompletionSuccessful(result);
     } catch (error) {
       const normalizedError = normalizeCredentialsAuthError(error);
 
@@ -521,4 +544,8 @@ export class AuthSessionService {
       console.info('[auth] session saved', context);
     }
   }
+}
+
+function isCompletionSuccessful(result: AuthRegistrationCompletionResult) {
+  return result.kind === 'completed' || result.kind === 'session';
 }

@@ -64,6 +64,15 @@ export type AuthRegistrationResult =
       message: string;
     };
 
+export type AuthRegistrationCompletionResult =
+  | {
+      kind: 'completed';
+    }
+  | {
+      kind: 'session';
+      session: AuthSession;
+    };
+
 export type AuthState = {
   isHydrated: boolean;
   session: AuthSession | null;
