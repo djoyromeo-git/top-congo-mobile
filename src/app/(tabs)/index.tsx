@@ -270,6 +270,7 @@ function HomeContent() {
       <SectionHeader
         title={t('homeFeed.newsFeedSection')}
         actionLabel={t('homeFeed.seeMore')}
+        showDivider={false}
         onPress={() => router.push('/actualites' as never)}
       />
 
@@ -457,35 +458,37 @@ function NewsRowSkeleton({
   return (
     <View
       style={[
-        styles.newsRow,
+        styles.newsItem,
         showDivider && {
           borderBottomColor: theme.homeChipBorder,
           borderBottomWidth: 1,
         },
       ]}>
-      <View style={styles.newsMain}>
-        <View style={styles.newsMedia}>
-          <SkeletonBlock style={styles.newsImage} />
-          {showBadge ? (
-            <View style={styles.newsBadge}>
-              <SealCheck size={18} weight="fill" color={theme.headlineAccent} />
-            </View>
-          ) : null}
+      <View style={styles.newsRow}>
+        <View style={styles.newsMain}>
+          <View style={styles.newsMedia}>
+            <SkeletonBlock style={styles.newsImage} />
+            {showBadge ? (
+              <View style={styles.newsBadge}>
+                <SealCheck size={18} weight="fill" color={theme.headlineAccent} />
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.newsSkeletonTextBlock}>
+            <SkeletonBlock style={styles.newsSkeletonLineWide} />
+            <SkeletonBlock style={styles.newsSkeletonLineWide} />
+            <SkeletonBlock style={styles.newsSkeletonLineShort} />
+          </View>
         </View>
 
-        <View style={styles.newsSkeletonTextBlock}>
-          <SkeletonBlock style={styles.newsSkeletonLineWide} />
-          <SkeletonBlock style={styles.newsSkeletonLineWide} />
-          <SkeletonBlock style={styles.newsSkeletonLineShort} />
+        <View style={styles.newsSave}>
+          {saved ? (
+            <BookmarkSimple size={18} weight="fill" color={theme.primary} />
+          ) : (
+            <BookmarkSimple size={20} weight="regular" color={theme.homeChipBorder} />
+          )}
         </View>
-      </View>
-
-      <View style={styles.newsSave}>
-        {saved ? (
-          <BookmarkSimple size={18} weight="fill" color={theme.primary} />
-        ) : (
-          <BookmarkSimple size={20} weight="regular" color={theme.homeChipBorder} />
-        )}
       </View>
     </View>
   );
@@ -516,10 +519,12 @@ function ShowCard({
 function SectionHeader({
   title,
   actionLabel,
+  showDivider = true,
   onPress,
 }: {
   title: string;
   actionLabel: string;
+  showDivider?: boolean;
   onPress?: () => void;
 }) {
   const theme = useTheme();
@@ -532,7 +537,7 @@ function SectionHeader({
           <ThemedText style={[styles.seeMore, { color: theme.primary }]}>{actionLabel}</ThemedText>
         </Pressable>
       </View>
-      <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
+      {showDivider ? <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} /> : null}
     </View>
   );
 }
@@ -776,12 +781,14 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 12,
   },
+  newsItem: {
+    paddingVertical: 14,
+  },
   newsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    paddingVertical: 14,
   },
   newsMain: {
     flex: 1,

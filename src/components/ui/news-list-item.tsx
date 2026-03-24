@@ -32,13 +32,13 @@ export function NewsListItem({
   return (
     <View
       style={[
-        styles.row,
+        styles.item,
         showDivider && {
           borderBottomColor: theme.homeChipBorder,
           borderBottomWidth: 1,
         },
       ]}>
-      <Pressable onPress={onPress} style={({ pressed }) => [styles.main, pressed && styles.pressed]}>
+      <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
         <View style={styles.media}>
           <Image source={imageSource} style={styles.image} contentFit="cover" transition={0} />
           {hasBadge ? (
@@ -74,14 +74,10 @@ export function NewsListItem({
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  item: {
     paddingVertical: 14,
   },
-  main: {
-    flex: 1,
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
