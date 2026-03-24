@@ -7,10 +7,9 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
-import { NewsListItem } from '@/components/ui/news-list-item';
 import { TopicChip } from '@/components/ui/topic-chip';
-import { Emission, findEmission } from '@/constants/emissions';
 import { Palette, Spacing } from '@/constants/theme';
+import { findEmissionShow, useEmissionShows } from '@/features/emissions/infrastructure/fetch-emission-shows';
 import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,22 +23,17 @@ export default function EmissionDetailScreen() {
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
   const { isPlaying, isBuffering } = useLiveAudioStatus();
-
-  const emission = React.useMemo<Emission | undefined>(() => findEmission(slug), [slug]);
+  const showsQuery = useEmissionShows();
+  const shows = React.useMemo(() => showsQuery.data ?? [], [showsQuery.data]);
+  const emission = React.useMemo(() => findEmissionShow(shows, slug), [shows, slug]);
   const [tab, setTab] = React.useState<TabKey>('episodes');
 
   React.useEffect(() => {
-    if (!emission) {
+    if (showsQuery.isSuccess && !emission) {
       router.replace('/(tabs)/emissions');
     }
-  }, [emission, router]);
+  }, [emission, router, showsQuery.isSuccess]);
 
-  if (!emission) {
-    return null;
-  }
-
-  const heroEpisode = emission.episodes[0];
-  // No bottom tab bar on this stack screen, so give the live card a larger offset.
   const liveCardBottom = insets.bottom + 20;
 
   return (
@@ -53,89 +47,70 @@ export default function EmissionDetailScreen() {
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
           onPress: () => router.push('/search'),
         }}
-        centerContent={<ThemedText style={styles.headerTitle}>{emission.title}</ThemedText>}
+        centerContent={<ThemedText style={styles.headerTitle}>{emission?.title ?? 'Emission'}</ThemedText>}
       />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
-          <Image source={emission.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
-          <View style={styles.heroOverlay} />
-          <View style={styles.heroText}>
-            <ThemedText style={styles.heroTitle}>{emission.title}</ThemedText>
-            <ThemedText style={styles.heroSubtitle}>Avec {emission.host}</ThemedText>
-          </View>
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
-          <TopicChip label="Episodes" selected={tab === 'episodes'} onPress={() => setTab('episodes')} />
-          <TopicChip label="À propos" selected={tab === 'about'} onPress={() => setTab('about')} />
-          <TopicChip label="Programme" selected={tab === 'program'} onPress={() => setTab('program')} />
-        </ScrollView>
-
-        {tab === 'episodes' ? (
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Dernier épisode</ThemedText>
-            <View style={styles.episodeHighlight}>
-              <NewsListItem
-                title={heroEpisode.title}
-                imageSource={heroEpisode.imageSource}
-                saved={false}
-                date={heroEpisode.date}
-                hasBadge
-                onPress={() => router.push(`/emissions/${emission.slug}/${heroEpisode.id}`)}
-                showDivider={false}
-              />
-            </View>
-
-            <ThemedText style={[styles.sectionTitle, { marginTop: Spacing.two }]}>Episodes récents</ThemedText>
-            {emission.episodes.slice(1).map((ep) => (
-              <NewsListItem
-                key={ep.id}
-                title={ep.title}
-                imageSource={ep.imageSource}
-                saved={false}
-                hasBadge
-                date={ep.date}
-                onPress={() => router.push(`/emissions/${emission.slug}/${ep.id}`)}
-                showDivider
-              />
-            ))}
-          </View>
-        ) : null}
-
-        {tab === 'about' ? (
-          <View style={styles.section}>
-            <View style={styles.hostCard}>
-              <Image source={emission.imageSource} style={styles.hostAvatar} contentFit="cover" transition={0} />
-              <View style={{ flex: 1 }}>
-                <ThemedText style={styles.hostName}>{emission.host}</ThemedText>
-                <ThemedText style={[styles.hostRole, { color: theme.homeSubtitle }]}>Animateur</ThemedText>
+        {showsQuery.isLoading ? (
+          <ScreenMessage message="Chargement de l'emission..." />
+        ) : showsQuery.isError ? (
+          <ScreenMessage message="Impossible de charger l'emission." />
+        ) : !emission ? null : (
+          <>
+            <View style={styles.hero}>
+              <Image source={emission.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
+              <View style={styles.heroOverlay} />
+              <View style={styles.heroText}>
+                <ThemedText style={styles.heroTitle}>{emission.title}</ThemedText>
+                <ThemedText style={styles.heroSubtitle}>Avec {emission.host}</ThemedText>
               </View>
             </View>
 
-            <ThemedText style={styles.sectionTitle}>À propos de l’émission</ThemedText>
-            <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>{emission.summary}</ThemedText>
-          </View>
-        ) : null}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+              <TopicChip label="Episodes" selected={tab === 'episodes'} onPress={() => setTab('episodes')} />
+              <TopicChip label="A propos" selected={tab === 'about'} onPress={() => setTab('about')} />
+              <TopicChip label="Programme" selected={tab === 'program'} onPress={() => setTab('program')} />
+            </ScrollView>
 
-        {tab === 'program' ? (
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Programme de diffusion</ThemedText>
-            <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
-            <View style={styles.scheduleList}>
-              {emission.schedule.map((item) => (
-                <View key={item.day} style={styles.scheduleRow}>
-                  <ThemedText style={styles.scheduleDay}>{item.day}</ThemedText>
-                  <View style={[styles.scheduleMetaBox, { backgroundColor: theme.homeChipBackground }]}>
-                    <ThemedText numberOfLines={1} style={[styles.scheduleCombined, { color: theme.homeTitle }]}>
-                      {`${item.label.toUpperCase()} • ${item.time}`}
-                    </ThemedText>
+            {tab === 'episodes' ? (
+              <View style={styles.section}>
+                <ThemedText style={styles.sectionTitle}>Episodes</ThemedText>
+                <EmptyPanel
+                  message="Aucun episode publie n&apos;est encore disponible pour cette emission."
+                  themeTextColor={theme.homeSubtitle}
+                />
+              </View>
+            ) : null}
+
+            {tab === 'about' ? (
+              <View style={styles.section}>
+                <View style={styles.hostCard}>
+                  <Image source={emission.imageSource} style={styles.hostAvatar} contentFit="cover" transition={0} />
+                  <View style={styles.hostText}>
+                    <ThemedText style={styles.hostName}>{emission.host}</ThemedText>
+                    <ThemedText style={[styles.hostRole, { color: theme.homeSubtitle }]}>Animateur</ThemedText>
                   </View>
                 </View>
-              ))}
-            </View>
-          </View>
-        ) : null}
+
+                <ThemedText style={styles.sectionTitle}>A propos de l&apos;emission</ThemedText>
+                <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>
+                  {emission.description || 'Aucune description disponible.'}
+                </ThemedText>
+              </View>
+            ) : null}
+
+            {tab === 'program' ? (
+              <View style={styles.section}>
+                <ThemedText style={styles.sectionTitle}>Programme de diffusion</ThemedText>
+                <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
+                <EmptyPanel
+                  message="Aucun programme publie n&apos;est disponible pour cette emission."
+                  themeTextColor={theme.homeSubtitle}
+                />
+              </View>
+            ) : null}
+          </>
+        )}
 
         <View style={{ height: liveCardBottom + 32 }} />
       </ScrollView>
@@ -156,6 +131,22 @@ export default function EmissionDetailScreen() {
   );
 }
 
+function ScreenMessage({ message }: { message: string }) {
+  return (
+    <View style={styles.messageWrap}>
+      <ThemedText style={styles.messageText}>{message}</ThemedText>
+    </View>
+  );
+}
+
+function EmptyPanel({ message, themeTextColor }: { message: string; themeTextColor: string }) {
+  return (
+    <View style={styles.emptyPanel}>
+      <ThemedText style={[styles.emptyText, { color: themeTextColor }]}>{message}</ThemedText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -167,6 +158,18 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 40,
+  },
+  messageWrap: {
+    minHeight: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.three,
+  },
+  messageText: {
+    color: Palette.neutral['700'],
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
   },
   hero: {
     height: 240,
@@ -217,12 +220,6 @@ const styles = StyleSheet.create({
     color: Palette.neutral['800'],
     marginBottom: Spacing.one,
   },
-  episodeHighlight: {
-    backgroundColor: '#EAF2FF',
-    borderRadius: 10,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.one,
-  },
   hostCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -236,6 +233,9 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 10,
+  },
+  hostText: {
+    flex: 1,
   },
   hostName: {
     fontSize: 15,
@@ -251,42 +251,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  scheduleList: {
-  },
-  scheduleRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    justifyContent: 'space-between',
+  emptyPanel: {
+    backgroundColor: '#EAF2FF',
     borderRadius: 10,
-    paddingVertical: Spacing.two,
-    gap: Spacing.two,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.two,
   },
-  scheduleDay: {
-    width: 90,
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '700',
-    color: Palette.neutral['500'],
-    alignSelf: 'center',
-  },
-  scheduleMeta: {
-    gap: 4,
-    alignItems: 'flex-end',
-  },
-  scheduleCombined: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '700',
-  },
-  scheduleMetaBox: {
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    justifyContent: 'center',
-    minWidth: 0,
-    gap: 0,
-    flex: 1,
-    minHeight: 44,
+  emptyText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   sectionDivider: {
     height: 1,

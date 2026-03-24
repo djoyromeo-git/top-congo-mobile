@@ -1,9 +1,8 @@
 import { ThemedText } from '@/components/themed-text';
 import { EmissionShowCard } from '@/components/ui/emission-show-card';
-import { NewsListItem } from '@/components/ui/news-list-item';
 import { TopicChip } from '@/components/ui/topic-chip';
-import { Emission, EMISSION_FILTERS, EMISSIONS } from '@/constants/emissions';
 import { Palette, Spacing } from '@/constants/theme';
+import { useEmissionShows } from '@/features/emissions/infrastructure/fetch-emission-shows';
 import { useTheme } from '@/hooks/use-theme';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -12,23 +11,37 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 export default function EmissionsScreen() {
   const router = useRouter();
   const theme = useTheme();
-
   const [filter, setFilter] = React.useState<string>('all');
+  const showsQuery = useEmissionShows();
+  const shows = React.useMemo(() => showsQuery.data ?? [], [showsQuery.data]);
 
-  const filtered: Emission[] =
-    filter === 'all' ? EMISSIONS : EMISSIONS.filter((item) => item.slug === filter);
-  const activeEmission = filter === 'all' ? null : filtered[0];
+  const filters = React.useMemo(
+    () => [
+      { key: 'all', label: 'Toutes' },
+      ...shows.map((item) => ({
+        key: item.slug,
+        label: item.title,
+      })),
+    ],
+    [shows]
+  );
+
+  const filtered = React.useMemo(
+    () => (filter === 'all' ? shows : shows.filter((item) => item.slug === filter)),
+    [filter, shows]
+  );
+  const activeEmission = filter === 'all' ? null : filtered[0] ?? null;
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.pageTitle}>
-          <ThemedText style={styles.heading}>Retrouvez nos émissions</ThemedText>
+          <ThemedText style={styles.heading}>Retrouvez nos emissions</ThemedText>
           <ThemedText style={[styles.subheading, { color: theme.homeSubtitle }]}>En direct ou en replay</ThemedText>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-          {EMISSION_FILTERS.map((item) => (
+          {filters.map((item) => (
             <TopicChip
               key={item.key}
               label={item.label}
@@ -39,44 +52,47 @@ export default function EmissionsScreen() {
         </ScrollView>
 
         <View style={styles.cards}>
-          {filtered.map((emission) => (
-            <EmissionShowCard
-              key={emission.slug}
-              title={emission.title}
-              host={emission.host}
-              imageSource={emission.imageSource}
-              onPress={() => router.push(`/emissions/${emission.slug}`)}
-            />
-          ))}
+          {showsQuery.isLoading ? (
+            <View style={styles.emptyState}>
+              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>Chargement des emissions...</ThemedText>
+            </View>
+          ) : showsQuery.isError ? (
+            <View style={styles.emptyState}>
+              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                Impossible de charger les emissions.
+              </ThemedText>
+            </View>
+          ) : filtered.length > 0 ? (
+            filtered.map((emission) => (
+              <EmissionShowCard
+                key={emission.slug}
+                title={emission.title}
+                host={emission.host}
+                imageSource={emission.imageSource}
+                onPress={() => router.push(`/emissions/${emission.slug}`)}
+              />
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                Aucune emission publiee disponible.
+              </ThemedText>
+            </View>
+          )}
         </View>
 
         {activeEmission ? (
           <View style={styles.episodes}>
-            <ThemedText style={styles.sectionTitle}>Dernier épisode</ThemedText>
+            <ThemedText style={styles.sectionTitle}>A propos</ThemedText>
             <View style={styles.highlight}>
-              <NewsListItem
-                title={activeEmission.episodes[0].title}
-                imageSource={activeEmission.episodes[0].imageSource}
-                saved={false}
-                hasBadge
-                date={activeEmission.episodes[0].date}
-                onPress={() => router.push(`/emissions/${activeEmission.slug}/${activeEmission.episodes[0].id}`)}
-              />
+              <ThemedText style={styles.highlightTitle}>{activeEmission.title}</ThemedText>
+              <ThemedText style={[styles.highlightHost, { color: theme.homeSubtitle }]}>
+                Avec {activeEmission.host}
+              </ThemedText>
+              <ThemedText style={[styles.highlightDescription, { color: theme.homeSubtitle }]}>
+                {activeEmission.description || 'Aucune description disponible.'}
+              </ThemedText>
             </View>
-
-            <ThemedText style={styles.sectionTitle}>Autres éditions</ThemedText>
-            {activeEmission.episodes.slice(1).map((ep) => (
-              <NewsListItem
-                key={ep.id}
-                title={ep.title}
-                imageSource={ep.imageSource}
-                saved={false}
-                hasBadge
-                date={ep.date}
-                showDivider
-                onPress={() => router.push(`/emissions/${activeEmission.slug}/${ep.id}`)}
-              />
-            ))}
           </View>
         ) : null}
       </ScrollView>
@@ -87,11 +103,6 @@ export default function EmissionsScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-  },
-  headerTitle: {
-    color: Palette.neutral['100'],
-    fontSize: 20,
-    fontWeight: '700',
   },
   content: {
     paddingHorizontal: Spacing.three,
@@ -137,7 +148,33 @@ const styles = StyleSheet.create({
   highlight: {
     backgroundColor: '#EAF2FF',
     borderRadius: 10,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.one,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    gap: Spacing.one,
+  },
+  highlightTitle: {
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '700',
+    color: Palette.neutral['800'],
+  },
+  highlightHost: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  highlightDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  emptyState: {
+    paddingVertical: Spacing.three,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

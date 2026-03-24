@@ -13,6 +13,7 @@ import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
 import { FEATURED_NEWS, NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
 import { useActualitesPosts } from '@/features/actualites/infrastructure/fetch-actualites-posts';
+import { useEmissionShows } from '@/features/emissions/infrastructure/fetch-emission-shows';
 import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
 import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { useTheme } from '@/hooks/use-theme';
@@ -56,6 +57,9 @@ function HomeContent() {
   const topicsQuery = useTopicsOptions();
   const postsQuery = useActualitesPosts();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
+  const showsQuery = useEmissionShows();
+  const shows = React.useMemo(() => showsQuery.data ?? [], [showsQuery.data]);
+  const shouldShowShowsSection = showsQuery.isLoading || shows.length > 0;
 
   const topicChips = React.useMemo(() => {
     return selectTopicChipOptions(topicsQuery.data ?? [])
@@ -193,21 +197,34 @@ function HomeContent() {
         })}
       </ScrollView>
 
-      <SectionHeader title={t('homeFeed.showsSection')} actionLabel={t('homeFeed.seeMore')} />
+      {shouldShowShowsSection ? (
+        <>
+          <SectionHeader title={t('homeFeed.showsSection')} actionLabel={t('homeFeed.seeMore')} />
 
-      <ScrollView
-        horizontal
-        style={styles.showsScroll}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.cardsRow}>
-        {SHOWS.map((item) => (
-          <ShowCard
-            key={item.key}
-            title={t(`homeFeed.${item.titleKey}`)}
-            imageSource={item.imageSource}
-          />
-        ))}
-      </ScrollView>
+          <ScrollView
+            horizontal
+            style={styles.showsScroll}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.cardsRow}>
+            {showsQuery.isLoading
+              ? SHOWS.map((item) => (
+                  <ShowCard
+                    key={item.key}
+                    title={t(`homeFeed.${item.titleKey}`)}
+                    imageSource={item.imageSource}
+                  />
+                ))
+              : shows.map((item) => (
+                  <ShowCard
+                    key={item.slug}
+                    title={item.title}
+                    imageSource={item.imageSource}
+                    onPress={() => router.push(`/emissions/${item.slug}`)}
+                  />
+                ))}
+          </ScrollView>
+        </>
+      ) : null}
 
       <SectionHeader title={t('homeFeed.podcastSection')} actionLabel={t('homeFeed.seeMore')} />
 
@@ -459,11 +476,19 @@ function NewsRowSkeleton({
   );
 }
 
-function ShowCard({ title, imageSource }: { title: string; imageSource?: number }) {
+function ShowCard({
+  title,
+  imageSource,
+  onPress,
+}: {
+  title: string;
+  imageSource?: string | number;
+  onPress?: () => void;
+}) {
   const theme = useTheme();
 
   return (
-    <Pressable style={({ pressed }) => [styles.showCard, pressed && styles.pressed]}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.showCard, pressed && styles.pressed]}>
       <Image source={imageSource} style={styles.showImage} contentFit="cover" transition={0} />
       <View style={[styles.showOverlay, { backgroundColor: theme.headlineMediaOverlay }]} />
       <ThemedText numberOfLines={2} style={[styles.showTitle, { color: theme.headlineBadgeText }]}>

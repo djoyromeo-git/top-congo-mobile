@@ -11,7 +11,7 @@ import { useTheme } from '@/hooks/use-theme';
 type Props = {
   title: string;
   host: string;
-  imageSource: number;
+  imageSource: string | number;
   onPress?: () => void;
 };
 
