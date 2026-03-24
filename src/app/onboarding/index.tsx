@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { Asset } from 'expo-asset';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
 import { Palette, Spacing } from '@/constants/theme';
+import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
 
 type OnboardingScreenProps = {
   onPressCreateAccount?: () => void;
@@ -24,6 +25,7 @@ export default function OnboardingScreen({
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { isHydrated, session } = useAuthSession();
   const { width: windowWidth } = useWindowDimensions();
   const [sliderWidth, setSliderWidth] = React.useState(() => {
     const deviceWidth = Dimensions.get('window')?.width || windowWidth || 0;
@@ -107,7 +109,7 @@ export default function OnboardingScreen({
         <ThemedText style={styles.subtitle}>{item.subtitle}</ThemedText>
       </View>
     ),
-    [sliderWidth, styles.subtitle, styles.title]
+    [sliderWidth]
   );
 
   const scrollToIndex = React.useCallback(
@@ -151,6 +153,14 @@ export default function OnboardingScreen({
 
     return () => clearInterval(interval);
   }, [applyIndex, scrollToIndex, sliderWidth, slides.length]);
+
+  if (!isHydrated) {
+    return null;
+  }
+
+  if (session) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <View style={styles.screen}>
