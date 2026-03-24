@@ -3,23 +3,33 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
+import { useHomeLoading } from '@/components/ui/home-loading-context';
+import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { Palette } from '@/constants/theme';
 import { selectChipOptions, useCategories } from '@/features/content/infrastructure/fetch-categories';
 import { usePosts } from '@/features/content/infrastructure/fetch-posts';
 import { useTheme } from '@/hooks/use-theme';
+import { requestDirectMode } from '@/services/direct-mode-intent';
+import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 export default function ActualitesScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const isHomeLoading = useHomeLoading();
+  const program = useLiveProgramInfo();
+  const { isPlaying, isBuffering } = useLiveAudioStatus();
   const [selectedCategory, setSelectedCategory] = React.useState('all');
   const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
   const postsQuery = usePosts();
   const categoriesQuery = useCategories();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
+  const liveCardBottom = insets.bottom + 16;
   const categoryChips = React.useMemo(
     () =>
       selectChipOptions(categoriesQuery.data ?? [])
@@ -77,6 +87,18 @@ export default function ActualitesScreen() {
     void Promise.all([postsQuery.refetch(), categoriesQuery.refetch()]);
   }, [categoriesQuery, postsQuery]);
 
+  const handleToggleLive = React.useCallback(() => {
+    if (!isLiveStreamConfigured) {
+      return;
+    }
+
+    void toggleLiveAudio({
+      title: program.title,
+      artist: program.host,
+      albumTitle: program.schedule,
+    });
+  }, [program.host, program.schedule, program.title]);
+
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
       <StatusBar style="light" backgroundColor={Palette.blue['800']} />
@@ -94,7 +116,7 @@ export default function ActualitesScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: liveCardBottom + 90 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -184,6 +206,22 @@ export default function ActualitesScreen() {
           )}
         </View>
       </ScrollView>
+
+      <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
+        <LiveAudioCard
+          loading={isHomeLoading}
+          title={program.title}
+          subtitle={program.schedule || undefined}
+          onPressCard={() => {
+            requestDirectMode('audio');
+            router.push('/direct');
+          }}
+          onPressPlay={handleToggleLive}
+          isPlaying={isPlaying}
+          isBuffering={isBuffering}
+          disabled={!isLiveStreamConfigured}
+        />
+      </View>
     </View>
   );
 }
@@ -201,7 +239,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 110,
   },
   categoriesRow: {
     gap: 8,
@@ -234,5 +271,10 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  liveCardFixed: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
   },
 });

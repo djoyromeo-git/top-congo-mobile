@@ -1,21 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { MagnifyingGlass } from 'phosphor-react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { NewsListItem } from '@/components/ui/news-list-item';
-import { NEWS_ITEMS } from '@/constants/home-feed';
-import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
+import { selectChipOptions, useCategories } from '@/features/content/infrastructure/fetch-categories';
+import { usePosts } from '@/features/content/infrastructure/fetch-posts';
 import { Palette } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -27,17 +21,41 @@ export default function SearchScreen() {
   const theme = useTheme();
   const [query, setQuery] = React.useState('');
   const [selectedTopic, setSelectedTopic] = React.useState<string>(ALL_TOPICS_KEY);
-  const [savedNews, setSavedNews] = React.useState<Record<string, boolean>>(() =>
-    NEWS_ITEMS.reduce<Record<string, boolean>>((acc, item) => {
-      acc[item.key] = item.saved;
-      return acc;
-    }, {})
-  );
-  const topicsQuery = useTopicsOptions();
+  const [savedNews, setSavedNews] = React.useState<Record<string, boolean>>({});
+  const topicsQuery = useCategories();
+  const postsQuery = usePosts();
+  const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
 
-  const normalizedQuery = query.trim().toLowerCase();
+  React.useEffect(() => {
+    if (posts.length === 0) {
+      return;
+    }
+
+    setSavedNews((current) => {
+      const next = { ...current };
+
+      for (const post of posts) {
+        if (!(post.slug in next)) {
+          next[post.slug] = false;
+        }
+      }
+
+      return next;
+    });
+  }, [posts]);
+
+  const normalizedQuery = React.useMemo(
+    () =>
+      query
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim(),
+    [query]
+  );
   const topicChips = React.useMemo(() => {
-    return selectTopicChipOptions(topicsQuery.data ?? [])
+    return selectChipOptions(topicsQuery.data ?? [])
       .filter((item) => item.topicKey !== null)
       .map((item) => ({
         key: `api:${item.id}`,
@@ -47,19 +65,30 @@ export default function SearchScreen() {
   }, [topicsQuery.data]);
 
   const filteredItems = React.useMemo(() => {
-    return NEWS_ITEMS.filter((item) => {
+    return posts.filter((item) => {
       const selected = topicChips.find((topic) => topic.key === selectedTopic);
       const matchesTopic = selectedTopic === ALL_TOPICS_KEY || (selected ? item.topicKey === selected.topicKey : false);
-      const title = t(`homeFeed.${item.key}`).toLowerCase();
-      const matchesQuery = normalizedQuery.length === 0 || title.includes(normalizedQuery);
+      const matchesQuery = normalizedQuery.length === 0 || item.searchText.includes(normalizedQuery);
 
       return matchesTopic && matchesQuery;
     });
-  }, [normalizedQuery, selectedTopic, t, topicChips]);
+  }, [normalizedQuery, posts, selectedTopic, topicChips]);
 
   const toggleSaved = React.useCallback((key: string) => {
     setSavedNews((current) => ({ ...current, [key]: !current[key] }));
   }, []);
+
+  const openItem = React.useCallback(
+    (slug: string) => {
+      const item = posts.find((entry) => entry.slug === slug);
+      if (!item) {
+        return;
+      }
+
+      router.push((item.kind === 'media' ? `/actualites/media/${slug}` : `/actualites/${slug}`) as never);
+    },
+    [posts, router]
+  );
 
   const showResultsState = normalizedQuery.length > 0;
 
@@ -99,17 +128,39 @@ export default function SearchScreen() {
             </ThemedText>
 
             <View style={[styles.resultsList, { borderTopColor: theme.homeChipBorder }]}>
-              {filteredItems.map((item, index) => (
-                <NewsListItem
-                  key={item.key}
-                  title={t(`homeFeed.${item.key}`)}
-                  imageSource={item.imageSource}
-                  saved={savedNews[item.key]}
-                  hasBadge={item.hasBadge}
-                  showDivider={index < filteredItems.length - 1}
-                  onPressSave={() => toggleSaved(item.key)}
-                />
-              ))}
+              {postsQuery.isLoading ? (
+                <View style={styles.emptyState}>
+                  <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                    Chargement des actualites...
+                  </ThemedText>
+                </View>
+              ) : postsQuery.isError ? (
+                <View style={styles.emptyState}>
+                  <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                    Impossible de charger les actualites.
+                  </ThemedText>
+                </View>
+              ) : filteredItems.length > 0 ? (
+                filteredItems.map((item, index) => (
+                  <NewsListItem
+                    key={item.slug}
+                    title={item.title}
+                    date={item.publishedAtLabel}
+                    imageSource={item.imageSource}
+                    saved={savedNews[item.slug] ?? false}
+                    hasBadge={item.kind === 'media'}
+                    showDivider={index < filteredItems.length - 1}
+                    onPress={() => openItem(item.slug)}
+                    onPressSave={() => toggleSaved(item.slug)}
+                  />
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                    Aucune actualite ne correspond a votre recherche.
+                  </ThemedText>
+                </View>
+              )}
             </View>
           </>
         ) : (
@@ -117,12 +168,6 @@ export default function SearchScreen() {
             <ThemedText style={[styles.sectionTitle, { color: theme.homeTitle }]}>
               {t('search.recentSection')}
             </ThemedText>
-
-            <View style={styles.emptyState}>
-              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                {t('search.emptyRecent')}
-              </ThemedText>
-            </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
               <TopicChip
@@ -141,17 +186,39 @@ export default function SearchScreen() {
             </ScrollView>
 
             <View style={[styles.resultsList, { borderTopColor: theme.homeChipBorder }]}>
-              {filteredItems.map((item, index) => (
-                <NewsListItem
-                  key={item.key}
-                  title={t(`homeFeed.${item.key}`)}
-                  imageSource={item.imageSource}
-                  saved={savedNews[item.key]}
-                  hasBadge={item.hasBadge}
-                  showDivider={index < filteredItems.length - 1}
-                  onPressSave={() => toggleSaved(item.key)}
-                />
-              ))}
+              {postsQuery.isLoading ? (
+                <View style={styles.emptyState}>
+                  <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                    Chargement des actualites...
+                  </ThemedText>
+                </View>
+              ) : postsQuery.isError ? (
+                <View style={styles.emptyState}>
+                  <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                    Impossible de charger les actualites.
+                  </ThemedText>
+                </View>
+              ) : filteredItems.length > 0 ? (
+                filteredItems.map((item, index) => (
+                  <NewsListItem
+                    key={item.slug}
+                    title={item.title}
+                    date={item.publishedAtLabel}
+                    imageSource={item.imageSource}
+                    saved={savedNews[item.slug] ?? false}
+                    hasBadge={item.kind === 'media'}
+                    showDivider={index < filteredItems.length - 1}
+                    onPress={() => openItem(item.slug)}
+                    onPressSave={() => toggleSaved(item.slug)}
+                  />
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
+                    Aucune actualite disponible.
+                  </ThemedText>
+                </View>
+              )}
             </View>
           </>
         )}
