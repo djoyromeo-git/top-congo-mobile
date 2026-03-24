@@ -1,9 +1,9 @@
-import { Image } from 'expo-image';
 import { BookmarkSimple, Play, SealCheck } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { ContentImage } from '@/components/ui/content-image';
 import { useTheme } from '@/hooks/use-theme';
 
 type ActualiteListItemProps = {
@@ -44,7 +44,7 @@ export function ActualiteListItem({
       ]}>
       <Pressable onPress={onPress} style={({ pressed }) => [styles.main, pressed && styles.pressed]}>
         <View style={styles.media}>
-          <Image source={imageSource} style={styles.image} contentFit="cover" transition={0} />
+          <ContentImage source={imageSource} style={styles.image} />
 
           {showPlayBadge ? (
             <View style={styles.playBadge}>

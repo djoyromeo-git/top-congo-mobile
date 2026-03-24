@@ -1,10 +1,10 @@
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowRight } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { ContentImage } from '@/components/ui/content-image';
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -21,7 +21,7 @@ export function EmissionShowCard({ title, host, imageSource, onPress }: Props) {
   return (
     <Pressable style={({ pressed }) => [styles.card, pressed && styles.pressed]} onPress={onPress}>
       <View style={styles.media}>
-        <Image source={imageSource} style={styles.image} contentFit="cover" transition={0} />
+        <ContentImage source={imageSource} style={styles.image} />
         <LinearGradient
           colors={['rgba(24,31,64,0.0)', 'rgba(23,65,151,0.86)']}
           locations={[0, 1]}

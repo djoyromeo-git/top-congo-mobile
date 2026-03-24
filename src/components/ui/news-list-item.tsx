@@ -1,9 +1,9 @@
-import { Image } from 'expo-image';
 import { BookmarkSimple, Play } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { ContentImage } from '@/components/ui/content-image';
 import { useTheme } from '@/hooks/use-theme';
 
 type NewsListItemProps = {
@@ -40,7 +40,7 @@ export function NewsListItem({
       ]}>
       <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
         <View style={styles.media}>
-          <Image source={imageSource} style={styles.image} contentFit="cover" transition={0} />
+          <ContentImage source={imageSource} style={styles.image} />
           {hasBadge ? (
             <View style={[styles.playBadge, { backgroundColor: theme.headlineAccent }]}>
               <Play size={14} weight="fill" color={theme.headlineAccentText} />

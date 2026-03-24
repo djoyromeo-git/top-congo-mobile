@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { BookmarkSimple, SealCheck } from 'phosphor-react-native';
 import React from 'react';
@@ -6,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { ContentImage } from '@/components/ui/content-image';
 import { HeadlineCard } from '@/components/ui/headline-card';
 import { useHomeLoading } from '@/components/ui/home-loading-context';
 import { NewsListItem } from '@/components/ui/news-list-item';
@@ -507,7 +507,7 @@ function ShowCard({
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.showCard, pressed && styles.pressed]}>
-      <Image source={imageSource} style={styles.showImage} contentFit="cover" transition={0} />
+      <ContentImage source={imageSource} style={styles.showImage} />
       <View style={[styles.showOverlay, { backgroundColor: theme.headlineMediaOverlay }]} />
       <ThemedText numberOfLines={2} style={[styles.showTitle, { color: theme.headlineBadgeText }]}>
         {title}

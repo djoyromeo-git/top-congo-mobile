@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
@@ -8,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
+import { ContentImage } from '@/components/ui/content-image';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { MediaControls } from '@/components/ui/media-controls';
 import { Palette, Spacing } from '@/constants/theme';
@@ -149,7 +149,7 @@ export default function ActualiteMediaScreen() {
         ) : !item || item.kind !== 'media' ? null : (
           <>
             <View style={styles.hero}>
-              <Image source={item.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
+              <ContentImage source={item.imageSource} style={styles.heroImage} />
               <View style={styles.heroOverlay} />
 
               <View style={styles.heroControls}>
@@ -176,7 +176,7 @@ export default function ActualiteMediaScreen() {
               </ThemedText>
 
               <View style={styles.authorCard}>
-                <Image source={item.imageSource} style={styles.authorAvatar} contentFit="cover" transition={0} />
+                <ContentImage source={item.imageSource} style={styles.authorAvatar} />
                 <View style={styles.authorTextWrap}>
                   <ThemedText style={styles.authorName}>{item.source.toUpperCase()}</ThemedText>
                   <ThemedText style={styles.authorRole}>

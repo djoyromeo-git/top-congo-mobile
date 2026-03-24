@@ -1,13 +1,13 @@
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
 import { AppTopBar } from '@/components/ui/app-top-bar';
+import { ContentImage } from '@/components/ui/content-image';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { Palette, Spacing } from '@/constants/theme';
 import {
@@ -106,7 +106,7 @@ export default function ActualiteDetailScreen() {
           <ScreenMessage message="Impossible de charger l'article." />
         ) : !item ? null : (
           <>
-            <Image source={item.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
+            <ContentImage source={item.imageSource} style={styles.heroImage} />
 
             <View style={styles.body}>
               <ThemedText style={styles.title}>{item.title}</ThemedText>
@@ -115,7 +115,7 @@ export default function ActualiteDetailScreen() {
               </ThemedText>
 
               <View style={styles.authorCard}>
-                <Image source={item.imageSource} style={styles.authorAvatar} contentFit="cover" transition={0} />
+                <ContentImage source={item.imageSource} style={styles.authorAvatar} />
                 <View style={styles.authorTextWrap}>
                   <ThemedText style={styles.authorName}>{item.source.toUpperCase()}</ThemedText>
                   <ThemedText style={styles.authorRole}>
@@ -134,7 +134,6 @@ export default function ActualiteDetailScreen() {
                 <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>{item.summary}</ThemedText>
               ) : null}
 
-              {/* <PromoBanner /> */}
             </View>
 
             {relatedItems.length > 0 ? (
@@ -185,23 +184,6 @@ function ScreenMessage({ message }: { message: string }) {
   return (
     <View style={styles.messageWrap}>
       <ThemedText style={styles.messageText}>{message}</ThemedText>
-    </View>
-  );
-}
-
-function PromoBanner() {
-  return (
-    <View style={styles.promoBanner}>
-      <View style={styles.promoContent}>
-        <ThemedText style={styles.promoEyebrow}>Connexion premium</ThemedText>
-        <ThemedText style={styles.promoTitle}>Profitez d&apos;un debit stable avec le kit Starlink.</ThemedText>
-        <Pressable style={({ pressed }) => [styles.promoButton, pressed && styles.pressed]}>
-          <ThemedText style={styles.promoButtonText}>Voir l&apos;offre</ThemedText>
-        </Pressable>
-      </View>
-      <View style={styles.promoArt}>
-        <View style={styles.promoDish} />
-      </View>
     </View>
   );
 }
@@ -282,59 +264,6 @@ const styles = StyleSheet.create({
   paragraph: {
     fontSize: 14,
     lineHeight: 23,
-  },
-  promoBanner: {
-    minHeight: 94,
-    borderRadius: 8,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    backgroundColor: '#121B24',
-  },
-  promoContent: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  promoEyebrow: {
-    color: '#94AFC4',
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: 500,
-  },
-  promoTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
-  promoButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#39C56A',
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  promoButtonText: {
-    color: '#08130C',
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: 700,
-  },
-  promoArt: {
-    width: 112,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1B2630',
-  },
-  promoDish: {
-    width: 82,
-    height: 82,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: '#DCE7F0',
-    transform: [{ rotate: '-18deg' }],
   },
   relatedSection: {
     paddingHorizontal: Spacing.three,

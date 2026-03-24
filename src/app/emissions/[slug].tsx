@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
@@ -6,6 +5,7 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
+import { ContentImage } from '@/components/ui/content-image';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
 import { TopicChip } from '@/components/ui/topic-chip';
 import { Palette, Spacing } from '@/constants/theme';
@@ -66,7 +66,7 @@ export default function EmissionDetailScreen() {
         ) : !emission ? null : (
           <>
             <View style={styles.hero}>
-              <Image source={emission.imageSource} style={styles.heroImage} contentFit="cover" transition={0} />
+              <ContentImage source={emission.imageSource} style={styles.heroImage} />
               <View style={styles.heroOverlay} />
               <View style={styles.heroText}>
                 <ThemedText style={styles.heroTitle}>{emission.title}</ThemedText>
@@ -93,7 +93,7 @@ export default function EmissionDetailScreen() {
             {tab === 'about' ? (
               <View style={styles.section}>
                 <View style={styles.hostCard}>
-                  <Image source={emission.imageSource} style={styles.hostAvatar} contentFit="cover" transition={0} />
+                  <ContentImage source={emission.imageSource} style={styles.hostAvatar} />
                   <View style={styles.hostText}>
                     <ThemedText style={styles.hostName}>{emission.host}</ThemedText>
                     <ThemedText style={[styles.hostRole, { color: theme.homeSubtitle }]}>Animateur</ThemedText>
