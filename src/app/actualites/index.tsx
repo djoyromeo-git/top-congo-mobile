@@ -2,33 +2,34 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ActualiteListItem } from '@/components/ui/actualite-list-item';
 import { Palette } from '@/constants/theme';
+import { selectChipOptions, useCategories } from '@/features/content/infrastructure/fetch-categories';
 import { usePosts } from '@/features/content/infrastructure/fetch-posts';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function ActualitesScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const [query, setQuery] = React.useState('');
-  const [searchOpen, setSearchOpen] = React.useState(false);
+  const [selectedCategory, setSelectedCategory] = React.useState('all');
   const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
   const postsQuery = usePosts();
+  const categoriesQuery = useCategories();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
-
-  const normalizedQuery = React.useMemo(
+  const categoryChips = React.useMemo(
     () =>
-      query
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/\s+/g, ' ')
-        .trim(),
-    [query]
+      selectChipOptions(categoriesQuery.data ?? [])
+        .filter((item) => item.topicKey !== null)
+        .map((item) => ({
+          key: `api:${item.id}`,
+          label: item.label,
+          topicKey: item.topicKey,
+        })),
+    [categoriesQuery.data]
   );
 
   React.useEffect(() => {
@@ -50,12 +51,13 @@ export default function ActualitesScreen() {
   }, [posts]);
 
   const filteredItems = React.useMemo(() => {
-    if (normalizedQuery.length === 0) {
-      return posts;
-    }
-
-    return posts.filter((item) => item.searchText.includes(normalizedQuery));
-  }, [normalizedQuery, posts]);
+    return selectedCategory === 'all'
+      ? posts
+      : posts.filter((item) => {
+          const selected = categoryChips.find((category) => category.key === selectedCategory);
+          return selected ? item.topicKey === selected.topicKey : false;
+        });
+  }, [categoryChips, posts, selectedCategory]);
 
   const toggleSaved = React.useCallback((slug: string) => {
     setSavedMap((current) => ({ ...current, [slug]: !current[slug] }));
@@ -72,8 +74,8 @@ export default function ActualitesScreen() {
   );
 
   const handleRefresh = React.useCallback(() => {
-    void postsQuery.refetch();
-  }, [postsQuery]);
+    void Promise.all([postsQuery.refetch(), categoriesQuery.refetch()]);
+  }, [categoriesQuery, postsQuery]);
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
@@ -86,34 +88,66 @@ export default function ActualitesScreen() {
         }}
         rightAction={{
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
-          onPress: () => setSearchOpen((current) => !current),
+          onPress: () => router.push('/search'),
         }}
         centerContent={<ThemedText style={styles.headerTitle}>Actualites</ThemedText>}
       />
-
-      {searchOpen ? (
-        <View style={styles.searchArea}>
-          <View style={styles.searchInputWrap}>
-            <MagnifyingGlass size={18} weight="bold" color={Palette.neutral['400']} />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder="Rechercher une actualite"
-              placeholderTextColor={Palette.neutral['400']}
-              autoFocus
-              selectionColor={Palette.blue['800']}
-              style={styles.searchInput}
-            />
-          </View>
-        </View>
-      ) : null}
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={postsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
+          <RefreshControl
+            refreshing={postsQuery.isRefetching || categoriesQuery.isRefetching}
+            onRefresh={handleRefresh}
+            tintColor={theme.primary}
+          />
         }>
+        {categoryChips.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesRow}>
+            <Pressable
+              onPress={() => setSelectedCategory('all')}
+              style={({ pressed }) => [
+                styles.categoryChip,
+                {
+                  borderColor: selectedCategory === 'all' ? theme.primary : theme.homeChipBorder,
+                  backgroundColor: selectedCategory === 'all' ? theme.primary : theme.homeChipBackground,
+                },
+                pressed && styles.pressed,
+              ]}>
+              <ThemedText
+                style={[
+                  styles.categoryChipText,
+                  { color: selectedCategory === 'all' ? theme.onPrimary : theme.homeChipText },
+                ]}>
+                Tous
+              </ThemedText>
+            </Pressable>
+
+            {categoryChips.map((category) => {
+              const isSelected = category.key === selectedCategory;
+
+              return (
+                <Pressable
+                  key={category.key}
+                  onPress={() => setSelectedCategory(category.key)}
+                  style={({ pressed }) => [
+                    styles.categoryChip,
+                    {
+                      borderColor: isSelected ? theme.primary : theme.homeChipBorder,
+                      backgroundColor: isSelected ? theme.primary : theme.homeChipBackground,
+                    },
+                    pressed && styles.pressed,
+                  ]}>
+                  <ThemedText style={[styles.categoryChipText, { color: isSelected ? theme.onPrimary : theme.homeChipText }]}>
+                    {category.label}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
+
         <View style={[styles.list, { borderTopColor: theme.homeChipBorder }]}>
           {postsQuery.isLoading ? (
             <View style={styles.emptyState}>
@@ -144,7 +178,7 @@ export default function ActualitesScreen() {
           ) : (
             <View style={styles.emptyState}>
               <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                {normalizedQuery.length > 0 ? 'Aucune actualite ne correspond a votre recherche.' : 'Aucune actualite disponible.'}
+                {selectedCategory === 'all' ? 'Aucune actualite disponible.' : 'Aucune actualite pour cette categorie.'}
               </ThemedText>
             </View>
           )}
@@ -164,31 +198,26 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: 700,
   },
-  searchArea: {
-    backgroundColor: Palette.blue['800'],
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  searchInputWrap: {
-    minHeight: 44,
-    borderRadius: 10,
-    backgroundColor: Palette.neutral['100'],
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-  },
-  searchInput: {
-    flex: 1,
-    color: Palette.neutral['800'],
-    fontSize: 15,
-    lineHeight: 20,
-    paddingVertical: 0,
-  },
   content: {
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 110,
+  },
+  categoriesRow: {
+    gap: 8,
+    paddingBottom: 14,
+  },
+  categoryChip: {
+    minHeight: 37,
+    borderRadius: 36,
+    borderWidth: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  categoryChipText: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: 500,
   },
   list: {
     borderTopWidth: 1,
@@ -202,5 +231,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: 500,
     textAlign: 'center',
+  },
+  pressed: {
+    opacity: 0.8,
   },
 });
