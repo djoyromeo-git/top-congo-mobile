@@ -1,4 +1,5 @@
 import { ApiError } from '@/shared/api/api-error';
+import i18n, { supportedLanguages, type AppLanguage } from '@/i18n';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -17,6 +18,13 @@ type HttpClientOptions = {
   defaultTimeoutMs?: number;
   defaultHeaders?: Record<string, string>;
 };
+
+function getAcceptLanguageHeader(): AppLanguage {
+  const language = (i18n.resolvedLanguage || i18n.language || 'fr').toLowerCase();
+  const primaryLanguage = language.split('-')[0];
+
+  return supportedLanguages.includes(primaryLanguage as AppLanguage) ? (primaryLanguage as AppLanguage) : 'fr';
+}
 
 function buildUrl(baseUrl: string | null, path: string) {
   if (!baseUrl) {
@@ -90,6 +98,7 @@ export function createHttpClient({
           method,
           headers: {
             ...defaultHeaders,
+            'Accept-Language': getAcceptLanguageHeader(),
             ...headers,
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
