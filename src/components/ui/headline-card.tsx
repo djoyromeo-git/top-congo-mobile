@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
+import { BookmarkSimple, SealCheck } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { BookmarkSimple, SealCheck } from 'phosphor-react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 
@@ -57,7 +57,7 @@ export function HeadlineCard({
       </View>
 
       <ThemedText style={[styles.date, { color: theme.headlineDate }]}>{date}</ThemedText>
-      <ThemedText numberOfLines={3} style={[styles.title, { color: theme.headlineTitle }]}>
+      <ThemedText numberOfLines={2} style={[styles.title, { color: theme.headlineTitle }]}>
         {title}
       </ThemedText>
 
