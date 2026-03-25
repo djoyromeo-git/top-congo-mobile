@@ -16,6 +16,7 @@ export function SocialAuthActions() {
   const {
     capabilities,
     activeProvider,
+    errorMessage,
     errorTranslationKey,
     isHydrated,
     isSigningIn,
@@ -62,7 +63,7 @@ export function SocialAuthActions() {
         <SocialAuthButton
           provider="google"
           label={t('auth.withGoogle')}
-          disabled={!isHydrated || isSigningIn}
+          disabled={!isHydrated || isSigningIn || !capabilities.google}
           loading={isSigningIn && activeProvider === 'google'}
           style={styles.button}
           onPress={() => {
@@ -72,9 +73,14 @@ export function SocialAuthActions() {
       </View>
 
       {errorTranslationKey ? (
-        <ThemedText style={[styles.errorText, { color: theme.danger }]}>
-          {t(errorTranslationKey)}
-        </ThemedText>
+        <View style={styles.errorWrap}>
+          <ThemedText style={[styles.errorText, { color: theme.danger }]}>{t(errorTranslationKey)}</ThemedText>
+          {errorMessage ? (
+            <ThemedText style={[styles.errorDetailText, { color: theme.danger }]}>
+              {errorMessage}
+            </ThemedText>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
@@ -96,9 +102,17 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
   },
+  errorWrap: {
+    gap: 4,
+  },
   errorText: {
     fontSize: 13,
     lineHeight: 18,
     fontWeight: 600,
+  },
+  errorDetailText: {
+    fontSize: 12,
+    lineHeight: 17,
+    opacity: 0.88,
   },
 });

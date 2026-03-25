@@ -27,6 +27,10 @@ function getErrorTranslationKey(error: AuthErrorDescriptor | null) {
     return 'auth.googleUnavailable';
   }
 
+  if (error.provider === 'google' && error.code === 'token_exchange_failed') {
+    return 'auth.googleExchangeFailed';
+  }
+
   return 'auth.socialAuthFailed';
 }
 
@@ -57,6 +61,7 @@ export function useSocialAuth() {
     isSigningIn: state.isSigningIn,
     activeProvider: state.activeProvider,
     error: state.error,
+    errorMessage: state.error?.message ?? null,
     errorTranslationKey: getErrorTranslationKey(state.error),
     capabilities: state.capabilities,
     signInWithApple: React.useCallback(() => signInWithProvider('apple'), [signInWithProvider]),

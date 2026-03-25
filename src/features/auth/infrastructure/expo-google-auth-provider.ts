@@ -18,6 +18,11 @@ export class ExpoGoogleAuthProvider implements SocialAuthProviderPort {
 
   async isAvailableAsync() {
     const config = getGoogleAuthConfiguration();
+
+    if (Platform.OS === 'ios') {
+      return Boolean(config.iosClientId && config.iosUrlScheme);
+    }
+
     return Boolean(config.webClientId || config.iosClientId);
   }
 
@@ -25,6 +30,30 @@ export class ExpoGoogleAuthProvider implements SocialAuthProviderPort {
     const config = getGoogleAuthConfiguration();
     if (!config.webClientId && !config.iosClientId) {
       throw new SocialAuthError(this.provider, 'misconfigured', 'Google Sign-In is not configured.');
+    }
+
+    if (Platform.OS === 'ios' && !config.iosClientId) {
+      throw new SocialAuthError(
+        this.provider,
+        'misconfigured',
+        'Missing EXPO_PUBLIC_GOOGLE_OAUTH_IOS_CLIENT_ID for iOS Google Sign-In.'
+      );
+    }
+
+    if (Platform.OS === 'ios' && !config.iosUrlScheme) {
+      throw new SocialAuthError(
+        this.provider,
+        'misconfigured',
+        'Missing EXPO_PUBLIC_GOOGLE_OAUTH_IOS_URL_SCHEME for iOS Google Sign-In.'
+      );
+    }
+
+    if (Platform.OS === 'ios' && config.iosClientId && config.webClientId && config.iosClientId === config.webClientId) {
+      throw new SocialAuthError(
+        this.provider,
+        'misconfigured',
+        'EXPO_PUBLIC_GOOGLE_OAUTH_IOS_CLIENT_ID must be the iOS OAuth client, not the web client ID.'
+      );
     }
 
     this.ensureConfigured();
