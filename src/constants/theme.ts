@@ -95,7 +95,7 @@ export const Colors = {
     topBarActionBorder: 'rgba(255,255,255,0.4)',
     backButtonBackground: '#F5F5F7',
     liveBadgeBackground: '#1D4E89',
-    headlineCardBackground: Palette.neutral['100'],
+    headlineCardBackground: '#F9FCFE',
     headlineBadgeBackground: '#C00019',
     headlineBadgeText: Palette.neutral['100'],
     headlineDate: '#9E9E9E',
