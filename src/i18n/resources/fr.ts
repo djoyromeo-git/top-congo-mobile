@@ -21,7 +21,7 @@ const fr = {
   },
   homeFeed: {
     welcome: 'Bienvenue {{name}} !',
-    subtitle: 'Votre actualité commence ici',
+    subtitle: 'L’info en continu sur Top Congo',
     headlineSection: 'À la une',
     newsFeedSection: "Fil d'actualité",
     showsSection: 'Nos émissions',

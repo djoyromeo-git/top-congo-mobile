@@ -21,7 +21,7 @@ const en = {
   },
   homeFeed: {
     welcome: 'Welcome {{name}}!',
-    subtitle: 'Your news starts here',
+    subtitle: 'Nonstop news on Top Congo',
     headlineSection: 'Top stories',
     newsFeedSection: 'News feed',
     showsSection: 'Our shows',
