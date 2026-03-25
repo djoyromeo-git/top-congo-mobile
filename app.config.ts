@@ -1,6 +1,7 @@
 import type { ExpoConfig } from 'expo/config';
 
 const baseConfig = require('./app.json').expo as ExpoConfig;
+const easProjectId = baseConfig.extra?.eas?.projectId;
 
 const googleIosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_OAUTH_IOS_URL_SCHEME?.trim() ?? '';
 const apiUrl = process.env.EXPO_PUBLIC_API_URL?.trim() ?? '';
@@ -47,6 +48,10 @@ if (googleIosUrlScheme) {
 
 export default {
   ...baseConfig,
+  updates: {
+    ...baseConfig.updates,
+    ...(easProjectId ? { url: `https://u.expo.dev/${easProjectId}` } : {}),
+  },
   ios: {
     ...baseConfig.ios,
     usesAppleSignIn: true,
@@ -65,6 +70,12 @@ export default {
             },
           }
         : {}),
+    },
+  },
+  android: {
+    ...baseConfig.android,
+    runtimeVersion: {
+      policy: 'appVersion',
     },
   },
   plugins,

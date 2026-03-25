@@ -826,8 +826,7 @@ export function useLiveAudioStatus() {
     playbackRequest.wantsPlayback &&
     status.isLoaded &&
     !status.isBuffering &&
-    playbackState === 'ready' &&
-    status.playing;
+    playbackState === 'ready';
   const isStarting =
     playbackRequest.wantsPlayback &&
     !isPlaybackConfirmed &&

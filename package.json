@@ -44,6 +44,7 @@
     "expo-symbols": "~55.0.5",
     "expo-system-ui": "~55.0.9",
     "expo-task-manager": "~55.0.9",
+    "expo-updates": "~55.0.15",
     "expo-web-browser": "~55.0.9",
     "i18next": "^25.8.14",
     "phosphor-react-native": "^2.3.1",
