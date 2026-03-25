@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,6 +21,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 export default function ActualiteMediaScreen() {
+  const { t } = useTranslation();
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const router = useRouter();
   const theme = useTheme();
@@ -105,7 +107,7 @@ export default function ActualiteMediaScreen() {
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
           onPress: () => router.push('/actualites' as never),
         }}
-        centerContent={<ThemedText style={styles.headerTitle}>Actualites</ThemedText>}
+        centerContent={<ThemedText style={styles.headerTitle}>{t('actualites.title')}</ThemedText>}
       />
 
       <View style={styles.toggleWrap}>
@@ -118,7 +120,7 @@ export default function ActualiteMediaScreen() {
               pressed && styles.pressed,
             ]}>
             <ThemedText style={[styles.modeText, mediaMode === 'video' ? styles.modeTextActive : styles.modeTextInactive]}>
-              Video
+              {t('actualites.modeVideo')}
             </ThemedText>
           </Pressable>
 
@@ -130,7 +132,7 @@ export default function ActualiteMediaScreen() {
               pressed && styles.pressed,
             ]}>
             <ThemedText style={[styles.modeText, mediaMode === 'audio' ? styles.modeTextActive : styles.modeTextInactive]}>
-              Audio
+              {t('actualites.modeAudio')}
             </ThemedText>
           </Pressable>
         </View>
@@ -143,9 +145,9 @@ export default function ActualiteMediaScreen() {
           <RefreshControl refreshing={postsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
         }>
         {postsQuery.isLoading ? (
-          <ScreenMessage message="Chargement du media..." />
+          <ScreenMessage message={t('actualites.mediaLoading')} />
         ) : postsQuery.isError ? (
-          <ScreenMessage message="Impossible de charger ce media." />
+          <ScreenMessage message={t('actualites.mediaError')} />
         ) : !item || item.kind !== 'media' ? null : (
           <>
             <View style={styles.hero}>
@@ -180,7 +182,9 @@ export default function ActualiteMediaScreen() {
                 <View style={styles.authorTextWrap}>
                   <ThemedText style={styles.authorName}>{item.source.toUpperCase()}</ThemedText>
                   <ThemedText style={styles.authorRole}>
-                    {item.readingTimeLabel ? `Duree ${item.readingTimeLabel}` : 'Source'}
+                    {item.readingTimeLabel
+                      ? t('actualites.duration', { duration: item.readingTimeLabel })
+                      : t('actualites.source')}
                   </ThemedText>
                 </View>
               </View>
@@ -194,7 +198,7 @@ export default function ActualiteMediaScreen() {
 
             {relatedItems.length > 0 ? (
               <View style={styles.relatedSection}>
-                <ThemedText style={styles.relatedTitle}>A decouvrir aussi</ThemedText>
+                <ThemedText style={styles.relatedTitle}>{t('actualites.relatedTitle')}</ThemedText>
                 <View style={[styles.divider, { backgroundColor: theme.homeChipBorder }]} />
 
                 {relatedItems.map((related, index) => (
@@ -223,7 +227,7 @@ export default function ActualiteMediaScreen() {
       <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
         <LiveAudioCard
           loading={false}
-          title={"Suivez l'info en direct\nsur Top Congo"}
+          title={t('homeFeed.liveCardTitle')}
           subtitle={program.schedule || undefined}
           onPressCard={() => router.push('/direct')}
           onPressPlay={() => router.push('/direct')}

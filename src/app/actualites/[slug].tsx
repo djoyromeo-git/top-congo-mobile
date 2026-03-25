@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,6 +20,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 export default function ActualiteDetailScreen() {
+  const { t } = useTranslation();
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const router = useRouter();
   const theme = useTheme();
@@ -91,7 +93,7 @@ export default function ActualiteDetailScreen() {
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
           onPress: () => router.push('/actualites' as never),
         }}
-        centerContent={<ThemedText style={styles.headerTitle}>Actualites</ThemedText>}
+        centerContent={<ThemedText style={styles.headerTitle}>{t('actualites.title')}</ThemedText>}
       />
 
       <ScrollView
@@ -101,9 +103,9 @@ export default function ActualiteDetailScreen() {
           <RefreshControl refreshing={postsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
         }>
         {postsQuery.isLoading ? (
-          <ScreenMessage message="Chargement de l'article..." />
+          <ScreenMessage message={t('actualites.articleLoading')} />
         ) : postsQuery.isError ? (
-          <ScreenMessage message="Impossible de charger l'article." />
+          <ScreenMessage message={t('actualites.articleError')} />
         ) : !item ? null : (
           <>
             <ContentImage source={item.imageSource} style={styles.heroImage} />
@@ -119,7 +121,9 @@ export default function ActualiteDetailScreen() {
                 <View style={styles.authorTextWrap}>
                   <ThemedText style={styles.authorName}>{item.source.toUpperCase()}</ThemedText>
                   <ThemedText style={styles.authorRole}>
-                    {item.readingTimeLabel ? `Lecture ${item.readingTimeLabel}` : 'Source'}
+                    {item.readingTimeLabel
+                      ? t('actualites.readTime', { duration: item.readingTimeLabel })
+                      : t('actualites.source')}
                   </ThemedText>
                 </View>
               </View>
@@ -138,7 +142,7 @@ export default function ActualiteDetailScreen() {
 
             {relatedItems.length > 0 ? (
               <View style={styles.relatedSection}>
-                <ThemedText style={styles.relatedTitle}>A decouvrir aussi</ThemedText>
+                <ThemedText style={styles.relatedTitle}>{t('actualites.relatedTitle')}</ThemedText>
                 <View style={[styles.divider, { backgroundColor: theme.homeChipBorder }]} />
 
                 {relatedItems.map((related, index) => (
@@ -167,7 +171,7 @@ export default function ActualiteDetailScreen() {
       <View style={[styles.liveCardFixed, { bottom: liveCardBottom }]}>
         <LiveAudioCard
           loading={false}
-          title={"Suivez l'info en direct\nsur Top Congo"}
+          title={t('homeFeed.liveCardTitle')}
           subtitle={program.schedule || undefined}
           onPressCard={() => router.push('/direct')}
           onPressPlay={() => router.push('/direct')}

@@ -14,8 +14,7 @@ const LIVE_STREAM_URL = process.env.EXPO_PUBLIC_LIVE_STREAM_URL?.trim() ?? '';
 const LIVE_DEFAULT_ARTWORK_URL = Asset.fromModule(
   require('../../assets/images/icon.png')
 ).uri;
-const LIVE_PROGRAM_TITLE =
-  process.env.EXPO_PUBLIC_LIVE_PROGRAM_TITLE?.trim() || 'Suivez l’actualité en continue avec Top Congo';
+const LIVE_PROGRAM_TITLE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_TITLE?.trim() || 'Top Congo Live';
 const LIVE_PROGRAM_HOST = process.env.EXPO_PUBLIC_LIVE_PROGRAM_HOST?.trim() || '';
 const LIVE_PROGRAM_SCHEDULE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_SCHEDULE?.trim() || '';
 const LIVE_NOW_PLAYING_URL = process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_URL?.trim() ?? '';

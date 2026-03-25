@@ -6,9 +6,11 @@ import { useEmissionShows } from '@/features/emissions/infrastructure/fetch-emis
 import { useTheme } from '@/hooks/use-theme';
 import { useRouter } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function EmissionsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
   const [filter, setFilter] = React.useState<string>('all');
@@ -17,13 +19,13 @@ export default function EmissionsScreen() {
 
   const filters = React.useMemo(
     () => [
-      { key: 'all', label: 'Toutes' },
+      { key: 'all', label: t('emissions.all') },
       ...shows.map((item) => ({
         key: item.slug,
         label: item.title,
       })),
     ],
-    [shows]
+    [shows, t]
   );
 
   const filtered = React.useMemo(
@@ -45,8 +47,8 @@ export default function EmissionsScreen() {
           <RefreshControl refreshing={showsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
         }>
         <View style={styles.pageTitle}>
-          <ThemedText style={styles.heading}>Retrouvez nos emissions</ThemedText>
-          <ThemedText style={[styles.subheading, { color: theme.homeSubtitle }]}>En direct ou en replay</ThemedText>
+          <ThemedText style={styles.heading}>{t('emissions.title')}</ThemedText>
+          <ThemedText style={[styles.subheading, { color: theme.homeSubtitle }]}>{t('emissions.subtitle')}</ThemedText>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
@@ -63,12 +65,12 @@ export default function EmissionsScreen() {
         <View style={styles.cards}>
           {showsQuery.isLoading ? (
             <View style={styles.emptyState}>
-              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>Chargement des emissions...</ThemedText>
+              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>{t('emissions.loading')}</ThemedText>
             </View>
           ) : showsQuery.isError ? (
             <View style={styles.emptyState}>
               <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                Impossible de charger les emissions.
+                {t('emissions.error')}
               </ThemedText>
             </View>
           ) : filtered.length > 0 ? (
@@ -84,7 +86,7 @@ export default function EmissionsScreen() {
           ) : (
             <View style={styles.emptyState}>
               <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                Aucune emission publiee disponible.
+                {t('emissions.empty')}
               </ThemedText>
             </View>
           )}
@@ -92,14 +94,14 @@ export default function EmissionsScreen() {
 
         {activeEmission ? (
           <View style={styles.episodes}>
-            <ThemedText style={styles.sectionTitle}>A propos</ThemedText>
+            <ThemedText style={styles.sectionTitle}>{t('emissions.about')}</ThemedText>
             <View style={styles.highlight}>
               <ThemedText style={styles.highlightTitle}>{activeEmission.title}</ThemedText>
               <ThemedText style={[styles.highlightHost, { color: theme.homeSubtitle }]}>
-                Avec {activeEmission.host}
+                {t('emissions.withHost', { host: activeEmission.host })}
               </ThemedText>
               <ThemedText style={[styles.highlightDescription, { color: theme.homeSubtitle }]}>
-                {activeEmission.description || 'Aucune description disponible.'}
+                {activeEmission.description || t('emissions.noDescription')}
               </ThemedText>
             </View>
           </View>

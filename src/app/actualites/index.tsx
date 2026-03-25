@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +19,7 @@ import { requestDirectMode } from '@/services/direct-mode-intent';
 import { isLiveStreamConfigured, toggleLiveAudio, useLiveAudioStatus, useLiveProgramInfo } from '@/services/live-audio';
 
 export default function ActualitesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -112,7 +114,7 @@ export default function ActualitesScreen() {
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
           onPress: () => router.push('/search'),
         }}
-        centerContent={<ThemedText style={styles.headerTitle}>Actualites</ThemedText>}
+        centerContent={<ThemedText style={styles.headerTitle}>{t('actualites.title')}</ThemedText>}
       />
 
       <ScrollView
@@ -142,7 +144,7 @@ export default function ActualitesScreen() {
                   styles.categoryChipText,
                   { color: selectedCategory === 'all' ? theme.onPrimary : theme.homeChipText },
                 ]}>
-                Tous
+                {t('actualites.all')}
               </ThemedText>
             </Pressable>
 
@@ -173,12 +175,12 @@ export default function ActualitesScreen() {
         <View style={[styles.list, { borderTopColor: theme.homeChipBorder }]}>
           {postsQuery.isLoading ? (
             <View style={styles.emptyState}>
-              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>Chargement des actualites...</ThemedText>
+              <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>{t('actualites.loading')}</ThemedText>
             </View>
           ) : postsQuery.isError ? (
             <View style={styles.emptyState}>
               <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                Impossible de charger les actualites.
+                {t('actualites.error')}
               </ThemedText>
             </View>
           ) : filteredItems.length > 0 ? (
@@ -200,7 +202,7 @@ export default function ActualitesScreen() {
           ) : (
             <View style={styles.emptyState}>
               <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                {selectedCategory === 'all' ? 'Aucune actualite disponible.' : 'Aucune actualite pour cette categorie.'}
+                {selectedCategory === 'all' ? t('actualites.emptyAll') : t('actualites.emptyCategory')}
               </ThemedText>
             </View>
           )}

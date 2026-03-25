@@ -301,7 +301,7 @@ function HomeContent() {
         ) : (
           <View style={styles.emptyNewsState}>
             <ThemedText style={[styles.emptyNewsText, { color: theme.homeSubtitle }]}>
-              {selectedTopic === 'all' ? 'Aucune actualite disponible.' : 'Aucune actualite pour ce theme.'}
+              {selectedTopic === 'all' ? t('homeFeed.emptyAll') : t('homeFeed.emptyTopic')}
             </ThemedText>
           </View>
         )}

@@ -131,13 +131,13 @@ export default function SearchScreen() {
               {postsQuery.isLoading ? (
                 <View style={styles.emptyState}>
                   <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                    Chargement des actualites...
+                    {t('search.loadingPosts')}
                   </ThemedText>
                 </View>
               ) : postsQuery.isError ? (
                 <View style={styles.emptyState}>
                   <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                    Impossible de charger les actualites.
+                    {t('search.errorPosts')}
                   </ThemedText>
                 </View>
               ) : filteredItems.length > 0 ? (
@@ -157,7 +157,7 @@ export default function SearchScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                    Aucune actualite ne correspond a votre recherche.
+                    {t('search.noResults')}
                   </ThemedText>
                 </View>
               )}
@@ -189,13 +189,13 @@ export default function SearchScreen() {
               {postsQuery.isLoading ? (
                 <View style={styles.emptyState}>
                   <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                    Chargement des actualites...
+                    {t('search.loadingPosts')}
                   </ThemedText>
                 </View>
               ) : postsQuery.isError ? (
                 <View style={styles.emptyState}>
                   <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                    Impossible de charger les actualites.
+                    {t('search.errorPosts')}
                   </ThemedText>
                 </View>
               ) : filteredItems.length > 0 ? (
@@ -215,7 +215,7 @@ export default function SearchScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <ThemedText style={[styles.emptyText, { color: theme.homeSubtitle }]}>
-                    Aucune actualite disponible.
+                    {t('search.emptyAll')}
                   </ThemedText>
                 </View>
               )}

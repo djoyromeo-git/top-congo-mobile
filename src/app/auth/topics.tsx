@@ -85,7 +85,7 @@ export default function TopicsScreen() {
       ) : (
         <View style={styles.emptyState}>
           <ThemedText style={[styles.emptyText, { color: theme.subtleText }]}>
-            {topicsQuery.isLoading ? 'Chargement des topics...' : 'Aucun topic disponible.'}
+            {topicsQuery.isLoading ? t('auth.topicsLoading') : t('auth.topicsEmpty')}
           </ThemedText>
         </View>
       )}

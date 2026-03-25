@@ -1,5 +1,6 @@
 import { ArrowsInSimple, ArrowsOutSimple, Pause, Play, SpeakerHigh, SpeakerX } from 'phosphor-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -28,19 +29,21 @@ export function MediaControls({
   disabled = false,
   showExpand = true,
 }: MediaControlsProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={[styles.controlsRow, disabled && styles.disabled]}>
       <IconButton
         icon={playing ? 'pause' : 'play'}
         onPress={onTogglePlay}
-        accessibilityLabel={playing ? 'Pause' : 'Lecture'}
+        accessibilityLabel={playing ? t('direct.pause') : t('direct.play')}
         disabled={disabled}
       />
 
       <IconButton
         icon={muted ? 'volume-x' : 'volume-high'}
         onPress={onToggleMute}
-        accessibilityLabel={muted ? 'Remettre le son' : 'Couper le son'}
+        accessibilityLabel={muted ? t('direct.unmute') : t('direct.mute')}
         disabled={disabled}
       />
 
@@ -55,7 +58,7 @@ export function MediaControls({
         <IconButton
           icon={expanded ? 'collapse' : 'expand'}
           onPress={onToggleExpand}
-          accessibilityLabel={expanded ? 'Réduire' : 'Agrandir'}
+          accessibilityLabel={expanded ? t('direct.collapse') : t('direct.expand')}
           disabled={disabled}
         />
       ) : null}

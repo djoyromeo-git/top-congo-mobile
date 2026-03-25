@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -17,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 type TabKey = 'episodes' | 'about' | 'program';
 
 export default function EmissionDetailScreen() {
+  const { t } = useTranslation();
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const router = useRouter();
   const theme = useTheme();
@@ -50,7 +52,7 @@ export default function EmissionDetailScreen() {
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
           onPress: () => router.push('/search'),
         }}
-        centerContent={<ThemedText style={styles.headerTitle}>{emission?.title ?? 'Emission'}</ThemedText>}
+        centerContent={<ThemedText style={styles.headerTitle}>{emission?.title ?? t('emissions.detailFallbackTitle')}</ThemedText>}
       />
 
       <ScrollView
@@ -60,9 +62,9 @@ export default function EmissionDetailScreen() {
           <RefreshControl refreshing={showsQuery.isRefetching} onRefresh={handleRefresh} tintColor={theme.primary} />
         }>
         {showsQuery.isLoading ? (
-          <ScreenMessage message="Chargement de l'emission..." />
+          <ScreenMessage message={t('emissions.detailLoading')} />
         ) : showsQuery.isError ? (
-          <ScreenMessage message="Impossible de charger l'emission." />
+          <ScreenMessage message={t('emissions.detailError')} />
         ) : !emission ? null : (
           <>
             <View style={styles.hero}>
@@ -70,21 +72,21 @@ export default function EmissionDetailScreen() {
               <View style={styles.heroOverlay} />
               <View style={styles.heroText}>
                 <ThemedText style={styles.heroTitle}>{emission.title}</ThemedText>
-                <ThemedText style={styles.heroSubtitle}>Avec {emission.host}</ThemedText>
+                <ThemedText style={styles.heroSubtitle}>{t('emissions.withHost', { host: emission.host })}</ThemedText>
               </View>
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
-              <TopicChip label="Episodes" selected={tab === 'episodes'} onPress={() => setTab('episodes')} />
-              <TopicChip label="A propos" selected={tab === 'about'} onPress={() => setTab('about')} />
-              <TopicChip label="Programme" selected={tab === 'program'} onPress={() => setTab('program')} />
+              <TopicChip label={t('emissions.tabsEpisodes')} selected={tab === 'episodes'} onPress={() => setTab('episodes')} />
+              <TopicChip label={t('emissions.tabsAbout')} selected={tab === 'about'} onPress={() => setTab('about')} />
+              <TopicChip label={t('emissions.tabsProgram')} selected={tab === 'program'} onPress={() => setTab('program')} />
             </ScrollView>
 
             {tab === 'episodes' ? (
               <View style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>Episodes</ThemedText>
+                <ThemedText style={styles.sectionTitle}>{t('emissions.tabsEpisodes')}</ThemedText>
                 <EmptyPanel
-                  message="Aucun episode publie n&apos;est encore disponible pour cette emission."
+                  message={t('emissions.noEpisodes')}
                   themeTextColor={theme.homeSubtitle}
                 />
               </View>
@@ -96,23 +98,23 @@ export default function EmissionDetailScreen() {
                   <ContentImage source={emission.imageSource} style={styles.hostAvatar} />
                   <View style={styles.hostText}>
                     <ThemedText style={styles.hostName}>{emission.host}</ThemedText>
-                    <ThemedText style={[styles.hostRole, { color: theme.homeSubtitle }]}>Animateur</ThemedText>
+                    <ThemedText style={[styles.hostRole, { color: theme.homeSubtitle }]}>{t('emissions.hostRole')}</ThemedText>
                   </View>
                 </View>
 
-                <ThemedText style={styles.sectionTitle}>A propos de l&apos;emission</ThemedText>
+                <ThemedText style={styles.sectionTitle}>{t('emissions.aboutTitle')}</ThemedText>
                 <ThemedText style={[styles.paragraph, { color: theme.homeSubtitle }]}>
-                  {emission.description || 'Aucune description disponible.'}
+                  {emission.description || t('emissions.noDescription')}
                 </ThemedText>
               </View>
             ) : null}
 
             {tab === 'program' ? (
               <View style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>Programme de diffusion</ThemedText>
+                <ThemedText style={styles.sectionTitle}>{t('emissions.programTitle')}</ThemedText>
                 <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
                 <EmptyPanel
-                  message="Aucun programme publie n&apos;est disponible pour cette emission."
+                  message={t('emissions.noProgram')}
                   themeTextColor={theme.homeSubtitle}
                 />
               </View>
