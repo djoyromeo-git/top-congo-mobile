@@ -1,8 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
-import { Check } from 'phosphor-react-native';
+import { Pressable, StyleSheet, type PressableProps } from 'react-native';
 
-import { Palette, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
