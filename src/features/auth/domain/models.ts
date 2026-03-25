@@ -28,6 +28,19 @@ export type AuthRegistrationCompletionInput = {
   name: string;
 };
 
+export type AuthGoogleSignInInput = {
+  idToken: string | null;
+  accessToken: string | null;
+  authorizationCode: string | null;
+  user: {
+    email: string | null;
+    fullName: string | null;
+    givenName: string | null;
+    familyName: string | null;
+    avatarUrl: string | null;
+  };
+};
+
 export type AuthUserProfile = {
   id: string;
   email: string | null;

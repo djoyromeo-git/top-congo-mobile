@@ -2,6 +2,7 @@ import { getTopCongoApiUrl } from '@/features/auth/config';
 import { CredentialsAuthError } from '@/features/auth/domain/errors';
 import type {
   AuthCredentialsInput,
+  AuthGoogleSignInInput,
   AuthRegistrationCompletionResult,
   AuthRegistrationCompletionInput,
   AuthOtpVerificationInput,
@@ -47,6 +48,29 @@ export class FetchTopCongoAuthGateway implements CredentialsAuthGateway {
 
     if (!isTopCongoAuthSuccessResponse(payload)) {
       throw new CredentialsAuthError('unknown', 'Unexpected login response from TopCongo API.');
+    }
+
+    return createCredentialsSession(payload);
+  }
+
+  async signInWithGoogle(input: AuthGoogleSignInInput) {
+    const payload = await this.request({
+      path: '/auth/google',
+      body: removeUndefinedEntries({
+        id_token: input.idToken,
+        access_token: input.accessToken,
+        authorization_code: input.authorizationCode,
+        server_auth_code: input.authorizationCode,
+        email: input.user.email,
+        name: input.user.fullName,
+        given_name: input.user.givenName,
+        family_name: input.user.familyName,
+        avatar: input.user.avatarUrl,
+      }),
+    });
+
+    if (!isTopCongoAuthSuccessResponse(payload)) {
+      throw new CredentialsAuthError('unknown', 'Unexpected Google sign-in response from TopCongo API.');
     }
 
     return createCredentialsSession(payload);
@@ -240,4 +264,8 @@ function isRecordWithRegistrationId(value: unknown): value is { message?: unknow
     (typeof (value as { registration_id?: unknown }).registration_id === 'string' ||
       typeof (value as { registration_id?: unknown }).registration_id === 'number')
   );
+}
+
+function removeUndefinedEntries(payload: Record<string, unknown>) {
+  return Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined && value !== null));
 }

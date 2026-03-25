@@ -1,5 +1,6 @@
 import type {
   AuthCredentialsInput,
+  AuthGoogleSignInInput,
   AuthRegistrationCompletionResult,
   AuthRegistrationCompletionInput,
   AuthOtpVerificationInput,
@@ -20,6 +21,7 @@ export interface SocialAuthProviderPort {
 
 export interface CredentialsAuthGateway {
   signInWithCredentials(input: AuthCredentialsInput): Promise<AuthSession>;
+  signInWithGoogle(input: AuthGoogleSignInInput): Promise<AuthSession>;
   register(input: AuthRegistrationInput): Promise<AuthRegistrationResult>;
   verifyRegistrationOtp(input: AuthOtpVerificationInput): Promise<boolean>;
   resendRegistrationOtp(registrationId: string): Promise<string>;

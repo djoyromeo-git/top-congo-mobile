@@ -6,6 +6,7 @@ import type {
 } from '@/features/auth/domain/ports';
 import type {
   AuthCredentialsInput,
+  AuthGoogleSignInInput,
   AuthRegistrationCompletionResult,
   AuthRegistrationCompletionInput,
   AuthOtpVerificationInput,
@@ -15,7 +16,12 @@ import type {
   AuthState,
   SocialAuthProvider,
 } from '@/features/auth/domain/models';
-import { normalizeCredentialsAuthError, normalizeSocialAuthError } from '@/features/auth/domain/errors';
+import {
+  CredentialsAuthError,
+  SocialAuthError,
+  normalizeCredentialsAuthError,
+  normalizeSocialAuthError,
+} from '@/features/auth/domain/errors';
 
 type AuthStateListener = (state: AuthState) => void;
 
@@ -123,7 +129,11 @@ export class AuthSessionService {
     });
 
     try {
-      const nextSession = await authProvider.signInAsync();
+      const providerSession = await authProvider.signInAsync();
+      const nextSession =
+        provider === 'google'
+          ? await this.signInWithGoogleProviderSession(providerSession)
+          : providerSession;
       const mergedSession = mergeSessionWithExisting(this.state.session, nextSession);
       await this.store.set(mergedSession);
       this.logSessionPersisted('social_sign_in', mergedSession);
@@ -592,6 +602,15 @@ export class AuthSessionService {
     }
   }
 
+  private async signInWithGoogleProviderSession(session: AuthSession) {
+    try {
+      return await this.credentialsGateway.signInWithGoogle(toGoogleSignInInput(session));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Google sign-in token exchange failed.';
+      throw new SocialAuthError('google', 'token_exchange_failed', message);
+    }
+  }
+
   private logSessionPersisted(reason: string, session: AuthSession) {
     const context = {
       reason,
@@ -614,4 +633,19 @@ export class AuthSessionService {
 
 function isCompletionSuccessful(result: AuthRegistrationCompletionResult) {
   return result.kind === 'completed' || result.kind === 'session';
+}
+
+function toGoogleSignInInput(session: AuthSession): AuthGoogleSignInInput {
+  return {
+    idToken: session.idToken,
+    accessToken: session.accessToken,
+    authorizationCode: session.authorizationCode,
+    user: {
+      email: session.user.email,
+      fullName: session.user.fullName,
+      givenName: session.user.givenName,
+      familyName: session.user.familyName,
+      avatarUrl: session.user.avatarUrl,
+    },
+  };
 }

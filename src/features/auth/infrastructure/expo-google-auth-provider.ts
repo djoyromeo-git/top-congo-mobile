@@ -113,6 +113,7 @@ export class ExpoGoogleAuthProvider implements SocialAuthProviderPort {
       scopes: GOOGLE_AUTH_SCOPES,
       iosClientId: config.iosClientId,
       webClientId: config.webClientId,
+      offlineAccess: true,
     });
 
     this.configured = true;
