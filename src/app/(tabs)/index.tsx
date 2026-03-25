@@ -11,10 +11,10 @@ import { useHomeLoading } from '@/components/ui/home-loading-context';
 import { NewsListItem } from '@/components/ui/news-list-item';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
-import { FEATURED_NEWS, NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
+import { NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
 import { useAuthSession } from '@/features/auth/presentation/use-auth-session';
-import { usePosts } from '@/features/content/infrastructure/fetch-posts';
-import { useEmissionShows } from '@/features/emissions/infrastructure/fetch-emission-shows';
+import { type Post, usePosts } from '@/features/content/infrastructure/fetch-posts';
+import { type EmissionShow, useEmissionShows } from '@/features/emissions/infrastructure/fetch-emission-shows';
 import { selectTopicChipOptions, useTopicsOptions } from '@/features/topics/infrastructure/fetch-topics-options';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -55,12 +55,7 @@ function HomeContent() {
   const router = useRouter();
   const theme = useTheme();
   const { session } = useAuthSession();
-  const [featuredSaved, setFeaturedSaved] = React.useState<Record<string, boolean>>(() =>
-    FEATURED_NEWS.reduce<Record<string, boolean>>((acc, item) => {
-      acc[item.key] = item.saved;
-      return acc;
-    }, {})
-  );
+  const [featuredSaved, setFeaturedSaved] = React.useState<Record<string, boolean>>({});
   const [savedNews, setSavedNews] = React.useState<Record<string, boolean>>({});
   const [savedPodcasts, setSavedPodcasts] = React.useState<Record<string, boolean>>(() =>
     PODCASTS.reduce<Record<string, boolean>>((acc, item) => {
@@ -75,6 +70,8 @@ function HomeContent() {
   const showsQuery = useEmissionShows();
   const shows = React.useMemo(() => showsQuery.data ?? [], [showsQuery.data]);
   const shouldShowShowsSection = showsQuery.isLoading || shows.length > 0;
+  const featuredItems = React.useMemo(() => selectHeadlineItems(posts, shows, t), [posts, shows, t]);
+  const shouldShowHeadlinesSection = postsQuery.isLoading || showsQuery.isLoading || featuredItems.length > 0;
 
   const topicChips = React.useMemo(() => {
     return selectTopicChipOptions(topicsQuery.data ?? [])
@@ -103,6 +100,24 @@ function HomeContent() {
       return next;
     });
   }, [posts]);
+
+  React.useEffect(() => {
+    if (featuredItems.length === 0) {
+      return;
+    }
+
+    setFeaturedSaved((current) => {
+      const next = { ...current };
+
+      for (const item of featuredItems) {
+        if (!(item.key in next)) {
+          next[item.key] = false;
+        }
+      }
+
+      return next;
+    });
+  }, [featuredItems]);
 
   const filteredNews = React.useMemo(
     () =>
@@ -185,32 +200,45 @@ function HomeContent() {
         })}
       </ScrollView>
 
-      <SectionHeader title={t('homeFeed.headlineSection')} actionLabel={t('common.learnMore')} />
+      {shouldShowHeadlinesSection ? (
+        <>
+          <SectionHeader title={t('homeFeed.headlineSection')} actionLabel={t('common.learnMore')} />
 
-      <ScrollView
-        horizontal
-        style={styles.headlinesScroll}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.cardsRow}>
-        {FEATURED_NEWS.map((item) => {
-          const isSaved = featuredSaved[item.key];
+          <ScrollView
+            horizontal
+            style={styles.headlinesScroll}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.cardsRow}>
+            {postsQuery.isLoading || showsQuery.isLoading
+              ? [0, 1].map((index) => (
+                  <HeadlineCardSkeleton
+                    key={`headline-loading-${index}`}
+                    withActiveAction={index === 1}
+                    showLiveDot={index === 0}
+                  />
+                ))
+              : featuredItems.map((item) => {
+                  const isSaved = featuredSaved[item.key] ?? false;
 
-          return (
-            <HeadlineCard
-              key={item.key}
-              badge={t(`homeFeed.${item.badgeKey}`)}
-              date={t(`homeFeed.${item.dateKey}`)}
-              title={t(`homeFeed.${item.titleKey}`)}
-              imageSource={item.imageSource}
-              fallbackVariant={item.fallbackVariant}
-              showBadgeDot={item.showBadgeDot}
-              actionLabel={t(isSaved ? 'homeFeed.cancelSaved' : 'homeFeed.saveForLater')}
-              actionActive={isSaved}
-              onPressAction={() => toggleFeaturedSaved(item.key)}
-            />
-          );
-        })}
-      </ScrollView>
+                  return (
+                    <HeadlineCard
+                      key={item.key}
+                      badge={item.badge}
+                      date={item.date}
+                      title={item.title}
+                      imageSource={item.imageSource}
+                      fallbackVariant={item.fallbackVariant}
+                      showBadgeDot={item.showBadgeDot}
+                      actionLabel={t(isSaved ? 'homeFeed.cancelSaved' : 'homeFeed.saveForLater')}
+                      actionActive={isSaved}
+                      onPress={() => router.push(item.route as never)}
+                      onPressAction={() => toggleFeaturedSaved(item.key)}
+                    />
+                  );
+                })}
+          </ScrollView>
+        </>
+      ) : null}
 
       {shouldShowShowsSection ? (
         <>
@@ -492,6 +520,88 @@ function NewsRowSkeleton({
       </View>
     </View>
   );
+}
+
+type HomeHeadlineItem = {
+  key: string;
+  badge: string;
+  date: string;
+  title: string;
+  imageSource?: string | number;
+  fallbackVariant: 'dark' | 'blue';
+  showBadgeDot: boolean;
+  route: string;
+};
+
+function selectHeadlineItems(posts: Post[], shows: EmissionShow[], t: (key: string) => string) {
+  const items: HomeHeadlineItem[] = [];
+  const usedKeys = new Set<string>();
+  const featuredPosts = posts.filter((post) => post.isFeatured);
+  const regularPosts = posts.filter((post) => !post.isFeatured);
+
+  const pushItem = (item: HomeHeadlineItem | null) => {
+    if (!item || usedKeys.has(item.key) || items.length >= 2) {
+      return;
+    }
+
+    usedKeys.add(item.key);
+    items.push(item);
+  };
+
+  pushItem(mapPostToHeadlineItem(featuredPosts[0] ?? regularPosts[0]));
+  pushItem(mapShowToHeadlineItem(shows[0], t));
+
+  for (const post of [...featuredPosts.slice(1), ...regularPosts]) {
+    if (items.length >= 2) {
+      break;
+    }
+
+    pushItem(mapPostToHeadlineItem(post));
+  }
+
+  for (const show of shows.slice(1)) {
+    if (items.length >= 2) {
+      break;
+    }
+
+    pushItem(mapShowToHeadlineItem(show, t));
+  }
+
+  return items;
+}
+
+function mapPostToHeadlineItem(post: Post | undefined): HomeHeadlineItem | null {
+  if (!post) {
+    return null;
+  }
+
+  return {
+    key: `post:${post.slug}`,
+    badge: post.kind === 'media' ? 'Media' : 'Article',
+    date: post.publishedAtLabel,
+    title: post.title,
+    imageSource: post.imageSource,
+    fallbackVariant: post.kind === 'media' ? 'blue' : 'dark',
+    showBadgeDot: post.isFeatured || post.kind === 'media',
+    route: post.kind === 'media' ? `/actualites/media/${post.slug}` : `/actualites/${post.slug}`,
+  };
+}
+
+function mapShowToHeadlineItem(show: EmissionShow | undefined, t: (key: string) => string): HomeHeadlineItem | null {
+  if (!show) {
+    return null;
+  }
+
+  return {
+    key: `show:${show.slug}`,
+    badge: t('tabs.emissions'),
+    date: show.publishedAtLabel,
+    title: show.title,
+    imageSource: show.imageSource,
+    fallbackVariant: 'blue',
+    showBadgeDot: false,
+    route: `/emissions/${show.slug}`,
+  };
 }
 
 function ShowCard({

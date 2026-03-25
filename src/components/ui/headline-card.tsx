@@ -11,7 +11,7 @@ type HeadlineCardProps = {
   badge: string;
   date: string;
   title: string;
-  imageSource?: number;
+  imageSource?: string | number;
   fallbackVariant?: 'dark' | 'blue';
   showBadgeDot?: boolean;
   actionLabel?: string;
