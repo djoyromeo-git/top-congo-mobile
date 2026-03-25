@@ -52,6 +52,9 @@ export default {
     ...baseConfig.updates,
     ...(easProjectId ? { url: `https://u.expo.dev/${easProjectId}` } : {}),
   },
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
   ios: {
     ...baseConfig.ios,
     usesAppleSignIn: true,
@@ -74,9 +77,6 @@ export default {
   },
   android: {
     ...baseConfig.android,
-    runtimeVersion: {
-      policy: 'appVersion',
-    },
   },
   plugins,
 } satisfies ExpoConfig;

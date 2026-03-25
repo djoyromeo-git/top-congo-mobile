@@ -1,4 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { Asset } from 'expo-asset';
 import Constants from 'expo-constants';
 import { useFonts } from 'expo-font';
@@ -6,17 +7,15 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
-import * as Sentry from '@sentry/react-native';
 
-import { AuthSessionProvider } from '@/features/auth/presentation/auth-session-provider';
-import '@/features/notifications/infrastructure/background-notification-task';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useNotificationBootstrap } from '@/features/notifications/presentation/use-notification-bootstrap';
-import '@/i18n';
-import { AppQueryProvider } from '@/shared/query/query-provider';
 import { DrawerProvider, useDrawer } from '@/components/ui/drawer-context';
 import { DrawerPanel } from '@/components/ui/drawer-panel';
-import { warmLiveAudio } from '@/services/live-audio';
+import { AuthSessionProvider } from '@/features/auth/presentation/auth-session-provider';
+import '@/features/notifications/infrastructure/background-notification-task';
+import { useNotificationBootstrap } from '@/features/notifications/presentation/use-notification-bootstrap';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import '@/i18n';
+import { AppQueryProvider } from '@/shared/query/query-provider';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -78,9 +77,7 @@ function RootLayout() {
     };
   }, []);
 
-  React.useEffect(() => {
-    warmLiveAudio();
-  }, []);
+
 
   React.useEffect(() => {
     if (fontsLoaded && assetsLoaded) {
