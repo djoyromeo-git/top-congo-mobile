@@ -1,5 +1,6 @@
-import * as Sentry from '@sentry/react-native';
 import { Asset } from 'expo-asset';
+import * as React from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   createAudioPlayer,
   setAudioModeAsync,
@@ -8,13 +9,13 @@ import {
   type AudioPlayer,
   type AudioStatus,
 } from 'expo-audio';
-import * as React from 'react';
 
 const LIVE_STREAM_URL = process.env.EXPO_PUBLIC_LIVE_STREAM_URL?.trim() ?? '';
 const LIVE_DEFAULT_ARTWORK_URL = Asset.fromModule(
   require('../../assets/images/icon.png')
 ).uri;
-const LIVE_PROGRAM_TITLE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_TITLE?.trim() || 'Top Congo Live';
+const LIVE_PROGRAM_TITLE =
+  process.env.EXPO_PUBLIC_LIVE_PROGRAM_TITLE?.trim() || 'Suivez l’actualité en continue avec Top Congo';
 const LIVE_PROGRAM_HOST = process.env.EXPO_PUBLIC_LIVE_PROGRAM_HOST?.trim() || '';
 const LIVE_PROGRAM_SCHEDULE = process.env.EXPO_PUBLIC_LIVE_PROGRAM_SCHEDULE?.trim() || '';
 const LIVE_NOW_PLAYING_URL = process.env.EXPO_PUBLIC_LIVE_NOW_PLAYING_URL?.trim() ?? '';
@@ -418,23 +419,6 @@ function ensureSourcePrepared(player: AudioPlayer) {
   sourcePrepared = true;
 }
 
-export function warmLiveAudio() {
-  if (!isLiveStreamConfigured) {
-    return;
-  }
-
-  try {
-    const player = getLiveAudioPlayer();
-    ensureSourcePrepared(player);
-    addLiveBreadcrumb('warm.success', {
-      playbackState: player.currentStatus.playbackState,
-      isLoaded: player.currentStatus.isLoaded,
-    });
-  } catch (error) {
-    addLiveBreadcrumb('warm.error', { message: asError(error).message }, 'warning');
-  }
-}
-
 function replaceSource(player: AudioPlayer) {
   if (LIVE_STREAM_URL.length === 0) {
     return;
@@ -823,9 +807,7 @@ export function pauseLiveAudio() {
 }
 
 export async function toggleLiveAudio(metadata?: AudioMetadata) {
-  const player = getLiveAudioPlayer();
-
-  if (player.playing) {
+  if (playbackRequestState.wantsPlayback) {
     addLiveBreadcrumb('toggle.pause');
     pauseLiveAudio();
     return;
@@ -840,13 +822,12 @@ export function useLiveAudioStatus() {
   const status = useAudioPlayerStatus(player);
   const playbackRequest = useLivePlaybackRequestState();
   const playbackState = String(status.playbackState ?? '').toLowerCase();
-  const timeControlStatus = String(status.timeControlStatus ?? '').toLowerCase();
   const isPlaybackConfirmed =
     playbackRequest.wantsPlayback &&
     status.isLoaded &&
     !status.isBuffering &&
     playbackState === 'ready' &&
-    timeControlStatus === 'playing';
+    status.playing;
   const isStarting =
     playbackRequest.wantsPlayback &&
     !isPlaybackConfirmed &&
