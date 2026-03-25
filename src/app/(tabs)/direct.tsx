@@ -1,19 +1,19 @@
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import {
+  ArrowLeft,
   ArrowsInSimple,
   ArrowsOutSimple,
-  CaretDown,
   DotsThreeVertical,
   Pause,
   Play,
   SpeakerHigh,
-  SpeakerX,
+  SpeakerX
 } from 'phosphor-react-native';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
@@ -145,7 +145,7 @@ export default function DirectScreen() {
           <View style={styles.topSection}>
           <AppTopBar
             leftAction={{
-              icon: <CaretDown size={22} weight="bold" color={Palette.neutral['100']} />,
+              icon: <ArrowLeft size={22} weight="bold" color={Palette.neutral['100']} />,
               onPress: handleBack,
               accessibilityLabel: t('direct.back'),
             }}
