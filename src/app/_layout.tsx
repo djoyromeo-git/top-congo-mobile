@@ -16,6 +16,7 @@ import '@/i18n';
 import { AppQueryProvider } from '@/shared/query/query-provider';
 import { DrawerProvider, useDrawer } from '@/components/ui/drawer-context';
 import { DrawerPanel } from '@/components/ui/drawer-panel';
+import { warmLiveAudio } from '@/services/live-audio';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -75,6 +76,10 @@ function RootLayout() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  React.useEffect(() => {
+    warmLiveAudio();
   }, []);
 
   React.useEffect(() => {

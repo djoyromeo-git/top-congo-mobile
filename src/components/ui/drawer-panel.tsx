@@ -66,7 +66,7 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
   const { signOut } = useAuthSession();
   const isWeb = Platform.OS === 'web';
   const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const topicsQuery = useTopicsOptions();
   const [expandedSections, setExpandedSections] = React.useState<Record<ExpandableSectionKey, boolean>>({
     podcast: false,
@@ -256,7 +256,7 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
             </Pressable>
 
             <Pressable onPress={handleToggleLive} disabled={!isLiveStreamConfigured}>
-              {isBuffering ? (
+              {isBuffering || isStarting ? (
                 <ActivityIndicator size="small" color={Palette.red['800']} />
               ) : isLiveActive ? (
                 <Pause size={32} weight="fill" color={Palette.neutral['100']} />

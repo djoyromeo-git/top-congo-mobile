@@ -23,7 +23,7 @@ export default function LivePlayerScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const reconnectState = useLiveReconnectState();
   const program = useLiveProgramInfo();
   const metadata = useLiveMetadata();
@@ -94,7 +94,7 @@ export default function LivePlayerScreen() {
               },
               pressed && styles.pressed,
             ]}>
-            {isBuffering ? (
+            {isBuffering || isStarting ? (
               <ActivityIndicator size="small" color={theme.secondary} />
               ) : isPlaying ? (
                 <Pause size={34} weight="fill" color={isLiveStreamConfigured ? theme.secondary : theme.disabledText} />
@@ -127,7 +127,7 @@ export default function LivePlayerScreen() {
               ? 'Stream indisponible'
               : reconnectState.isReconnecting
                 ? 'Reconnexion en cours'
-                : isBuffering
+                : isBuffering || isStarting
                   ? 'Chargement...'
                   : isPlaying
                     ? 'En direct'

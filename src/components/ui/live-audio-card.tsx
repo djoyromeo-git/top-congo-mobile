@@ -21,6 +21,7 @@ type LiveAudioCardProps = {
   onPressPlay?: () => void;
   isPlaying?: boolean;
   isBuffering?: boolean;
+  isStarting?: boolean;
   disabled?: boolean;
   loading?: boolean;
 };
@@ -32,6 +33,7 @@ export function LiveAudioCard({
   onPressPlay,
   isPlaying = false,
   isBuffering = false,
+  isStarting = false,
   disabled = false,
   loading = false,
 }: LiveAudioCardProps) {
@@ -49,7 +51,7 @@ export function LiveAudioCard({
     let shiftAnimation: Animated.CompositeAnimation | null = null;
     let opacityAnimation: Animated.CompositeAnimation | null = null;
 
-    const isActive = !disabled && (isPlaying || isBuffering);
+    const isActive = !disabled && (isPlaying || isBuffering || isStarting);
 
     if (isActive) {
       waveShift.setValue(0);
@@ -100,7 +102,7 @@ export function LiveAudioCard({
       shiftAnimation?.stop();
       opacityAnimation?.stop();
     };
-  }, [disabled, isPlaying, isBuffering, isWeb, waveOpacity, waveShift]);
+  }, [disabled, isPlaying, isBuffering, isStarting, isWeb, waveOpacity, waveShift]);
 
   if (loading) {
     return (
@@ -189,7 +191,7 @@ export function LiveAudioCard({
           disabled={disabled}
           onPress={onPressPlay}
           style={({ pressed }) => [styles.playButton, disabled && styles.disabled, pressed && styles.pressed]}>
-          {isBuffering ? (
+          {isBuffering || isStarting ? (
             <ActivityIndicator size="small" color={Palette.red['800']} />
           ) : isPlaying ? (
             <Pause size={22} weight="fill" color={Palette.red['800']} />

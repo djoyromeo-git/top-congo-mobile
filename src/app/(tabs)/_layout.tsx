@@ -28,7 +28,7 @@ export default function TabsLayout() {
   const program = useLiveProgramInfo();
   const insets = useSafeAreaInsets();
   const liveCardBottom = insets.bottom + 76;
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const [isHomeLoading, setIsHomeLoading] = React.useState(true);
   const isSearchScreen = pathname === '/search';
   const isDirectScreen = pathname === '/direct';
@@ -94,6 +94,7 @@ export default function TabsLayout() {
               onPressPlay={handleToggleLive}
               isPlaying={isPlaying}
               isBuffering={isBuffering}
+              isStarting={isStarting}
               disabled={!isLiveStreamConfigured}
             />
           </View>

@@ -11,7 +11,6 @@ import {
   DotsThreeVertical,
   Pause,
   Play,
-  PlayCircle,
   SpeakerHigh,
   SpeakerX,
 } from 'phosphor-react-native';
@@ -54,7 +53,7 @@ export default function DirectScreen() {
   const drawer = useDrawer();
   const params = useLocalSearchParams<{ mode?: string | string[] }>();
   const theme = useTheme();
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const program = useLiveProgramInfo();
   const [mode, setMode] = React.useState<DirectMode>('video');
   const [isMuted, setIsMuted] = React.useState(false);
@@ -135,7 +134,7 @@ export default function DirectScreen() {
     void toggleLiveAudio(directMetadata);
   }, [directMetadata]);
 
-  const playbackIcon: RoundIcon = isPlaying && !isBuffering ? 'pause' : 'play';
+  const playbackIcon: RoundIcon = isPlaying && !isBuffering && !isStarting ? 'pause' : 'play';
 
   return (
     <TabShell>
@@ -191,7 +190,7 @@ export default function DirectScreen() {
                   <View style={styles.controlsRow}>
                     <RoundIconButton
                       icon={playbackIcon}
-                      accessibilityLabel={isPlaying ? t('direct.pause') : t('direct.play')}
+                      accessibilityLabel={isPlaying && !isStarting ? t('direct.pause') : t('direct.play')}
                       onPress={handleTogglePlayback}
                       disabled={!isLiveStreamConfigured}
                     />

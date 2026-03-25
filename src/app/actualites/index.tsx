@@ -25,7 +25,7 @@ export default function ActualitesScreen() {
   const insets = useSafeAreaInsets();
   const isHomeLoading = useHomeLoading();
   const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const [selectedCategory, setSelectedCategory] = React.useState('all');
   const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
   const postsQuery = usePosts();
@@ -221,6 +221,7 @@ export default function ActualitesScreen() {
           onPressPlay={handleToggleLive}
           isPlaying={isPlaying}
           isBuffering={isBuffering}
+          isStarting={isStarting}
           disabled={!isLiveStreamConfigured}
         />
       </View>

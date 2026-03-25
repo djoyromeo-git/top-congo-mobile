@@ -26,7 +26,7 @@ export default function ActualiteDetailScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const postsQuery = usePosts();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
   const item = React.useMemo(() => findPost(posts, slug), [posts, slug]);
@@ -177,6 +177,7 @@ export default function ActualiteDetailScreen() {
           onPressPlay={() => router.push('/direct')}
           isPlaying={isPlaying}
           isBuffering={isBuffering}
+          isStarting={isStarting}
           disabled={false}
         />
       </View>

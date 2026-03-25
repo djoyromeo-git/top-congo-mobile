@@ -47,9 +47,14 @@ export type LiveReconnectState = {
   reason: string | null;
 };
 
+type LivePlaybackRequestState = {
+  wantsPlayback: boolean;
+};
+
 let currentLiveMetadata: AudioMetadata = { ...DEFAULT_METADATA };
 const liveMetadataListeners = new Set<() => void>();
 const reconnectStateListeners = new Set<() => void>();
+const playbackRequestListeners = new Set<() => void>();
 let nowPlayingPollTimer: ReturnType<typeof setInterval> | null = null;
 let isNowPlayingRequestInFlight = false;
 let metadataConsumersCount = 0;
@@ -65,6 +70,9 @@ let reconnectState: LiveReconnectState = {
   isReconnecting: false,
   attempt: 0,
   reason: null,
+};
+let playbackRequestState: LivePlaybackRequestState = {
+  wantsPlayback: false,
 };
 
 function addLiveBreadcrumb(
@@ -126,6 +134,12 @@ function notifyReconnectStateChanged() {
   }
 }
 
+function notifyPlaybackRequestStateChanged() {
+  for (const listener of playbackRequestListeners) {
+    listener();
+  }
+}
+
 function setReconnectState(next: LiveReconnectState) {
   if (
     reconnectState.isReconnecting === next.isReconnecting &&
@@ -137,6 +151,15 @@ function setReconnectState(next: LiveReconnectState) {
 
   reconnectState = next;
   notifyReconnectStateChanged();
+}
+
+function setPlaybackRequestState(next: LivePlaybackRequestState) {
+  if (playbackRequestState.wantsPlayback === next.wantsPlayback) {
+    return;
+  }
+
+  playbackRequestState = next;
+  notifyPlaybackRequestStateChanged();
 }
 
 function setCurrentLiveMetadata(metadata: AudioMetadata) {
@@ -257,6 +280,10 @@ export function getLiveReconnectState() {
   return { ...reconnectState };
 }
 
+export function getLivePlaybackRequestState() {
+  return { ...playbackRequestState };
+}
+
 export function subscribeLiveProgramInfo(listener: () => void) {
   liveMetadataListeners.add(listener);
   metadataConsumersCount += 1;
@@ -275,6 +302,14 @@ export function subscribeLiveReconnectState(listener: () => void) {
 
   return () => {
     reconnectStateListeners.delete(listener);
+  };
+}
+
+export function subscribeLivePlaybackRequestState(listener: () => void) {
+  playbackRequestListeners.add(listener);
+
+  return () => {
+    playbackRequestListeners.delete(listener);
   };
 }
 
@@ -312,6 +347,20 @@ export function useLiveReconnectState() {
   React.useEffect(() => {
     const unsubscribe = subscribeLiveReconnectState(() => {
       setState(getLiveReconnectState());
+    });
+
+    return unsubscribe;
+  }, []);
+
+  return state;
+}
+
+export function useLivePlaybackRequestState() {
+  const [state, setState] = React.useState<LivePlaybackRequestState>(() => getLivePlaybackRequestState());
+
+  React.useEffect(() => {
+    const unsubscribe = subscribeLivePlaybackRequestState(() => {
+      setState(getLivePlaybackRequestState());
     });
 
     return unsubscribe;
@@ -362,6 +411,23 @@ function ensureSourcePrepared(player: AudioPlayer) {
     name: currentLiveMetadata.title?.trim() || LIVE_PROGRAM_TITLE,
   });
   sourcePrepared = true;
+}
+
+export function warmLiveAudio() {
+  if (!isLiveStreamConfigured) {
+    return;
+  }
+
+  try {
+    const player = getLiveAudioPlayer();
+    ensureSourcePrepared(player);
+    addLiveBreadcrumb('warm.success', {
+      playbackState: player.currentStatus.playbackState,
+      isLoaded: player.currentStatus.isLoaded,
+    });
+  } catch (error) {
+    addLiveBreadcrumb('warm.error', { message: asError(error).message }, 'warning');
+  }
 }
 
 function replaceSource(player: AudioPlayer) {
@@ -692,6 +758,7 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
 
   try {
     shouldMaintainPlayback = true;
+    setPlaybackRequestState({ wantsPlayback: true });
     reconnectAttemptCount = 0;
     bufferingSinceAt = 0;
     setReconnectState({
@@ -721,6 +788,7 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
     syncNowPlayingPolling();
     addLiveBreadcrumb('play.success');
   } catch (error) {
+    setPlaybackRequestState({ wantsPlayback: false });
     addLiveBreadcrumb('play.error', { message: asError(error).message }, 'error');
     captureLiveException(error, {
       action: 'playLiveAudio',
@@ -733,6 +801,7 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
 export function pauseLiveAudio() {
   const player = getLiveAudioPlayer();
   shouldMaintainPlayback = false;
+  setPlaybackRequestState({ wantsPlayback: false });
   reconnectAttemptCount = 0;
   bufferingSinceAt = 0;
   setReconnectState({
@@ -764,11 +833,19 @@ export async function toggleLiveAudio(metadata?: AudioMetadata) {
 export function useLiveAudioStatus() {
   const player = getLiveAudioPlayer();
   const status = useAudioPlayerStatus(player);
+  const playbackRequest = useLivePlaybackRequestState();
+  const playbackState = String(status.playbackState ?? '').toLowerCase();
+  const timeControlStatus = String(status.timeControlStatus ?? '').toLowerCase();
+  const isStarting =
+    playbackRequest.wantsPlayback &&
+    !status.playing &&
+    (status.isBuffering || !status.isLoaded || playbackState !== 'ready' || timeControlStatus !== 'playing');
 
   return {
     status,
     isReady: isLiveStreamConfigured,
-    isPlaying: status.playing,
+    isPlaying: playbackRequest.wantsPlayback && status.playing && !isStarting,
     isBuffering: status.isBuffering,
+    isStarting,
   };
 }
