@@ -2,7 +2,6 @@ import * as Sentry from '@sentry/react-native';
 import { Asset } from 'expo-asset';
 import {
   createAudioPlayer,
-  preload,
   setAudioModeAsync,
   useAudioPlayerStatus,
   type AudioMetadata,
@@ -425,20 +424,6 @@ export function warmLiveAudio() {
   }
 
   try {
-    void preload(
-      {
-        uri: LIVE_STREAM_URL,
-        name: currentLiveMetadata.title?.trim() || LIVE_PROGRAM_TITLE,
-      },
-      {
-        preferredForwardBufferDuration: Number.isFinite(LIVE_PREFERRED_FORWARD_BUFFER_DURATION)
-          ? Math.max(0, LIVE_PREFERRED_FORWARD_BUFFER_DURATION)
-          : 4,
-      }
-    ).catch(error => {
-      addLiveBreadcrumb('warm.preload.error', { message: asError(error).message }, 'warning');
-    });
-
     const player = getLiveAudioPlayer();
     ensureSourcePrepared(player);
     addLiveBreadcrumb('warm.success', {
