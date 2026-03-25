@@ -1,14 +1,15 @@
-import { Asset } from 'expo-asset';
-import * as React from 'react';
 import * as Sentry from '@sentry/react-native';
+import { Asset } from 'expo-asset';
 import {
   createAudioPlayer,
+  preload,
   setAudioModeAsync,
   useAudioPlayerStatus,
   type AudioMetadata,
   type AudioPlayer,
   type AudioStatus,
 } from 'expo-audio';
+import * as React from 'react';
 
 const LIVE_STREAM_URL = process.env.EXPO_PUBLIC_LIVE_STREAM_URL?.trim() ?? '';
 const LIVE_DEFAULT_ARTWORK_URL = Asset.fromModule(
@@ -32,6 +33,9 @@ const LIVE_RECONNECT_MAX_DELAY_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNEC
 const LIVE_RECONNECT_CHECK_INTERVAL_MS = Number(process.env.EXPO_PUBLIC_LIVE_RECONNECT_CHECK_INTERVAL_MS ?? 4000);
 const LIVE_RECONNECT_BUFFERING_TIMEOUT_MS = Number(
   process.env.EXPO_PUBLIC_LIVE_RECONNECT_BUFFERING_TIMEOUT_MS ?? 15000
+);
+const LIVE_PREFERRED_FORWARD_BUFFER_DURATION = Number(
+  process.env.EXPO_PUBLIC_LIVE_PREFERRED_FORWARD_BUFFER_DURATION ?? 4
 );
 
 const DEFAULT_METADATA: AudioMetadata = {
@@ -379,7 +383,9 @@ function getLiveAudioPlayer(): AudioPlayer {
     livePlayerInstance = createAudioPlayer(null, {
       updateInterval: 500,
       keepAudioSessionActive: true,
-      preferredForwardBufferDuration: 20,
+      preferredForwardBufferDuration: Number.isFinite(LIVE_PREFERRED_FORWARD_BUFFER_DURATION)
+        ? Math.max(0, LIVE_PREFERRED_FORWARD_BUFFER_DURATION)
+        : 4,
     });
   }
 
@@ -419,6 +425,20 @@ export function warmLiveAudio() {
   }
 
   try {
+    void preload(
+      {
+        uri: LIVE_STREAM_URL,
+        name: currentLiveMetadata.title?.trim() || LIVE_PROGRAM_TITLE,
+      },
+      {
+        preferredForwardBufferDuration: Number.isFinite(LIVE_PREFERRED_FORWARD_BUFFER_DURATION)
+          ? Math.max(0, LIVE_PREFERRED_FORWARD_BUFFER_DURATION)
+          : 4,
+      }
+    ).catch(error => {
+      addLiveBreadcrumb('warm.preload.error', { message: asError(error).message }, 'warning');
+    });
+
     const player = getLiveAudioPlayer();
     ensureSourcePrepared(player);
     addLiveBreadcrumb('warm.success', {
@@ -836,15 +856,22 @@ export function useLiveAudioStatus() {
   const playbackRequest = useLivePlaybackRequestState();
   const playbackState = String(status.playbackState ?? '').toLowerCase();
   const timeControlStatus = String(status.timeControlStatus ?? '').toLowerCase();
+  const isPlaybackConfirmed =
+    playbackRequest.wantsPlayback &&
+    status.isLoaded &&
+    !status.isBuffering &&
+    playbackState === 'ready' &&
+    timeControlStatus === 'playing';
   const isStarting =
     playbackRequest.wantsPlayback &&
-    !status.playing &&
-    (status.isBuffering || !status.isLoaded || playbackState !== 'ready' || timeControlStatus !== 'playing');
+    !isPlaybackConfirmed &&
+    playbackState !== 'failed' &&
+    playbackState !== 'ended';
 
   return {
     status,
     isReady: isLiveStreamConfigured,
-    isPlaying: playbackRequest.wantsPlayback && status.playing && !isStarting,
+    isPlaying: isPlaybackConfirmed,
     isBuffering: status.isBuffering,
     isStarting,
   };
