@@ -100,9 +100,17 @@ function dedupeTopicOptions(options: TopicOption[]) {
 }
 
 export function selectTopicChipOptions(options: TopicOption[]) {
-  const leafOptions = options.filter((item) => !item.hasChildren);
   const rootOptions = options.filter((item) => item.parentId === null);
-  const preferredOptions = leafOptions.length > 0 ? leafOptions : rootOptions.length > 0 ? rootOptions : options;
+  const branchOptions = options.filter((item) => item.hasChildren);
+  const leafOptions = options.filter((item) => !item.hasChildren);
+  const preferredOptions =
+    rootOptions.length > 0
+      ? rootOptions
+      : branchOptions.length > 0
+        ? branchOptions
+        : leafOptions.length > 0
+          ? leafOptions
+          : options;
 
   return dedupeTopicOptions(preferredOptions);
 }
