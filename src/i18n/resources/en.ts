@@ -13,6 +13,9 @@ const en = {
     later: 'Later',
     restart: 'Restart',
   },
+  liveAudio: {
+    loadFailed: 'Audio failed to load',
+  },
   tabs: {
     home: 'Home',
     explore: 'Explore',

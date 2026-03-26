@@ -13,6 +13,9 @@ const fr = {
     later: 'Plus tard',
     restart: "Rédemarrer",
   },
+  liveAudio: {
+    loadFailed: "Échec du chargement de l'audio",
+  },
   tabs: {
     home: 'Accueil',
     explore: 'Explorer',

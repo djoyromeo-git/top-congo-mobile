@@ -24,6 +24,7 @@ import { useTheme } from '@/hooks/use-theme';
 import '@/i18n';
 import { AppQueryProvider } from '@/shared/query/query-provider';
 import { AsyncStorageJsonStore } from '@/shared/storage/async-storage-json-store';
+import { useLivePlaybackErrorState } from '@/services/live-audio';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -192,7 +193,7 @@ function useAppUpdatePrompt(isUiReady: boolean) {
       return;
     }
 
-    const pendingUpdate =
+    const pendingUpdate: PersistedPendingUpdatePrompt | null =
       downloadedUpdate?.type === Updates.UpdateInfoType.NEW
         ? { kind: 'update', updateId: downloadedUpdate.updateId }
         : downloadedUpdate?.type === Updates.UpdateInfoType.ROLLBACK
@@ -252,8 +253,10 @@ function useAppUpdatePrompt(isUiReady: boolean) {
 
 function RootLayout() {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
   useNotificationBootstrap();
   const [assetsLoaded, setAssetsLoaded] = React.useState(false);
+  const [toastVisible, setToastVisible] = React.useState(false);
   const [fontsLoaded] = useFonts({
     'Google Sans': require('../../assets/fonts/GoogleSans-Regular.ttf'),
     'Google Sans Medium': require('../../assets/fonts/GoogleSans-Medium.ttf'),
@@ -261,6 +264,37 @@ function RootLayout() {
   });
   const isUiReady = fontsLoaded && assetsLoaded;
   const updatePrompt = useAppUpdatePrompt(isUiReady);
+  const livePlaybackError = useLivePlaybackErrorState();
+  const livePlaybackToastMessage = React.useMemo(() => {
+    switch (livePlaybackError.messageKey) {
+      case 'liveAudio.loadFailed':
+        return t('liveAudio.loadFailed');
+      default:
+        return null;
+    }
+  }, [livePlaybackError.messageKey, t]);
+
+  React.useEffect(() => {
+    if (!livePlaybackError.messageKey || livePlaybackError.occurredAt === 0) {
+      return;
+    }
+
+    setToastVisible(true);
+  }, [livePlaybackError.messageKey, livePlaybackError.occurredAt]);
+
+  React.useEffect(() => {
+    if (!toastVisible) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setToastVisible(false);
+    }, 3200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [toastVisible, livePlaybackError.occurredAt]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -299,6 +333,10 @@ function RootLayout() {
                 isReloading={updatePrompt.isReloading}
                 onDismiss={updatePrompt.dismiss}
                 onReload={updatePrompt.reload}
+              />
+              <AppToast
+                isVisible={toastVisible}
+                message={livePlaybackToastMessage}
               />
             </ThemeProvider>
           </DrawerProvider>
@@ -404,7 +442,67 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
   );
 }
 
+function AppToast({ isVisible, message }: { isVisible: boolean; message: string | null }) {
+  const theme = useTheme();
+
+  if (!isVisible || !message) {
+    return null;
+  }
+
+  return (
+    <View pointerEvents="none" style={styles.toastViewport}>
+      <View
+        style={[
+          styles.toastCard,
+          {
+            backgroundColor: theme.background,
+            borderColor: theme.homeChipBorder,
+            shadowColor: theme.shadow,
+          },
+        ]}>
+        <View style={[styles.toastAccent, { backgroundColor: Palette.red['800'] }]} />
+        <ThemedText style={styles.toastLabel}>{message}</ThemedText>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  toastViewport: {
+    position: 'absolute',
+    bottom: 24,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  toastCard: {
+    minHeight: 54,
+    width: '100%',
+    maxWidth: 460,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  toastAccent: {
+    width: 8,
+    alignSelf: 'stretch',
+    borderRadius: 999,
+  },
+  toastLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
   updateBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(8, 12, 20, 0.56)',

@@ -18,7 +18,7 @@ export default function EpisodeDetailScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering, isStarting, errorMessage } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const showsQuery = useEmissionShows();
   const shows = React.useMemo(() => showsQuery.data ?? [], [showsQuery.data]);
   const emission = React.useMemo(() => findEmissionShow(shows, slug), [shows, slug]);
@@ -66,8 +66,7 @@ export default function EpisodeDetailScreen() {
         <LiveAudioCard
           loading={false}
           title={program.title}
-          subtitle={errorMessage || program.schedule || undefined}
-          errorMessage={errorMessage}
+          subtitle={program.schedule || undefined}
           onPressCard={() => router.push('/direct')}
           onPressPlay={() => router.push('/direct')}
           isPlaying={isPlaying}

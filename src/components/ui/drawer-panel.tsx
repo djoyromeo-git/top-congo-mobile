@@ -66,7 +66,7 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
   const { signOut } = useAuthSession();
   const isWeb = Platform.OS === 'web';
   const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering, isStarting, errorMessage } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const topicsQuery = useTopicsOptions();
   const [expandedSections, setExpandedSections] = React.useState<Record<ExpandableSectionKey, boolean>>({
     podcast: false,
@@ -79,7 +79,6 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
   const waveOpacity = React.useRef(new Animated.Value(0.26)).current;
 
   const isLiveActive = isPlaying || isBuffering;
-  const shouldShowLiveDetails = isLiveActive || Boolean(errorMessage);
   const topicLabels = React.useMemo(
     () => selectTopicChipOptions(topicsQuery.data ?? []).map((item) => item.label),
     [topicsQuery.data]
@@ -237,16 +236,12 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
                 requestDirectMode('audio');
                 handleNavigate('/direct');
               }}>
-              {shouldShowLiveDetails ? (
+              {isLiveActive ? (
                 <>
                   <ThemedText numberOfLines={1} style={styles.liveProgramTitle}>
                     {program.title}
                   </ThemedText>
-                  {errorMessage ? (
-                    <ThemedText numberOfLines={1} style={styles.liveProgramMeta}>
-                      {errorMessage}
-                    </ThemedText>
-                  ) : program.schedule ? (
+                  {program.schedule ? (
                     <ThemedText numberOfLines={1} style={styles.liveProgramMeta}>
                       {program.schedule}
                     </ThemedText>

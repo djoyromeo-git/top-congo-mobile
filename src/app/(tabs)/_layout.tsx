@@ -28,7 +28,7 @@ export default function TabsLayout() {
   const program = useLiveProgramInfo();
   const insets = useSafeAreaInsets();
   const liveCardBottom = insets.bottom + 76;
-  const { isPlaying, isBuffering, isStarting, errorMessage } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const [isHomeLoading, setIsHomeLoading] = React.useState(true);
   const isSearchScreen = pathname === '/search';
   const isDirectScreen = pathname === '/direct';
@@ -86,8 +86,7 @@ export default function TabsLayout() {
             <LiveAudioCard
               loading={isHomeLoading}
               title={program.title}
-              subtitle={errorMessage || program.schedule || undefined}
-              errorMessage={errorMessage}
+              subtitle={program.schedule || undefined}
               onPressCard={() => {
                 requestDirectMode('audio');
                 router.push('/direct');

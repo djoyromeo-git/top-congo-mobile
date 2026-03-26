@@ -23,7 +23,7 @@ export default function LivePlayerScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isPlaying, isBuffering, isStarting, errorMessage } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
   const reconnectState = useLiveReconnectState();
   const program = useLiveProgramInfo();
   const metadata = useLiveMetadata();
@@ -123,9 +123,7 @@ export default function LivePlayerScreen() {
           ) : null}
 
           <ThemedText style={[styles.stateText, { color: theme.onPrimary }]}>
-            {errorMessage
-              ? errorMessage
-              : !isLiveStreamConfigured
+            {!isLiveStreamConfigured
               ? 'Stream indisponible'
               : reconnectState.isReconnecting
                 ? 'Reconnexion en cours'

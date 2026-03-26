@@ -1,6 +1,5 @@
-import { Asset } from 'expo-asset';
-import * as React from 'react';
 import * as Sentry from '@sentry/react-native';
+import { Asset } from 'expo-asset';
 import {
   createAudioPlayer,
   setAudioModeAsync,
@@ -9,6 +8,7 @@ import {
   type AudioPlayer,
   type AudioStatus,
 } from 'expo-audio';
+import * as React from 'react';
 
 const LIVE_STREAM_URL = process.env.EXPO_PUBLIC_LIVE_STREAM_URL?.trim() ?? '';
 const LIVE_DEFAULT_ARTWORK_URL = Asset.fromModule(
@@ -34,11 +34,13 @@ const LIVE_RECONNECT_CHECK_INTERVAL_MS = Number(process.env.EXPO_PUBLIC_LIVE_REC
 const LIVE_RECONNECT_BUFFERING_TIMEOUT_MS = Number(
   process.env.EXPO_PUBLIC_LIVE_RECONNECT_BUFFERING_TIMEOUT_MS ?? 15000
 );
-const LIVE_STREAM_PROBE_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_LIVE_STREAM_PROBE_TIMEOUT_MS ?? 4000);
+const LIVE_PLAYBACK_START_TIMEOUT_MS = Number(
+  process.env.EXPO_PUBLIC_LIVE_PLAYBACK_START_TIMEOUT_MS ?? 12000
+);
 const LIVE_PREFERRED_FORWARD_BUFFER_DURATION = Number(
   process.env.EXPO_PUBLIC_LIVE_PREFERRED_FORWARD_BUFFER_DURATION ?? 4
 );
-const LIVE_AUDIO_LOAD_FAILED_MESSAGE = "Échec du chargement de l'audio";
+const LIVE_AUDIO_LOAD_FAILED_ERROR_KEY = 'liveAudio.loadFailed' as const;
 
 const DEFAULT_METADATA: AudioMetadata = {
   title: LIVE_PROGRAM_TITLE,
@@ -58,7 +60,8 @@ type LivePlaybackRequestState = {
 };
 
 type LivePlaybackErrorState = {
-  message: string | null;
+  messageKey: typeof LIVE_AUDIO_LOAD_FAILED_ERROR_KEY | null;
+  occurredAt: number;
 };
 
 let currentLiveMetadata: AudioMetadata = { ...DEFAULT_METADATA };
@@ -77,6 +80,8 @@ let reconnectAttemptCount = 0;
 let shouldMaintainPlayback = false;
 let isReconnectInFlight = false;
 let bufferingSinceAt = 0;
+let playbackStartupBeganAt = 0;
+let playbackStartupTimer: ReturnType<typeof setTimeout> | null = null;
 let shouldForceLiveEdgeOnNextPlay = false;
 let reconnectState: LiveReconnectState = {
   isReconnecting: false,
@@ -87,7 +92,8 @@ let playbackRequestState: LivePlaybackRequestState = {
   wantsPlayback: false,
 };
 let playbackErrorState: LivePlaybackErrorState = {
-  message: null,
+  messageKey: null,
+  occurredAt: 0,
 };
 
 function addLiveBreadcrumb(
@@ -184,7 +190,10 @@ function setPlaybackRequestState(next: LivePlaybackRequestState) {
 }
 
 function setPlaybackErrorState(next: LivePlaybackErrorState) {
-  if (playbackErrorState.message === next.message) {
+  if (
+    playbackErrorState.messageKey === next.messageKey &&
+    playbackErrorState.occurredAt === next.occurredAt
+  ) {
     return;
   }
 
@@ -435,6 +444,11 @@ function stopPlaybackLifecycle() {
   setPlaybackRequestState({ wantsPlayback: false });
   reconnectAttemptCount = 0;
   bufferingSinceAt = 0;
+  playbackStartupBeganAt = 0;
+  if (playbackStartupTimer) {
+    clearTimeout(playbackStartupTimer);
+    playbackStartupTimer = null;
+  }
   clearReconnectTimer();
   stopReconnectWatchdog();
   setReconnectState({
@@ -446,7 +460,10 @@ function stopPlaybackLifecycle() {
 
 function failLivePlayback(message: string, context?: Record<string, unknown>) {
   stopPlaybackLifecycle();
-  setPlaybackErrorState({ message });
+  setPlaybackErrorState({
+    messageKey: LIVE_AUDIO_LOAD_FAILED_ERROR_KEY,
+    occurredAt: Date.now(),
+  });
 
   if (livePlayerInstance) {
     try {
@@ -459,30 +476,45 @@ function failLivePlayback(message: string, context?: Record<string, unknown>) {
   addLiveBreadcrumb('playback.failed', { message, ...context }, 'error');
 }
 
-async function probeLiveStreamRedirectStatus() {
-  if (!isLiveStreamConfigured) {
-    return null;
+function markPlaybackStartupAttempt() {
+  playbackStartupBeganAt = Date.now();
+  if (playbackStartupTimer) {
+    clearTimeout(playbackStartupTimer);
   }
 
-  const timeoutMs = Number.isFinite(LIVE_STREAM_PROBE_TIMEOUT_MS) ? LIVE_STREAM_PROBE_TIMEOUT_MS : 4000;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => {
-    controller.abort();
-  }, timeoutMs);
+  const startupTimeoutMs = Number.isFinite(LIVE_PLAYBACK_START_TIMEOUT_MS)
+    ? Math.max(4000, LIVE_PLAYBACK_START_TIMEOUT_MS)
+    : 12000;
 
-  try {
-    const response = await fetch(LIVE_STREAM_URL, {
-      method: 'HEAD',
-      redirect: 'manual',
-      signal: controller.signal,
+  playbackStartupTimer = setTimeout(() => {
+    playbackStartupTimer = null;
+
+    if (!playbackRequestState.wantsPlayback) {
+      return;
+    }
+
+    const player = livePlayerInstance;
+    const status = player?.currentStatus;
+    const playbackState = String(status?.playbackState ?? '').toLowerCase();
+    const timeControlStatus = String(status?.timeControlStatus ?? '').toLowerCase();
+    const isReady =
+      Boolean(player?.playing) &&
+      status?.isLoaded === true &&
+      status?.isBuffering !== true &&
+      playbackState === 'ready';
+
+    if (isReady) {
+      return;
+    }
+
+    failLivePlayback(LIVE_AUDIO_LOAD_FAILED_ERROR_KEY, {
+      playbackState: status?.playbackState ?? null,
+      timeControlStatus: status?.timeControlStatus ?? null,
+      reasonForWaitingToPlay: status?.reasonForWaitingToPlay ?? null,
+      startupTimeoutMs,
+      timeoutSource: 'timer',
     });
-
-    return response.status >= 300 && response.status < 400 ? response.status : null;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
+  }, startupTimeoutMs);
 }
 
 function getLiveAudioPlayer(): AudioPlayer {
@@ -497,9 +529,31 @@ function getLiveAudioPlayer(): AudioPlayer {
 
     livePlayerInstance.addListener('playbackStatusUpdate', status => {
       const playbackState = String(status.playbackState ?? '').toLowerCase();
+      const timeControlStatus = String(status.timeControlStatus ?? '').toLowerCase();
+      const startupTimeoutMs = Number.isFinite(LIVE_PLAYBACK_START_TIMEOUT_MS)
+        ? Math.max(4000, LIVE_PLAYBACK_START_TIMEOUT_MS)
+        : 12000;
+      const isStillStarting =
+        playbackRequestState.wantsPlayback &&
+        !livePlayerInstance?.playing &&
+        (!status.isLoaded || status.isBuffering || playbackState === 'idle' || timeControlStatus === 'waiting');
+
+      if (
+        isStillStarting &&
+        playbackStartupBeganAt > 0 &&
+        Date.now() - playbackStartupBeganAt >= startupTimeoutMs
+      ) {
+        failLivePlayback(LIVE_AUDIO_LOAD_FAILED_ERROR_KEY, {
+          playbackState: status.playbackState,
+          timeControlStatus: status.timeControlStatus,
+          reasonForWaitingToPlay: status.reasonForWaitingToPlay,
+          startupTimeoutMs,
+        });
+        return;
+      }
 
       if (playbackState === 'failed') {
-        failLivePlayback(LIVE_AUDIO_LOAD_FAILED_MESSAGE, {
+        failLivePlayback(LIVE_AUDIO_LOAD_FAILED_ERROR_KEY, {
           playbackState: status.playbackState,
           timeControlStatus: status.timeControlStatus,
           reasonForWaitingToPlay: status.reasonForWaitingToPlay,
@@ -508,7 +562,12 @@ function getLiveAudioPlayer(): AudioPlayer {
       }
 
       if (playbackState === 'ready' && status.isLoaded && !status.isBuffering && livePlayerInstance?.playing) {
-        setPlaybackErrorState({ message: null });
+        playbackStartupBeganAt = 0;
+        if (playbackStartupTimer) {
+          clearTimeout(playbackStartupTimer);
+          playbackStartupTimer = null;
+        }
+        setPlaybackErrorState({ messageKey: null, occurredAt: 0 });
       }
     });
   }
@@ -646,6 +705,7 @@ async function attemptAutoReconnect(reason: string) {
       replaceSource(player);
     }
 
+    markPlaybackStartupAttempt();
     player.play();
     syncNowPlayingPolling();
 
@@ -871,7 +931,7 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
   const player = getLiveAudioPlayer();
 
   try {
-    setPlaybackErrorState({ message: null });
+    setPlaybackErrorState({ messageKey: null, occurredAt: 0 });
     shouldMaintainPlayback = true;
     setPlaybackRequestState({ wantsPlayback: true });
     reconnectAttemptCount = 0;
@@ -891,16 +951,6 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
     });
 
     await ensureAudioModeConfigured();
-    const redirectStatus = await probeLiveStreamRedirectStatus();
-
-    if (redirectStatus !== null) {
-      failLivePlayback(LIVE_AUDIO_LOAD_FAILED_MESSAGE, {
-        action: 'playLiveAudio',
-        httpStatus: redirectStatus,
-      });
-      return;
-    }
-
     ensureSourcePrepared(player);
 
     if (shouldForceLiveEdgeOnNextPlay || shouldReloadSourceBeforePlay(player.currentStatus)) {
@@ -917,6 +967,7 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
 
     applyLockScreenControls(player, metadata);
     void refreshLiveNowPlayingInfo({ reason: 'play' });
+    markPlaybackStartupAttempt();
     player.play();
     syncNowPlayingPolling();
     addLiveBreadcrumb('play.success');
@@ -929,7 +980,10 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
     });
 
     if (/NotSupportedError|no supported source was found/i.test(asError(error).message)) {
-      setPlaybackErrorState({ message: LIVE_AUDIO_LOAD_FAILED_MESSAGE });
+      setPlaybackErrorState({
+        messageKey: LIVE_AUDIO_LOAD_FAILED_ERROR_KEY,
+        occurredAt: Date.now(),
+      });
     }
   }
 }
@@ -964,6 +1018,7 @@ export function useLiveAudioStatus() {
   const playbackRequest = useLivePlaybackRequestState();
   const playbackError = useLivePlaybackErrorState();
   const playbackState = String(status.playbackState ?? '').toLowerCase();
+  const hasPlaybackError = playbackError.messageKey != null;
   const isPlaybackConfirmed =
     playbackRequest.wantsPlayback &&
     status.isLoaded &&
@@ -971,16 +1026,19 @@ export function useLiveAudioStatus() {
     playbackState === 'ready';
   const isStarting =
     playbackRequest.wantsPlayback &&
+    !hasPlaybackError &&
     !isPlaybackConfirmed &&
     playbackState !== 'failed' &&
     playbackState !== 'ended';
+  const isBuffering = playbackRequest.wantsPlayback && !hasPlaybackError && status.isBuffering;
 
   return {
     status,
     isReady: isLiveStreamConfigured,
     isPlaying: isPlaybackConfirmed,
-    isBuffering: status.isBuffering,
+    isBuffering,
     isStarting,
-    errorMessage: playbackError.message,
+    errorKey: playbackError.messageKey,
+    errorOccurredAt: playbackError.occurredAt,
   };
 }
