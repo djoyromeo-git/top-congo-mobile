@@ -35,10 +35,10 @@ import {
   MicrophoneStage,
   MonitorPlay,
   Newspaper,
-  Pause,
   Play,
   SealCheck,
   SignOut,
+  Stop,
   Television,
   UserCircle,
   VideoCamera,
@@ -259,7 +259,7 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
               {isBuffering || isStarting ? (
                 <ActivityIndicator size="small" color={Palette.red['800']} />
               ) : isLiveActive ? (
-                <Pause size={32} weight="fill" color={Palette.neutral['100']} />
+                <Stop size={32} weight="fill" color={Palette.neutral['100']} />
               ) : (
                 <View style={[styles.liveButton, !isLiveStreamConfigured && styles.disabled]}>
                   <Play size={18} weight="fill" color={Palette.red['800']} style={styles.playIcon} />

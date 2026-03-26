@@ -6,10 +6,10 @@ import {
   ArrowsInSimple,
   ArrowsOutSimple,
   DotsThreeVertical,
-  Pause,
   Play,
   SpeakerHigh,
-  SpeakerX
+  SpeakerX,
+  Stop,
 } from 'phosphor-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -134,7 +134,7 @@ export default function DirectScreen() {
     void toggleLiveAudio(directMetadata);
   }, [directMetadata]);
 
-  const playbackIcon: RoundIcon = isPlaying && !isBuffering && !isStarting ? 'pause' : 'play';
+  const playbackIcon: RoundIcon = isPlaying && !isBuffering && !isStarting ? 'stop' : 'play';
 
   return (
     <TabShell>
@@ -287,7 +287,7 @@ function DirectModeButton({
   );
 }
 
-type RoundIcon = 'play' | 'pause' | 'volume-high' | 'volume-x' | 'expand' | 'collapse';
+type RoundIcon = 'play' | 'stop' | 'volume-high' | 'volume-x' | 'expand' | 'collapse';
 
 function RoundIconButton({
   icon,
@@ -313,7 +313,7 @@ function RoundIconButton({
       ]}>
       {{
         play: <Play size={20} weight="fill" color={Palette.neutral['100']} />,
-        pause: <Pause size={20} weight="fill" color={Palette.neutral['100']} />,
+        stop: <Stop size={20} weight="fill" color={Palette.neutral['100']} />,
         'volume-high': <SpeakerHigh size={20} weight="bold" color={Palette.neutral['100']} />,
         'volume-x': <SpeakerX size={20} weight="bold" color={Palette.neutral['100']} />,
         expand: <ArrowsOutSimple size={20} weight="bold" color={Palette.neutral['100']} />,

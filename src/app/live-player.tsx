@@ -1,4 +1,4 @@
-import { CaretDown, DotsThreeVertical, Pause, Play, RotateCcw, RotateCw } from 'phosphor-react-native';
+import { CaretDown, DotsThreeVertical, Play, RotateCcw, RotateCw, Stop } from 'phosphor-react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -94,10 +94,10 @@ export default function LivePlayerScreen() {
               },
               pressed && styles.pressed,
             ]}>
-            {isBuffering || isStarting ? (
+              {isBuffering || isStarting ? (
               <ActivityIndicator size="small" color={theme.secondary} />
               ) : isPlaying ? (
-                <Pause size={34} weight="fill" color={isLiveStreamConfigured ? theme.secondary : theme.disabledText} />
+                <Stop size={34} weight="fill" color={isLiveStreamConfigured ? theme.secondary : theme.disabledText} />
               ) : (
                 <Play
                   size={34}

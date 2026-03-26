@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleSheet, View } from 'react-native';
-import { Pause, Play } from 'phosphor-react-native';
+import { Play, Stop } from 'phosphor-react-native';
 
 import { Palette, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -194,7 +194,7 @@ export function LiveAudioCard({
           {isBuffering || isStarting ? (
             <ActivityIndicator size="small" color={Palette.red['800']} />
           ) : isPlaying ? (
-            <Pause size={22} weight="fill" color={Palette.red['800']} />
+            <Stop size={22} weight="fill" color={Palette.red['800']} />
           ) : (
             <Play size={22} weight="fill" color={Palette.red['800']} style={styles.playIcon} />
           )}
