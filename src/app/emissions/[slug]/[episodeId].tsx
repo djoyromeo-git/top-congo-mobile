@@ -63,6 +63,14 @@ export default function EpisodeDetailScreen() {
   }, [emission, episode, router, showsQuery.isSuccess]);
 
   const liveCardBottom = insets.bottom + 10;
+  const handleGoBack = React.useCallback(() => {
+    if (emission) {
+      router.push(`/emissions/${emission.slug}` as never);
+      return;
+    }
+
+    router.replace('/(tabs)/emissions');
+  }, [emission, router]);
 
   const handleOpenAudio = React.useCallback(async () => {
     if (!episode?.audioAsset?.url) {
@@ -81,7 +89,7 @@ export default function EpisodeDetailScreen() {
       <AppTopBar
         leftAction={{
           icon: <ArrowLeft size={22} weight="bold" color={theme.onPrimary} />,
-          onPress: () => router.back(),
+          onPress: handleGoBack,
         }}
         rightAction={{
           icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,

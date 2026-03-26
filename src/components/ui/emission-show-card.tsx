@@ -40,7 +40,7 @@ export function EmissionShowCard({ title, host, imageSource, onPress }: Props) {
 
       <View style={styles.content}>
         <ThemedText numberOfLines={2} style={styles.title}>
-          {title}
+          {title.toLocaleUpperCase()}
         </ThemedText>
         <ThemedText numberOfLines={1} style={styles.host}>
           {t('emissions.withHost', { host })}

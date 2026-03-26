@@ -8,7 +8,6 @@ import { ThemedText } from '@/components/themed-text';
 import { AppTopBar } from '@/components/ui/app-top-bar';
 import { ContentImage } from '@/components/ui/content-image';
 import { LiveAudioCard } from '@/components/ui/live-audio-card';
-import { TopicChip } from '@/components/ui/topic-chip';
 import { Palette, Spacing } from '@/constants/theme';
 import {
   type EmissionEpisode,
@@ -114,7 +113,6 @@ function HostCard({ host, fallbackImageSource }: { host: EmissionShowHost; fallb
 }
 
 function ScheduleCard({ slot }: { slot: EmissionShowScheduleSlot }) {
-  const theme = useTheme();
   const { t } = useTranslation();
 
   return (
@@ -128,10 +126,49 @@ function ScheduleCard({ slot }: { slot: EmissionShowScheduleSlot }) {
           },
         ]}>
         <ThemedText numberOfLines={1} style={styles.schedulePillText}>
-          {`${getSlotTypeLabel(slot, t).toUpperCase()} • ${slot.startsAt.toUpperCase()} - ${slot.endsAt.toUpperCase()}`}
+          {[getSlotTypeLabel(slot, t).toUpperCase(), `${slot.startsAt.toUpperCase()} - ${slot.endsAt.toUpperCase()}`].join(
+            ' • '
+          )}
         </ThemedText>
       </View>
     </View>
+  );
+}
+
+function EmissionTabChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.tabChip,
+        {
+          borderColor: selected ? theme.primary : theme.homeChipBorder,
+          backgroundColor: selected ? theme.primary : theme.homeChipBackground,
+        },
+        pressed && styles.pressed,
+      ]}>
+      <ThemedText
+        numberOfLines={1}
+        style={[
+          styles.tabChipLabel,
+          {
+            color: selected ? theme.onPrimary : theme.homeChipText,
+          },
+        ]}>
+        {label}
+      </ThemedText>
+    </Pressable>
   );
 }
 
@@ -208,16 +245,34 @@ export default function EmissionDetailScreen() {
               <ContentImage source={emission.imageSource} style={styles.heroImage} />
               <View style={styles.heroOverlay} />
               <View style={styles.heroText}>
-                <ThemedText style={styles.heroTitle}>{emission.title}</ThemedText>
+                <ThemedText style={styles.heroTitle}>{emission.title.toLocaleUpperCase()}</ThemedText>
                 <ThemedText style={styles.heroSubtitle}>{t('emissions.withHost', { host: emission.host })}</ThemedText>
               </View>
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
-              <TopicChip label={t('emissions.tabsEpisodes')} selected={tab === 'episodes'} onPress={() => setTab('episodes')} />
-              <TopicChip label={t('emissions.tabsAbout')} selected={tab === 'about'} onPress={() => setTab('about')} />
-              <TopicChip label={t('emissions.tabsProgram')} selected={tab === 'program'} onPress={() => setTab('program')} />
-            </ScrollView>
+            <View style={styles.tabs}>
+              <View style={styles.tabItem}>
+                <EmissionTabChip
+                  label={t('emissions.tabsEpisodes')}
+                  selected={tab === 'episodes'}
+                  onPress={() => setTab('episodes')}
+                />
+              </View>
+              <View style={styles.tabItem}>
+                <EmissionTabChip
+                  label={t('emissions.tabsAbout')}
+                  selected={tab === 'about'}
+                  onPress={() => setTab('about')}
+                />
+              </View>
+              <View style={styles.tabItem}>
+                <EmissionTabChip
+                  label={t('emissions.tabsProgram')}
+                  selected={tab === 'program'}
+                  onPress={() => setTab('program')}
+                />
+              </View>
+            </View>
 
             {tab === 'episodes' ? (
               <View style={styles.section}>
@@ -358,9 +413,28 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   tabs: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     gap: Spacing.two,
+  },
+  tabItem: {
+    flex: 1,
+  },
+  tabChip: {
+    minHeight: 37,
+    borderRadius: 36,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabChipLabel: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   section: {
     paddingHorizontal: Spacing.three,
@@ -452,8 +526,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '500',
   },
-  scheduleList: {
-  },
+  scheduleList: {},
   scheduleRow: {
     flexDirection: 'row',
     alignItems: 'stretch',

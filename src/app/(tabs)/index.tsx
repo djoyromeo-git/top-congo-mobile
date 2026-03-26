@@ -243,7 +243,11 @@ function HomeContent() {
 
       {shouldShowShowsSection ? (
         <>
-          <SectionHeader title={t('homeFeed.showsSection')} actionLabel={t('homeFeed.seeMore')} />
+          <SectionHeader
+            title={t('homeFeed.showsSection')}
+            actionLabel={t('homeFeed.seeMore')}
+            onPress={() => router.push('/emissions' as never)}
+          />
 
           <ScrollView
             horizontal
