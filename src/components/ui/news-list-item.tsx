@@ -6,6 +6,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ContentImage } from '@/components/ui/content-image';
 import { useTheme } from '@/hooks/use-theme';
 
+import { SavedForLaterActiveIcon } from './saved-for-later-active-icon';
+
 type NewsListItemProps = {
   title: string;
   imageSource: string | number;
@@ -57,7 +59,7 @@ export function NewsListItem({
               onPress={onPressSave}
               style={({ pressed }) => [styles.save, pressed && styles.pressed]}>
               {saved ? (
-                <BookmarkSimple size={20} weight="fill" color={theme.primary} />
+                <SavedForLaterActiveIcon width={15} height={20} color={theme.primary} />
               ) : (
                 <BookmarkSimple size={20} weight="regular" color={theme.homeSectionLink} />
               )}

@@ -9,6 +9,7 @@ import { ContentImage } from '@/components/ui/content-image';
 import { HeadlineCard } from '@/components/ui/headline-card';
 import { useHomeLoading } from '@/components/ui/home-loading-context';
 import { NewsListItem } from '@/components/ui/news-list-item';
+import { SavedForLaterActiveIcon } from '@/components/ui/saved-for-later-active-icon';
 import { SkeletonBlock } from '@/components/ui/skeleton-block';
 import { TabShell } from '@/components/ui/tab-shell';
 import { NEWS_ITEMS, PODCASTS, SHOWS } from '@/constants/home-feed';
@@ -462,7 +463,7 @@ function HeadlineCardSkeleton({
           },
         ]}>
         {withActiveAction ? (
-          <BookmarkSimple size={16} weight="fill" color={theme.primary} />
+          <SavedForLaterActiveIcon width={14} height={16} color={theme.primary} />
         ) : (
           <BookmarkSimple size={16} weight="regular" color={theme.homeChipBorder} />
         )}
@@ -512,7 +513,7 @@ function NewsRowSkeleton({
 
         <View style={styles.newsSave}>
           {saved ? (
-            <BookmarkSimple size={18} weight="fill" color={theme.primary} />
+            <SavedForLaterActiveIcon width={18} height={20} color={theme.primary} />
           ) : (
             <BookmarkSimple size={20} weight="regular" color={theme.homeChipBorder} />
           )}

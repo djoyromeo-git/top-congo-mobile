@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ThemedText } from '../themed-text';
+import { SavedForLaterActiveIcon } from './saved-for-later-active-icon';
 
 type HeadlineCardProps = {
   badge: string;
@@ -73,7 +74,7 @@ export function HeadlineCard({
             pressed && styles.pressed,
           ]}>
           {actionActive ? (
-            <BookmarkSimple size={16} weight="fill" color={theme.primary} />
+            <SavedForLaterActiveIcon width={14} height={16} color={theme.primary} />
           ) : (
             <BookmarkSimple size={16} weight="regular" color={theme.primary} />
           )}
