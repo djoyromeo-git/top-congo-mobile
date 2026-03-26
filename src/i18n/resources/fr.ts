@@ -8,10 +8,10 @@ const fr = {
   },
   updates: {
     badge: 'Nouvelle version',
-    title: 'Une mise a jour est prete',
-    description: "Redemarrez l'application pour appliquer la derniere version de Top Congo.",
+    title: 'Une mise à jour est prête',
+    description: "Rédemarrez l'application pour appliquer la dernière version de Top Congo.",
     later: 'Plus tard',
-    restart: 'Redemarrer',
+    restart: "Rédemarrer",
   },
   tabs: {
     home: 'Accueil',

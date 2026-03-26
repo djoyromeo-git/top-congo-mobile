@@ -7,11 +7,12 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Updates from 'expo-updates';
 import React from 'react';
-import { ActivityIndicator, AppState, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, AppState, Modal, StyleSheet, View } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
+import { AppButton } from '@/components/ui/app-button';
 import { Palette } from '@/constants/theme';
 import { DrawerProvider, useDrawer } from '@/components/ui/drawer-context';
 import { DrawerPanel } from '@/components/ui/drawer-panel';
@@ -22,8 +23,18 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import '@/i18n';
 import { AppQueryProvider } from '@/shared/query/query-provider';
+import { AsyncStorageJsonStore } from '@/shared/storage/async-storage-json-store';
 
 void SplashScreen.preventAutoHideAsync();
+
+type PersistedPendingUpdatePrompt = {
+  kind: 'update' | 'rollback';
+  updateId?: string;
+};
+
+const pendingUpdatePromptStore = new AsyncStorageJsonStore<PersistedPendingUpdatePrompt>(
+  'app.update.pending-prompt'
+);
 
 const PRELOADED_IMAGE_ASSETS = [
   require('@/assets/expo.icon/Assets/logo-all-white.png'),
@@ -60,12 +71,25 @@ if (!Sentry.getClient()) {
 }
 
 function useAppUpdatePrompt(isUiReady: boolean) {
-  const { isUpdatePending } = Updates.useUpdates();
+  const { currentlyRunning, downloadedUpdate, isUpdatePending } = Updates.useUpdates();
   const [isVisible, setIsVisible] = React.useState(false);
   const [isReloading, setIsReloading] = React.useState(false);
   const [hasPendingPrompt, setHasPendingPrompt] = React.useState(false);
   const hasPromptedForUpdateRef = React.useRef(false);
   const isCheckingForUpdateRef = React.useRef(false);
+  const pendingUpdateRef = React.useRef<PersistedPendingUpdatePrompt | null>(null);
+
+  const persistPendingUpdate = React.useEffectEvent(
+    async (pendingUpdate: PersistedPendingUpdatePrompt) => {
+      pendingUpdateRef.current = pendingUpdate;
+      await pendingUpdatePromptStore.set(pendingUpdate);
+    }
+  );
+
+  const clearPendingUpdate = React.useEffectEvent(async () => {
+    pendingUpdateRef.current = null;
+    await pendingUpdatePromptStore.clear();
+  });
 
   const queueUpdatePrompt = React.useEffectEvent(() => {
     if (hasPromptedForUpdateRef.current || !Updates.isEnabled) {
@@ -92,6 +116,11 @@ function useAppUpdatePrompt(isUiReady: boolean) {
       const fetchResult = await Updates.fetchUpdateAsync();
 
       if (fetchResult.isNew || fetchResult.isRollBackToEmbedded) {
+        await persistPendingUpdate(
+          fetchResult.isRollBackToEmbedded
+            ? { kind: 'rollback' }
+            : { kind: 'update', updateId: fetchResult.manifest.id }
+        );
         queueUpdatePrompt();
       }
     } catch (error) {
@@ -112,6 +141,38 @@ function useAppUpdatePrompt(isUiReady: boolean) {
       return;
     }
 
+    let cancelled = false;
+
+    void pendingUpdatePromptStore
+      .get()
+      .then(async storedPendingUpdate => {
+        if (cancelled || !storedPendingUpdate) {
+          return;
+        }
+
+        const hasAppliedStoredUpdate =
+          storedPendingUpdate.kind === 'update'
+            ? storedPendingUpdate.updateId != null &&
+              storedPendingUpdate.updateId === currentlyRunning.updateId
+            : currentlyRunning.isEmbeddedLaunch;
+
+        if (hasAppliedStoredUpdate) {
+          await clearPendingUpdate();
+          return;
+        }
+
+        pendingUpdateRef.current = storedPendingUpdate;
+        queueUpdatePrompt();
+      })
+      .catch(error => {
+        Sentry.captureException(error, {
+          tags: {
+            feature: 'updates',
+            action: 'restorePendingPrompt',
+          },
+        });
+      });
+
     void checkForUpdates('launch');
 
     const subscription = AppState.addEventListener('change', nextAppState => {
@@ -121,17 +182,29 @@ function useAppUpdatePrompt(isUiReady: boolean) {
     });
 
     return () => {
+      cancelled = true;
       subscription.remove();
     };
-  }, [isUpdatePending]);
+  }, [currentlyRunning.isEmbeddedLaunch, currentlyRunning.updateId, isUpdatePending]);
 
   React.useEffect(() => {
     if (!Updates.isEnabled || !isUpdatePending) {
       return;
     }
 
+    const pendingUpdate =
+      downloadedUpdate?.type === Updates.UpdateInfoType.NEW
+        ? { kind: 'update', updateId: downloadedUpdate.updateId }
+        : downloadedUpdate?.type === Updates.UpdateInfoType.ROLLBACK
+          ? { kind: 'rollback' }
+          : pendingUpdateRef.current;
+
+    if (pendingUpdate) {
+      void persistPendingUpdate(pendingUpdate);
+    }
+
     queueUpdatePrompt();
-  }, [isUpdatePending]);
+  }, [downloadedUpdate, isUpdatePending]);
 
   React.useEffect(() => {
     if (!isUiReady || !hasPendingPrompt || hasPromptedForUpdateRef.current) {
@@ -148,13 +221,18 @@ function useAppUpdatePrompt(isUiReady: boolean) {
 
   const reload = React.useEffectEvent(async () => {
     setIsReloading(true);
+    const pendingUpdate = pendingUpdateRef.current;
 
     try {
+      await clearPendingUpdate();
       await Updates.reloadAsync();
     } catch (error) {
       setIsReloading(false);
       hasPromptedForUpdateRef.current = false;
       setIsVisible(true);
+      if (pendingUpdate) {
+        await persistPendingUpdate(pendingUpdate);
+      }
       Sentry.captureException(error, {
         tags: {
           feature: 'updates',
@@ -283,42 +361,42 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
           </View>
 
           <View style={styles.updateActions}>
-            <Pressable
-              accessibilityRole="button"
-              disabled={isReloading}
-              onPress={onDismiss}
-              style={({ pressed }) => [
-                styles.updateSecondaryButton,
-                {
-                  borderColor: theme.homeChipBorder,
-                  backgroundColor: theme.homeChipBackground,
-                  opacity: isReloading ? 0.65 : pressed ? 0.88 : 1,
-                },
-              ]}>
-              <ThemedText style={styles.updateSecondaryLabel}>{t('updates.later')}</ThemedText>
-            </Pressable>
+            <View style={styles.updateAction}>
+              <AppButton
+                accessibilityRole="button"
+                disabled={isReloading}
+                label={t('updates.later')}
+                onPress={onDismiss}
+                variant="ghost"
+                size="lg"
+                style={[
+                  styles.updateButton,
+                  styles.updateGhostButton,
+                  {
+                    borderColor: theme.homeChipBorder,
+                    backgroundColor: theme.homeChipBackground,
+                  },
+                ]}
+                labelStyle={styles.updateGhostLabel}
+              />
+            </View>
 
-            <Pressable
-              accessibilityRole="button"
-              disabled={isReloading}
-              onPress={() => {
-                void onReload();
-              }}
-              style={({ pressed }) => [
-                styles.updatePrimaryButton,
-                {
-                  backgroundColor: theme.primary,
-                  opacity: isReloading ? 0.88 : pressed ? 0.92 : 1,
-                },
-              ]}>
-              {isReloading ? (
-                <ActivityIndicator size="small" color={theme.onPrimary} />
-              ) : (
-                <ThemedText style={[styles.updatePrimaryLabel, { color: theme.onPrimary }]}>
-                  {t('updates.restart')}
-                </ThemedText>
-              )}
-            </Pressable>
+            <View style={styles.updateAction}>
+              <AppButton
+                accessibilityRole="button"
+                disabled={isReloading}
+                label={t('updates.restart')}
+                onPress={() => {
+                  void onReload();
+                }}
+                size="lg"
+                style={[styles.updateButton, styles.updatePrimaryButton]}
+                labelStyle={styles.updatePrimaryLabel}
+                rightAccessory={
+                  isReloading ? <ActivityIndicator size="small" color={theme.onPrimary} /> : null
+                }
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -392,24 +470,22 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 24,
   },
-  updateSecondaryButton: {
+  updateAction: {
     flex: 1,
-    minHeight: 52,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
   },
   updatePrimaryButton: {
-    flex: 1.15,
     minHeight: 52,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
   },
-  updateSecondaryLabel: {
+  updateButton: {
+    minHeight: 52,
+    borderRadius: 18,
+  },
+  updateGhostButton: {
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  updateGhostLabel: {
     fontSize: 15,
     fontWeight: '600',
   },
