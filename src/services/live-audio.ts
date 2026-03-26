@@ -70,6 +70,7 @@ let reconnectAttemptCount = 0;
 let shouldMaintainPlayback = false;
 let isReconnectInFlight = false;
 let bufferingSinceAt = 0;
+let shouldForceLiveEdgeOnNextPlay = false;
 let reconnectState: LiveReconnectState = {
   isReconnecting: false,
   attempt: 0,
@@ -429,6 +430,7 @@ function replaceSource(player: AudioPlayer) {
     name: currentLiveMetadata.title?.trim() || LIVE_PROGRAM_TITLE,
   });
   sourcePrepared = true;
+  shouldForceLiveEdgeOnNextPlay = false;
 }
 
 function shouldReloadSourceBeforePlay(status: AudioStatus) {
@@ -761,13 +763,21 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
     addLiveBreadcrumb('play.start', {
       playbackState: player.currentStatus.playbackState,
       isLoaded: player.currentStatus.isLoaded,
+      forceLiveEdge: shouldForceLiveEdgeOnNextPlay,
     });
 
     await ensureAudioModeConfigured();
     ensureSourcePrepared(player);
 
-    if (shouldReloadSourceBeforePlay(player.currentStatus)) {
-      addLiveBreadcrumb('play.reload_source', { playbackState: player.currentStatus.playbackState }, 'debug');
+    if (shouldForceLiveEdgeOnNextPlay || shouldReloadSourceBeforePlay(player.currentStatus)) {
+      addLiveBreadcrumb(
+        'play.reload_source',
+        {
+          playbackState: player.currentStatus.playbackState,
+          forceLiveEdge: shouldForceLiveEdgeOnNextPlay,
+        },
+        'debug'
+      );
       replaceSource(player);
     }
 
@@ -790,6 +800,7 @@ export async function playLiveAudio(metadata?: AudioMetadata) {
 export function pauseLiveAudio() {
   const player = getLiveAudioPlayer();
   shouldMaintainPlayback = false;
+  shouldForceLiveEdgeOnNextPlay = true;
   setPlaybackRequestState({ wantsPlayback: false });
   reconnectAttemptCount = 0;
   bufferingSinceAt = 0;
@@ -800,7 +811,10 @@ export function pauseLiveAudio() {
   });
   clearReconnectTimer();
   stopReconnectWatchdog();
-  addLiveBreadcrumb('pause.start', { playbackState: player.currentStatus.playbackState });
+  addLiveBreadcrumb('pause.start', {
+    playbackState: player.currentStatus.playbackState,
+    forceLiveEdgeOnNextPlay: true,
+  });
   player.pause();
   syncNowPlayingPolling();
   addLiveBreadcrumb('pause.success');
