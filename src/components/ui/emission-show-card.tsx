@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowRight } from 'phosphor-react-native';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
 import { ContentImage } from '@/components/ui/content-image';
@@ -17,6 +18,7 @@ type Props = {
 
 export function EmissionShowCard({ title, host, imageSource, onPress }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Pressable style={({ pressed }) => [styles.card, pressed && styles.pressed]} onPress={onPress}>
@@ -41,7 +43,7 @@ export function EmissionShowCard({ title, host, imageSource, onPress }: Props) {
           {title}
         </ThemedText>
         <ThemedText numberOfLines={1} style={styles.host}>
-          Avec {host}
+          {t('emissions.withHost', { host })}
         </ThemedText>
       </View>
 
