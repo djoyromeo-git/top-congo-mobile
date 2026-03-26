@@ -7,24 +7,24 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Updates from 'expo-updates';
 import React from 'react';
-import { ActivityIndicator, AppState, Modal, StyleSheet, View } from 'react-native';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, AppState, Modal, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { ThemedText } from '@/components/themed-text';
 import { AppButton } from '@/components/ui/app-button';
-import { Palette } from '@/constants/theme';
 import { DrawerProvider, useDrawer } from '@/components/ui/drawer-context';
 import { DrawerPanel } from '@/components/ui/drawer-panel';
+import { Palette } from '@/constants/theme';
 import { AuthSessionProvider } from '@/features/auth/presentation/auth-session-provider';
 import '@/features/notifications/infrastructure/background-notification-task';
 import { useNotificationBootstrap } from '@/features/notifications/presentation/use-notification-bootstrap';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import '@/i18n';
+import { useLivePlaybackErrorState } from '@/services/live-audio';
 import { AppQueryProvider } from '@/shared/query/query-provider';
 import { AsyncStorageJsonStore } from '@/shared/storage/async-storage-json-store';
-import { useLivePlaybackErrorState } from '@/services/live-audio';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -335,7 +335,7 @@ function RootLayout() {
                 onReload={updatePrompt.reload}
               />
               <AppToast
-                isVisible={toastVisible}
+                isVisible={toastVisible && !updatePrompt.isVisible}
                 message={livePlaybackToastMessage}
               />
             </ThemeProvider>
@@ -363,6 +363,8 @@ type UpdatePromptModalProps = {
 function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: UpdatePromptModalProps) {
   const theme = useTheme();
   const { t } = useTranslation();
+  const { width: viewportWidth } = useWindowDimensions();
+  const useStackedActions = viewportWidth < 390;
 
   return (
     <Modal
@@ -398,7 +400,7 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
             </ThemedText>
           </View>
 
-          <View style={styles.updateActions}>
+          <View style={[styles.updateActions, useStackedActions && styles.updateActionsStacked]}>
             <View style={styles.updateAction}>
               <AppButton
                 accessibilityRole="button"
@@ -406,7 +408,6 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
                 label={t('updates.later')}
                 onPress={onDismiss}
                 variant="ghost"
-                size="lg"
                 style={[
                   styles.updateButton,
                   styles.updateGhostButton,
@@ -427,7 +428,6 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
                 onPress={() => {
                   void onReload();
                 }}
-                size="lg"
                 style={[styles.updateButton, styles.updatePrimaryButton]}
                 labelStyle={styles.updatePrimaryLabel}
                 rightAccessory={
@@ -567,6 +567,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginTop: 24,
+  },
+  updateActionsStacked: {
+    flexDirection: 'column',
   },
   updateAction: {
     flex: 1,
