@@ -32,7 +32,6 @@ export default function EmissionsScreen() {
     () => (filter === 'all' ? shows : shows.filter((item) => item.slug === filter)),
     [filter, shows]
   );
-  const activeEmission = filter === 'all' ? null : filtered[0] ?? null;
 
   const handleRefresh = React.useCallback(() => {
     void showsQuery.refetch();
@@ -92,20 +91,6 @@ export default function EmissionsScreen() {
           )}
         </View>
 
-        {activeEmission ? (
-          <View style={styles.episodes}>
-            <ThemedText style={styles.sectionTitle}>{t('emissions.about')}</ThemedText>
-            <View style={styles.highlight}>
-              <ThemedText style={styles.highlightTitle}>{activeEmission.title}</ThemedText>
-              <ThemedText style={[styles.highlightHost, { color: theme.homeSubtitle }]}>
-                {t('emissions.withHost', { host: activeEmission.host })}
-              </ThemedText>
-              <ThemedText style={[styles.highlightDescription, { color: theme.homeSubtitle }]}>
-                {activeEmission.description || t('emissions.noDescription')}
-              </ThemedText>
-            </View>
-          </View>
-        ) : null}
       </ScrollView>
     </View>
   );
@@ -143,40 +128,6 @@ const styles = StyleSheet.create({
   },
   cards: {
     gap: Spacing.two,
-  },
-  episodes: {
-    gap: Spacing.one,
-    paddingBottom: Spacing.two,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: '700',
-    color: Palette.neutral['800'],
-    paddingHorizontal: 2,
-    marginTop: Spacing.one,
-  },
-  highlight: {
-    backgroundColor: '#EAF2FF',
-    borderRadius: 10,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two,
-    gap: Spacing.one,
-  },
-  highlightTitle: {
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: '700',
-    color: Palette.neutral['800'],
-  },
-  highlightHost: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '500',
-  },
-  highlightDescription: {
-    fontSize: 14,
-    lineHeight: 20,
   },
   emptyState: {
     paddingVertical: Spacing.three,
