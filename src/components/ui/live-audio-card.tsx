@@ -17,6 +17,7 @@ const WEB_LIVE_WAVE_SOURCE = require('@/assets/images/waveform-top-congo.png');
 type LiveAudioCardProps = {
   title: string;
   subtitle?: string;
+  errorMessage?: string | null;
   onPressCard?: () => void;
   onPressPlay?: () => void;
   isPlaying?: boolean;
@@ -29,6 +30,7 @@ type LiveAudioCardProps = {
 export function LiveAudioCard({
   title,
   subtitle,
+  errorMessage,
   onPressCard,
   onPressPlay,
   isPlaying = false,
@@ -183,7 +185,11 @@ export function LiveAudioCard({
               <ThemedText style={[styles.liveText, { color: theme.onPrimary }]}>{t('auth.liveBadge')}</ThemedText>
             </View>
             <ThemedText style={styles.title}>{title}</ThemedText>
-            {/* {!!subtitle && <ThemedText style={styles.subtitle}>{subtitle}</ThemedText>} */}
+            {!!(errorMessage || subtitle) && (
+              <ThemedText style={[styles.subtitle, errorMessage ? styles.errorSubtitle : null]}>
+                {errorMessage || subtitle}
+              </ThemedText>
+            )}
           </View>
         </Pressable>
 
@@ -293,8 +299,13 @@ const styles = StyleSheet.create({
   subtitle: {
     color: Palette.neutral['100'],
     opacity: 0.85,
-    fontSize: 15,
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  errorSubtitle: {
+    opacity: 1,
+    fontWeight: '600',
   },
   playButton: {
     width: 50,

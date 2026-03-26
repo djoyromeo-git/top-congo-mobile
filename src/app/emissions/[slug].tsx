@@ -24,7 +24,7 @@ export default function EmissionDetailScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting, errorMessage } = useLiveAudioStatus();
   const showsQuery = useEmissionShows();
   const shows = React.useMemo(() => showsQuery.data ?? [], [showsQuery.data]);
   const emission = React.useMemo(() => findEmissionShow(shows, slug), [shows, slug]);
@@ -129,7 +129,8 @@ export default function EmissionDetailScreen() {
         <LiveAudioCard
           loading={false}
           title={program.title}
-          subtitle={program.schedule || undefined}
+          subtitle={errorMessage || program.schedule || undefined}
+          errorMessage={errorMessage}
           onPressCard={() => router.push('/direct')}
           onPressPlay={() => router.push('/direct')}
           isPlaying={isPlaying}

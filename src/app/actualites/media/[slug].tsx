@@ -27,7 +27,7 @@ export default function ActualiteMediaScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const program = useLiveProgramInfo();
-  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting, errorMessage } = useLiveAudioStatus();
   const postsQuery = usePosts();
   const posts = React.useMemo(() => postsQuery.data ?? [], [postsQuery.data]);
   const item = React.useMemo(() => findPost(posts, slug), [posts, slug]);
@@ -228,7 +228,8 @@ export default function ActualiteMediaScreen() {
         <LiveAudioCard
           loading={false}
           title={t('homeFeed.liveCardTitle')}
-          subtitle={program.schedule || undefined}
+          subtitle={errorMessage || program.schedule || undefined}
+          errorMessage={errorMessage}
           onPressCard={() => router.push('/direct')}
           onPressPlay={() => router.push('/direct')}
           isPlaying={isPlaying}

@@ -53,7 +53,7 @@ export default function DirectScreen() {
   const drawer = useDrawer();
   const params = useLocalSearchParams<{ mode?: string | string[] }>();
   const theme = useTheme();
-  const { isPlaying, isBuffering, isStarting } = useLiveAudioStatus();
+  const { isPlaying, isBuffering, isStarting, errorMessage } = useLiveAudioStatus();
   const program = useLiveProgramInfo();
   const [mode, setMode] = React.useState<DirectMode>('video');
   const [isMuted, setIsMuted] = React.useState(false);
@@ -219,6 +219,12 @@ export default function DirectScreen() {
                 </View>
               </View>
             </View>
+
+            {errorMessage ? (
+              <View style={styles.audioErrorWrap}>
+                <ThemedText style={styles.audioErrorText}>{errorMessage}</ThemedText>
+              </View>
+            ) : null}
 
             <View style={[styles.scheduleSection, { backgroundColor: theme.surfaceMuted }]}>
               <ThemedText style={styles.scheduleHeading}>{t('direct.upNext')}</ThemedText>
@@ -468,6 +474,16 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.three,
     paddingTop: 20,
+  },
+  audioErrorWrap: {
+    paddingHorizontal: Spacing.three,
+    paddingTop: 12,
+  },
+  audioErrorText: {
+    color: Palette.red['800'],
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
   },
   scheduleList: {
     position: 'relative',
