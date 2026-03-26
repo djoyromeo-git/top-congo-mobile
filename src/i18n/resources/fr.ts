@@ -6,6 +6,13 @@ const fr = {
     learnMore: 'Voir plus',
     docs: 'Documentation',
   },
+  updates: {
+    badge: 'Nouvelle version',
+    title: 'Une mise a jour est prete',
+    description: "Redemarrez l'application pour appliquer la derniere version de Top Congo.",
+    later: 'Plus tard',
+    restart: 'Redemarrer',
+  },
   tabs: {
     home: 'Accueil',
     explore: 'Explorer',

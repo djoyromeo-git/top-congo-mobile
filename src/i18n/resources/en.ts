@@ -6,6 +6,13 @@ const en = {
     learnMore: 'Learn more',
     docs: 'Docs',
   },
+  updates: {
+    badge: 'New version',
+    title: 'An update is ready',
+    description: 'Restart the app to apply the latest Top Congo version.',
+    later: 'Later',
+    restart: 'Restart',
+  },
   tabs: {
     home: 'Home',
     explore: 'Explore',
