@@ -408,9 +408,7 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
                 label={t('updates.later')}
                 onPress={onDismiss}
                 variant="ghost"
-                size={useCompactActions ? 'sm' : 'md'}
                 style={[
-                  styles.updateButton,
                   styles.updateGhostButton,
                   {
                     borderColor: theme.homeChipBorder,
@@ -429,8 +427,6 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
                 onPress={() => {
                   void onReload();
                 }}
-                size={useCompactActions ? 'sm' : 'md'}
-                style={[styles.updateButton, styles.updatePrimaryButton]}
                 labelStyle={styles.updatePrimaryLabel}
                 rightAccessory={
                   isReloading ? <ActivityIndicator size="small" color={theme.onPrimary} /> : null
@@ -579,18 +575,6 @@ const styles = StyleSheet.create({
   updateAction: {
     flex: 1,
     minWidth: 0,
-  },
-  updatePrimaryButton: {
-    minHeight: 52,
-    borderRadius: 18,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  updateButton: {
-    minHeight: 52,
-    borderRadius: 18,
   },
   updateGhostButton: {
     shadowOpacity: 0,
