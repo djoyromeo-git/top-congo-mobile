@@ -78,7 +78,7 @@ const fr = {
     emptyAll: 'Aucune actualite disponible.',
   },
   actualites: {
-    title: 'Actualites',
+    title: 'Actualités',
     all: 'Tous',
     loading: 'Chargement des actualites...',
     error: 'Impossible de charger les actualites.',
