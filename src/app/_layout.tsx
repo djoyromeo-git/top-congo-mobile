@@ -364,7 +364,7 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
   const theme = useTheme();
   const { t } = useTranslation();
   const { width: viewportWidth } = useWindowDimensions();
-  const useStackedActions = viewportWidth < 390;
+  const useCompactActions = viewportWidth < 390;
 
   return (
     <Modal
@@ -400,7 +400,7 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
             </ThemedText>
           </View>
 
-          <View style={[styles.updateActions, useStackedActions && styles.updateActionsStacked]}>
+          <View style={[styles.updateActions, useCompactActions && styles.updateActionsCompact]}>
             <View style={styles.updateAction}>
               <AppButton
                 accessibilityRole="button"
@@ -408,6 +408,7 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
                 label={t('updates.later')}
                 onPress={onDismiss}
                 variant="ghost"
+                size={useCompactActions ? 'sm' : 'md'}
                 style={[
                   styles.updateButton,
                   styles.updateGhostButton,
@@ -428,6 +429,7 @@ function UpdatePromptModal({ isVisible, isReloading, onDismiss, onReload }: Upda
                 onPress={() => {
                   void onReload();
                 }}
+                size={useCompactActions ? 'sm' : 'md'}
                 style={[styles.updateButton, styles.updatePrimaryButton]}
                 labelStyle={styles.updatePrimaryLabel}
                 rightAccessory={
@@ -507,9 +509,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(8, 12, 20, 0.56)',
     justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 24,
   },
   updateCard: {
+    width: '100%',
+    maxWidth: 420,
     borderRadius: 28,
     borderWidth: 1,
     padding: 24,
@@ -568,15 +573,20 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 24,
   },
-  updateActionsStacked: {
-    flexDirection: 'column',
+  updateActionsCompact: {
+    gap: 10,
   },
   updateAction: {
     flex: 1,
+    minWidth: 0,
   },
   updatePrimaryButton: {
     minHeight: 52,
     borderRadius: 18,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    elevation: 2,
   },
   updateButton: {
     minHeight: 52,
