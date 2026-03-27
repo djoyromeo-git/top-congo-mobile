@@ -27,12 +27,16 @@ export function ContentImage({
   const [resolvedSource, setResolvedSource] = React.useState<string | number>(source ?? fallbackSource);
   const [isLoading, setIsLoading] = React.useState(typeof (source ?? fallbackSource) === 'string');
   const [didFallback, setDidFallback] = React.useState(false);
+  const [didRetryWithoutCache, setDidRetryWithoutCache] = React.useState(false);
+  const [imageRequestKey, setImageRequestKey] = React.useState(0);
 
   React.useEffect(() => {
     const nextSource = source ?? fallbackSource;
     setResolvedSource(nextSource);
     setDidFallback(false);
+    setDidRetryWithoutCache(false);
     setIsLoading(typeof nextSource === 'string');
+    setImageRequestKey((current) => current + 1);
   }, [fallbackSource, source]);
 
   const handleLoadEnd = React.useCallback(() => {
@@ -45,19 +49,35 @@ export function ContentImage({
       return;
     }
 
+    if (typeof resolvedSource === 'string' && resolvedSource === source && !didRetryWithoutCache) {
+      setDidRetryWithoutCache(true);
+      setIsLoading(true);
+      setImageRequestKey((current) => current + 1);
+      return;
+    }
+
     setDidFallback(true);
     setResolvedSource(fallbackSource);
     setIsLoading(typeof fallbackSource === 'string');
-  }, [didFallback, fallbackSource, resolvedSource]);
+    setImageRequestKey((current) => current + 1);
+  }, [didFallback, didRetryWithoutCache, fallbackSource, resolvedSource, source]);
+
+  const imageSource =
+    typeof resolvedSource === 'string'
+      ? {
+          uri: resolvedSource,
+        }
+      : resolvedSource;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.homeChipBorder }, style]}>
       {isLoading ? <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.homeChipBackground }]} /> : null}
       <Image
-        source={resolvedSource}
+        key={imageRequestKey}
+        source={imageSource}
         style={StyleSheet.absoluteFillObject}
         contentFit={contentFit}
-        cachePolicy="memory-disk"
+        cachePolicy={didRetryWithoutCache ? 'none' : 'memory-disk'}
         transition={transition}
         onLoadEnd={handleLoadEnd}
         onError={handleError}
