@@ -32,7 +32,8 @@ export default function TabsLayout() {
   const [isHomeLoading, setIsHomeLoading] = React.useState(true);
   const isSearchScreen = pathname === '/search';
   const isDirectScreen = pathname === '/direct';
-  const usesCustomScreenHeader = isSearchScreen || isDirectScreen;
+  const isPodcastScreen = pathname === '/podcasts';
+  const usesCustomScreenHeader = isSearchScreen || isDirectScreen || isPodcastScreen;
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
