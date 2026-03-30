@@ -37,6 +37,25 @@ export default function PodcastEpisodeScreen() {
   const [muted, setMuted] = React.useState(false);
   const [savedMap, setSavedMap] = React.useState<Record<string, boolean>>({});
   const [showMiniPlayer, setShowMiniPlayer] = React.useState(true);
+  const miniPlayerBottom = insets.bottom + 10;
+  const description = React.useMemo(() => {
+    if (!item) {
+      return '';
+    }
+
+    const episodeDescription = item.description.trim();
+    const showDescription = item.showDescription.trim();
+
+    if (episodeDescription.length >= 80) {
+      return episodeDescription;
+    }
+
+    if (showDescription.length > 0) {
+      return showDescription;
+    }
+
+    return episodeDescription;
+  }, [item]);
 
   React.useEffect(() => {
     if (item?.hasVideo) {
@@ -83,27 +102,30 @@ export default function PodcastEpisodeScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surfaceMuted }]}>
-      <AppTopBar
-        leftAction={{
-          icon: <ArrowLeft size={22} weight="bold" color={theme.onPrimary} />,
-          onPress: () => router.back(),
-        }}
-        rightAction={{
-          icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
-          onPress: () => router.push('/search' as never),
-        }}
-        centerContent={<ThemedText style={styles.headerTitle}>Podcast</ThemedText>}
-      />
+      <View style={styles.headerBlock}>
+        <AppTopBar
+          leftAction={{
+            icon: <ArrowLeft size={22} weight="bold" color={theme.onPrimary} />,
+            onPress: () => router.back(),
+          }}
+          rightAction={{
+            icon: <MagnifyingGlass size={22} weight="bold" color={theme.onPrimary} />,
+            onPress: () => router.push('/search' as never),
+          }}
+          centerContent={<ThemedText style={styles.headerTitle}>Podcast</ThemedText>}
+          style={styles.topBar}
+        />
 
-      <View style={styles.modeWrap}>
-        <View style={styles.modeTabs}>
-          <ModeButton label="Video" active={mediaMode === 'video'} onPress={() => setMediaMode('video')} disabled={!item?.hasVideo} />
-          <ModeButton label="Audio" active={mediaMode === 'audio'} onPress={() => setMediaMode('audio')} />
+        <View style={styles.modeWrap}>
+          <View style={styles.modeTabs}>
+            <ModeButton label="Video" active={mediaMode === 'video'} onPress={() => setMediaMode('video')} disabled={!item?.hasVideo} />
+            <ModeButton label="Audio" active={mediaMode === 'audio'} onPress={() => setMediaMode('audio')} />
+          </View>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + (showMiniPlayer ? 118 : 28) }]}
+        contentContainerStyle={[styles.content, { paddingBottom: (showMiniPlayer ? miniPlayerBottom + 96 : insets.bottom + 28) }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={showsQuery.isRefetching} onRefresh={() => void showsQuery.refetch()} tintColor={theme.primary} />
@@ -144,9 +166,9 @@ export default function PodcastEpisodeScreen() {
             </View>
 
             <View style={styles.body}>
-              <ThemedText style={styles.title}>{item.showTitle}</ThemedText>
+              <ThemedText style={styles.title}>{item.title}</ThemedText>
               <ThemedText style={[styles.meta, { color: theme.headlineDate }]}>
-                {['EMISSION', item.dateLabel.toUpperCase()].join(' | ')}
+                {['EMISSION', item.dateLabel.toUpperCase()].join(' - ')}
               </ThemedText>
 
               <View style={styles.hostCard}>
@@ -158,50 +180,58 @@ export default function PodcastEpisodeScreen() {
               </View>
 
               <ThemedText style={[styles.description, { color: theme.homeSubtitle }]}>
-                {item.description || item.showDescription || 'Aucune description disponible.'}
+                {description || 'Aucune description disponible.'}
               </ThemedText>
 
-              <View style={styles.sectionHeader}>
-                <ThemedText style={styles.sectionTitle}>A decouvrir aussi</ThemedText>
-                <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
-              </View>
+              {relatedItems.length > 0 ? (
+                <>
+                  <View style={styles.sectionHeader}>
+                    <ThemedText style={styles.sectionTitle}>A decouvrir aussi</ThemedText>
+                    <View style={[styles.sectionDivider, { backgroundColor: theme.homeChipBorder }]} />
+                  </View>
 
-              <View style={styles.relatedList}>
-                {relatedItems.map((entry, index) => (
-                  <PodcastDiscoveryItem
-                    key={entry.key}
-                    item={entry}
-                    saved={savedMap[entry.key] ?? false}
-                    showDivider={index < relatedItems.length - 1}
-                    onPress={() => openItem(entry)}
-                    onPressSave={() => toggleSaved(entry.key)}
-                  />
-                ))}
-              </View>
+                  <View style={styles.relatedList}>
+                    {relatedItems.map((entry, index) => (
+                      <PodcastDiscoveryItem
+                        key={entry.key}
+                        item={entry}
+                        saved={savedMap[entry.key] ?? false}
+                        showDivider={index < relatedItems.length - 1}
+                        onPress={() => openItem(entry)}
+                        onPressSave={() => toggleSaved(entry.key)}
+                      />
+                    ))}
+                  </View>
+                </>
+              ) : null}
             </View>
           </>
         ) : null}
       </ScrollView>
 
       {item && showMiniPlayer ? (
-        <View style={[styles.miniPlayerWrap, { bottom: insets.bottom + 12 }]}>
+        <View style={[styles.miniPlayerWrap, { bottom: miniPlayerBottom }]}>
           <View style={styles.miniPlayer}>
             <View style={styles.miniPlayerMain}>
               <ContentImage source={item.imageSource} style={styles.miniPlayerThumb} />
               <ThemedText numberOfLines={2} style={styles.miniPlayerTitle}>
-                {item.showTitle}
+                {item.title}
               </ThemedText>
             </View>
 
             <View style={styles.miniPlayerActions}>
-              <Pressable style={({ pressed }) => [styles.miniPlayerButton, pressed && styles.pressed]} onPress={() => setPlaying((current) => !current)}>
+              <Pressable
+                style={({ pressed }) => [styles.miniPlayerPlayButton, pressed && styles.pressed]}
+                onPress={() => setPlaying((current) => !current)}>
                 {playing ? (
-                  <Pause size={22} weight="fill" color={Palette.neutral['100']} />
+                  <Pause size={22} weight="fill" color={Palette.red['800']} />
                 ) : (
-                  <Play size={22} weight="fill" color={Palette.neutral['100']} />
+                  <Play size={22} weight="fill" color={Palette.red['800']} style={styles.miniPlayerPlayIcon} />
                 )}
               </Pressable>
-              <Pressable style={({ pressed }) => [styles.miniPlayerButton, pressed && styles.pressed]} onPress={() => setShowMiniPlayer(false)}>
+              <Pressable
+                style={({ pressed }) => [styles.miniPlayerCloseButton, pressed && styles.pressed]}
+                onPress={() => setShowMiniPlayer(false)}>
                 <X size={20} weight="bold" color="rgba(255,255,255,0.7)" />
               </Pressable>
             </View>
@@ -318,10 +348,15 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '700',
   },
-  modeWrap: {
+  headerBlock: {
     backgroundColor: Palette.blue['800'],
+  },
+  topBar: {
+    paddingBottom: 0,
+  },
+  modeWrap: {
     paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingTop: 0,
     paddingBottom: Spacing.three,
   },
   modeTabs: {
@@ -422,17 +457,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    marginTop: -10,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
     backgroundColor: '#F3F3F5',
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
     gap: 14,
   },
   title: {
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 18,
+    lineHeight: 24,
     fontWeight: '700',
     color: Palette.neutral['800'],
   },
@@ -562,12 +594,15 @@ const styles = StyleSheet.create({
     right: 16,
   },
   miniPlayer: {
-    minHeight: 74,
-    borderRadius: 8,
+    minHeight: 80,
+    borderRadius: 7,
     backgroundColor: '#12244F',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    justifyContent: 'space-between',
+    paddingLeft: 12,
+    paddingRight: 10,
+    paddingVertical: Spacing.two,
     gap: 12,
   },
   miniPlayerMain: {
@@ -591,11 +626,22 @@ const styles = StyleSheet.create({
   miniPlayerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 6,
   },
-  miniPlayerButton: {
-    width: 34,
-    height: 34,
+  miniPlayerPlayButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: Palette.neutral['100'],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniPlayerPlayIcon: {
+    marginLeft: 2,
+  },
+  miniPlayerCloseButton: {
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
