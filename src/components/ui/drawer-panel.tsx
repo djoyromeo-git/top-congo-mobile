@@ -315,7 +315,11 @@ export function DrawerPanel({ isOpen, onClose }: DrawerPanelProps) {
               onPress={() => handleNavigate('/direct')}
             />
 
-            <DrawerMenuItem icon={<CalendarDots size={22} weight="fill" color={theme.homeTitle} />} label={t('drawer.programs')} />
+            <DrawerMenuItem
+              icon={<CalendarDots size={22} weight="fill" color={theme.homeTitle} />}
+              label={t('drawer.programs')}
+              onPress={() => handleNavigate('/schedule-slots')}
+            />
 
             <DrawerMenuItem
               icon={<SealCheck size={21} weight="fill" color={theme.homeTitle} />}
